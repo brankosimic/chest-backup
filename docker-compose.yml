@@ -1,0 +1,15 @@
+services:
+  chest-backup:
+    build: .
+    volumes:
+      - ./chest-backup.json:/app/chest-backup.json:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - backup-data:/var/lib/chest-backup
+    env_file:
+      - .env
+    environment:
+      - TZ=UTC
+    restart: unless-stopped
+
+volumes:
+  backup-data:

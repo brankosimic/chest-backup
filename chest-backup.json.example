@@ -1,0 +1,45 @@
+{
+  "schedule": "0 3 * * *",
+  "retention": 7,
+  "sources": [
+    { "path": "/data/documents" },
+    { "path": "/data/config.yaml" }
+  ],
+  "destinations": [
+    {
+      "type": "local",
+      "path": "/backups/local",
+      "retention": 30,
+      "parallel": true
+    },
+    {
+      "type": "ftp",
+      "host": "backups.example.com",
+      "port": 21,
+      "user": "backupuser",
+      "password": "${FTP_PASSWORD}",
+      "path": "/backups",
+      "parallel": false
+    }
+  ],
+  "databases": [
+    {
+      "type": "host",
+      "connectionString": "postgresql://user:pass@host:5432/mydb",
+      "database": "mydb"
+    },
+    {
+      "type": "docker",
+      "containerName": "my-postgres",
+      "database": "mydb",
+      "username": "user",
+      "password": "${DB_PASSWORD}"
+    }
+  ],
+  "containers": ["my-app", "my-worker"],
+  "notifications": {
+    "discord": {
+      "webhookUrl": "https://discord.com/api/webhooks/${WEBHOOK_ID}/${WEBHOOK_TOKEN}"
+    }
+  }
+}
