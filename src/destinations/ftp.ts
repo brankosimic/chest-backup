@@ -78,6 +78,7 @@ const storeFtp = async (
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : String(err) }
   } finally {
+    try { (client.ftp.socket as { destroy: () => void })?.destroy() } catch {}
     client.close()
   }
 }
