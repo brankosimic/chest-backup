@@ -7,7 +7,19 @@ import { logger } from "../utils/logger"
 const MAX_RETRIES = 3
 const BASE_DELAY_MS = 1000
 
-async function storeFtp(archivePath: string, dest: Destination): Promise<StoreResult> {
+async function uploadFile(client: Client, localPath: string, remoteDir: string): Promise<void> {
+  const fileName = localPath.split("/").pop()
+  if (!fileName) return
+  const readStream = createReadStream(localPath)
+  const base = remoteDir.replace(/\/+$/, "")
+  await client.uploadFrom(readStream, `${base}/${fileName}`)
+}
+
+async function storeFtp(
+  archivePath: string,
+  checksumFile: string | undefined,
+  dest: Destination,
+): Promise<StoreResult> {
   if (!dest.host || !dest.user || !dest.password) {
     return { success: false, error: "FTP destination missing host, user, or password" }
   }
@@ -30,15 +42,16 @@ async function storeFtp(archivePath: string, dest: Destination): Promise<StoreRe
       await client.access(accessOptions)
       await client.ensureDir(dest.path)
 
-      const archiveName = archivePath.split("/").pop()
-      if (!archiveName) return { success: false, error: "Invalid archive path" }
+      const archiveName = archivePath.split("/").pop() ?? ""
+      await uploadFile(client, archivePath, dest.path)
+      logger.info({ remotePath: `${dest.path}/${archiveName}` }, "archive uploaded to FTP destination")
 
-      const readStream = createReadStream(archivePath)
-      const base = dest.path.replace(/\/+$/, "")
-      const remotePath = `${base}/${archiveName}`
-      await client.uploadFrom(readStream, remotePath)
+      if (checksumFile) {
+        await uploadFile(client, checksumFile, dest.path)
+        const checksumName = checksumFile.split("/").pop() ?? ""
+        logger.info({ remotePath: `${dest.path}/${checksumName}` }, "checksum uploaded to FTP destination")
+      }
 
-      logger.info({ remotePath }, "archive uploaded to FTP destination")
       return { success: true }
     } catch (err) {
       lastError = err instanceof Error ? err : new Error(String(err))

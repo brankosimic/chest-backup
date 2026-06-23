@@ -41,6 +41,9 @@ async function enforceRetention(destination: Destination, archivePrefix: string,
     } catch (err) {
       logger.error({ file, err }, "failed to delete old archive")
     }
+
+    const shaPath = `${filePath}.sha256`
+    try { unlinkSync(shaPath) } catch { logger.debug({ file: shaPath }, "checksum file not found for cleanup") }
   }
 }
 

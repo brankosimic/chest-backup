@@ -1,8 +1,9 @@
 import { unlinkSync, statSync } from "node:fs"
 import type { Config } from "../types/config"
 import type { Destination } from "../types/config"
-import type { BackupResult, StoreResult } from "../types/index"
+import type { BackupResult, StoreResult, VerifyResult } from "../types/index"
 import { formatTimestamp, createArchive } from "./archiver"
+import { verifyArchive } from "./verify"
 import { resolveSources } from "./sources"
 import { enforceRetention } from "./retention"
 import { dumpHostDatabase, dumpDockerDatabase } from "../database/postgres"
@@ -32,11 +33,12 @@ async function startBackupContainers(containers: string[] | undefined, errors: s
 
 async function storeToDestination(
   archivePath: string,
+  checksumFile: string | undefined,
   dest: Destination,
   retention: number,
   errors: string[],
 ): Promise<StoreResult> {
-  const result = await handleDestination(archivePath, dest)
+  const result = await handleDestination(archivePath, checksumFile, dest)
 
   if (result.success) {
     try { await enforceRetention(dest, "chest-backup", retention) } catch (err) {
@@ -81,18 +83,23 @@ function sendNotification(config: Config, result: BackupResult): void {
   })
 }
 
-async function dispatchToDestinations(archivePath: string, config: Config, errors: string[]): Promise<StoreResult[]> {
+async function dispatchToDestinations(
+  archivePath: string,
+  checksumFile: string | undefined,
+  config: Config,
+  errors: string[],
+): Promise<StoreResult[]> {
   const sequential = config.destinations.filter((d) => !d.parallel)
   const parallel = config.destinations.filter((d) => d.parallel)
   const results: StoreResult[] = []
 
   for (const dest of sequential) {
-    results.push(await storeToDestination(archivePath, dest, config.retention, errors))
+    results.push(await storeToDestination(archivePath, checksumFile, dest, config.retention, errors))
   }
 
   if (parallel.length) {
     const parallelResults = await Promise.all(
-      parallel.map((dest) => storeToDestination(archivePath, dest, config.retention, errors)),
+      parallel.map((dest) => storeToDestination(archivePath, checksumFile, dest, config.retention, errors)),
     )
     results.push(...parallelResults)
   }
@@ -131,6 +138,7 @@ async function runBackup(config: Config): Promise<BackupResult> {
     }
 
     let archivePath: string
+    let verification: VerifyResult | undefined
     try {
       archivePath = await createArchive(timestamp, sources, dbDumps)
       tempFiles.push(archivePath)
@@ -145,7 +153,14 @@ async function runBackup(config: Config): Promise<BackupResult> {
       }
     }
 
-    const destinationResults = await dispatchToDestinations(archivePath, config, errors)
+    try {
+      verification = await verifyArchive(archivePath)
+      tempFiles.push(verification.checksumFile)
+    } catch (err) {
+      errors.push(`Archive verification failed: ${String(err)}`)
+    }
+
+    const destinationResults = await dispatchToDestinations(archivePath, verification?.checksumFile, config, errors)
     const successCount = destinationResults.filter((r) => r.success).length
     const result: BackupResult = {
       success: successCount === destinationResults.length,
@@ -155,6 +170,7 @@ async function runBackup(config: Config): Promise<BackupResult> {
       durationMs: Date.now() - startTime,
       destinationResults,
       errors,
+      verification,
     }
 
     sendNotification(config, result)

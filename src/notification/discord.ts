@@ -41,6 +41,12 @@ function buildEmbed(result: BackupResult): DiscordEmbed {
     fields.push({ name: "Size", value: `${sizeMb} MB`, inline: true })
   }
 
+  if (result.verification) {
+    const icon = result.verification.integrity ? "✅" : "❌"
+    const shortChecksum = result.verification.checksum.slice(0, 16)
+    fields.push({ name: "Verification", value: `${icon} Integrity: ${result.verification.integrity ? "Pass" : "Fail"}\`\`\`sha256:${shortChecksum}...\`\`\``, inline: false })
+  }
+
   fields.push({ name: "Duration", value: `${result.durationMs}ms`, inline: true })
   fields.push({ name: "Destinations", value: `${successCount} succeeded, ${failCount} failed`, inline: false })
 

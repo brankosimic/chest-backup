@@ -4,7 +4,17 @@ import type { Destination } from "../types/config"
 import type { StoreResult } from "../types/index"
 import { logger } from "../utils/logger"
 
-async function storeLocal(archivePath: string, dest: Destination): Promise<StoreResult> {
+function copyChecksum(checksumFile: string, destDir: string): void {
+  const shaName = checksumFile.split("/").pop()
+  if (!shaName) return
+  cpSync(checksumFile, join(destDir, shaName))
+}
+
+async function storeLocal(
+  archivePath: string,
+  checksumFile: string | undefined,
+  dest: Destination,
+): Promise<StoreResult> {
   const destDir = dirname(dest.path)
   mkdirSync(destDir, { recursive: true })
 
@@ -15,6 +25,11 @@ async function storeLocal(archivePath: string, dest: Destination): Promise<Store
 
   cpSync(archivePath, destPath)
   logger.info({ from: archivePath, to: destPath }, "archive copied to local destination")
+
+  if (checksumFile) {
+    copyChecksum(checksumFile, dest.path)
+    logger.info({ from: checksumFile }, "checksum copied to local destination")
+  }
 
   return { success: true }
 }

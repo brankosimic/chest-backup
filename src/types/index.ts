@@ -1,6 +1,12 @@
 import type { Config, Source, Destination, DatabaseConfig, DiscordConfig, NotificationsConfig } from "./config"
 import type { DestinationHandler, StoreResult } from "./destination"
 
+interface VerifyResult {
+  integrity: boolean
+  checksum: string
+  checksumFile: string
+}
+
 interface BackupResult {
   success: boolean
   timestamp: string
@@ -9,6 +15,7 @@ interface BackupResult {
   durationMs: number
   destinationResults: StoreResult[]
   errors: string[]
+  verification?: VerifyResult
 }
 
 export type {
@@ -20,5 +27,6 @@ export type {
   NotificationsConfig,
   DestinationHandler,
   StoreResult,
+  VerifyResult,
   BackupResult,
 }

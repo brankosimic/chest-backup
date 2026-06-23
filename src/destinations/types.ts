@@ -4,13 +4,17 @@ import { storeLocal } from "./local"
 import { storeFtp } from "./ftp"
 import { logger } from "../utils/logger"
 
-async function handleDestination(archivePath: string, dest: Destination): Promise<StoreResult> {
+async function handleDestination(
+  archivePath: string,
+  checksumFile: string | undefined,
+  dest: Destination,
+): Promise<StoreResult> {
   try {
     if (dest.type === "local") {
-      return await storeLocal(archivePath, dest)
+      return await storeLocal(archivePath, checksumFile, dest)
     }
     if (dest.type === "ftp") {
-      return await storeFtp(archivePath, dest)
+      return await storeFtp(archivePath, checksumFile, dest)
     }
     return { success: false, error: `Unknown destination type: ${dest.type}` }
   } catch (err) {
