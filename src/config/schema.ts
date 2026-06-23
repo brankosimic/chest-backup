@@ -13,7 +13,7 @@ const DestinationSchema = z.object({
   password: z.string().optional(),
   retention: z.number().int().positive().optional(),
   parallel: z.boolean().optional().default(true),
-  secure: z.union([z.boolean(), z.literal("implicit")]).optional(),
+  secure: z.union([z.boolean(), z.literal("implicit"), z.literal("explicit")]).optional(),
   secureOptions: z.record(z.unknown()).optional(),
   timeout: z.number().int().positive().optional(),
 })

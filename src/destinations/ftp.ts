@@ -28,16 +28,22 @@ const disableTlsSessionReuse = (client: Client): void => {
 }
 
 const connectClient = async (client: Client, dest: Destination): Promise<void> => {
+  const isExplicit = dest.secure === "explicit"
   const accessOptions = {
     host: dest.host,
     port: dest.port ?? 21,
     user: dest.user,
     password: dest.password,
-    secure: dest.secure ?? false,
-    ...(dest.secure && { secureOptions: { rejectUnauthorized: false, ...dest.secureOptions } }),
+    secure: isExplicit ? false : (dest.secure ?? false),
+    ...(dest.secure && dest.secure !== "explicit" && { secureOptions: { rejectUnauthorized: false, ...dest.secureOptions } }),
   }
 
-  await client.access(accessOptions)
+  await client.access(accessOptions as Parameters<Client["access"]>[0])
+
+  if (isExplicit) {
+    await (client as unknown as { startTLS: (opts?: Record<string, unknown>) => Promise<void> }).startTLS(dest.secureOptions as Record<string, unknown> ?? { rejectUnauthorized: false })
+  }
+
   disableTlsSessionReuse(client)
 }
 
