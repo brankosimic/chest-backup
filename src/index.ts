@@ -3,33 +3,19 @@ import { runBackup } from "./backup/orchestrator"
 import { Scheduler } from "./scheduler/cron"
 import { logger } from "./utils/logger"
 
-async function main(): Promise<void> {
+const main = async (): Promise<void> => {
   const args = process.argv.slice(2)
   const configPath = extractArg(args, "--config")
   const dryRun = args.includes("--dry-run")
   const runNow = args.includes("--run-now")
 
-  let config
-  try {
-    config = loadConfig(configPath)
-  } catch (err) {
-    logger.fatal({ err }, "failed to load config")
-    process.exit(1)
-  }
-
-  if (dryRun) {
-    logger.info("dry-run: config loaded successfully")
-    logger.info({ sources: config.sources.length, destinations: config.destinations.length }, "config summary")
-    process.exit(0)
-  }
+  const config = loadAndValidateConfig(configPath, dryRun)
 
   if (runNow) {
     const result = await runBackup(config)
     logger.info({ success: result.success, durationMs: result.durationMs }, "backup completed")
 
-    if (!result.success) {
-      process.exit(1)
-    }
+    if (!result.success) process.exit(1)
     process.exit(0)
   }
 
@@ -61,10 +47,23 @@ async function main(): Promise<void> {
   }
 }
 
-function extractArg(args: string[], key: string): string | undefined {
+const extractArg = (args: string[], key: string): string | undefined => {
   const index = args.indexOf(key)
-  if (index !== -1) {
-    return args[index + 1]
+  if (index !== -1) return args[index + 1]
+}
+
+const loadAndValidateConfig = (configPath: string | undefined, dryRun: boolean): ReturnType<typeof loadConfig> => {
+  try {
+    const config = loadConfig(configPath)
+    if (dryRun) {
+      logger.info("dry-run: config loaded successfully")
+      logger.info({ sources: config.sources.length, destinations: config.destinations.length }, "config summary")
+      process.exit(0)
+    }
+    return config
+  } catch (err) {
+    logger.fatal({ err }, "failed to load config")
+    process.exit(1)
   }
 }
 

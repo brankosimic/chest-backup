@@ -10,7 +10,7 @@ interface ExecOpts {
   timeout?: number
 }
 
-async function exec(command: string, opts?: ExecOpts): Promise<ExecResult> {
+const exec = async (command: string, opts?: ExecOpts): Promise<ExecResult> => {
   logger.debug({ command }, "executing command")
 
   const proc = Bun.spawn(command.split(" "), {
@@ -34,5 +34,4 @@ async function exec(command: string, opts?: ExecOpts): Promise<ExecResult> {
   return { stdout: stdout.trim(), stderr: stderr.trim(), exitCode }
 }
 
-export type { ExecResult, ExecOpts }
-export { exec }
+export { type ExecResult, type ExecOpts, exec }

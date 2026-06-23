@@ -1,4 +1,5 @@
 import type { BackupResult } from "../types/index"
+import type { Config } from "../types/config"
 import { logger } from "../utils/logger"
 
 interface DiscordEmbed {
@@ -13,7 +14,7 @@ interface DiscordPayload {
   embeds: DiscordEmbed[]
 }
 
-function buildEmbed(result: BackupResult): DiscordEmbed {
+const buildEmbed = (result: BackupResult): DiscordEmbed => {
   const successCount = result.destinationResults.filter((r) => r.success).length
   const failCount = result.destinationResults.length - successCount
 
@@ -22,44 +23,45 @@ function buildEmbed(result: BackupResult): DiscordEmbed {
 
   if (result.success) {
     color = 0x00ff00
-    title = "✅ Backup Successful"
+    title = "Backup Successful"
   } else if (successCount > 0) {
     color = 0xffa500
-    title = "⚠️ Backup Partial Success"
+    title = "Backup Partial Success"
   } else {
     color = 0xff0000
-    title = "❌ Backup Failed"
+    title = "Backup Failed"
   }
 
   const fields: DiscordEmbed["fields"] = []
 
-  if (result.archiveName) {
-    fields.push({ name: "Archive", value: result.archiveName, inline: true })
-  }
+  if (result.archiveName) fields.push({ name: "Archive", value: result.archiveName, inline: true })
   if (result.archiveSize) {
     const sizeMb = (result.archiveSize / 1024 / 1024).toFixed(2)
     fields.push({ name: "Size", value: `${sizeMb} MB`, inline: true })
   }
 
   if (result.verification) {
-    const icon = result.verification.integrity ? "✅" : "❌"
+    const passed = result.verification.integrity ? "Pass" : "Fail"
     const shortChecksum = result.verification.checksum.slice(0, 16)
-    fields.push({ name: "Verification", value: `${icon} Integrity: ${result.verification.integrity ? "Pass" : "Fail"}\`\`\`sha256:${shortChecksum}...\`\`\``, inline: false })
+    fields.push({
+      name: "Verification",
+      value: `Integrity: ${passed}\`\`\`sha256:${shortChecksum}...\`\`\``,
+      inline: false,
+    })
   }
 
   fields.push({ name: "Duration", value: `${result.durationMs}ms`, inline: true })
   fields.push({ name: "Destinations", value: `${successCount} succeeded, ${failCount} failed`, inline: false })
 
-  if (result.errors.length) {
+  if (result.errors.length)
     fields.push({ name: "Errors", value: result.errors.map((e) => `\`${e}\``).join("\n"), inline: false })
-  }
 
   fields.push({ name: "Timestamp", value: result.timestamp, inline: false })
 
   return { title, description: "", color, fields, timestamp: new Date().toISOString() }
 }
 
-async function sendDiscordNotification(webhookUrl: string, result: BackupResult): Promise<void> {
+const sendDiscordNotification = async (webhookUrl: string, result: BackupResult): Promise<void> => {
   const embed = buildEmbed(result)
   const payload: DiscordPayload = { embeds: [embed] }
 
@@ -69,11 +71,16 @@ async function sendDiscordNotification(webhookUrl: string, result: BackupResult)
     body: JSON.stringify(payload),
   })
 
-  if (!response.ok) {
-    logger.error({ status: response.status }, "discord notification failed")
-  } else {
-    logger.info("discord notification sent")
-  }
+  if (!response.ok) logger.error({ status: response.status }, "discord notification failed")
+  else logger.info("discord notification sent")
 }
 
-export { sendDiscordNotification }
+const sendNotification = (config: Config, result: BackupResult): void => {
+  if (!config.notifications?.discord) return
+
+  sendDiscordNotification(config.notifications.discord.webhookUrl, result).catch((err) => {
+    logger.error({ err }, "failed to send notification")
+  })
+}
+
+export { sendDiscordNotification, sendNotification }

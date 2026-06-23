@@ -15,15 +15,13 @@ const FTP_PASS = "testftppass"
 const NGINX_NAME = "chest-backup-e2e-nginx"
 const PG_NAME = "chest-backup-e2e-pg"
 
-function archiveFiles(dir: string): string[] {
+const archiveFiles = (dir: string): string[] => {
   if (!existsSync(dir)) return []
   return readdirSync(dir).filter((f) => f.startsWith("chest-backup-") && f.endsWith(".tar.gz"))
 }
 
-function writeConfig(includeFtp: boolean): void {
-  const destinations: Array<Record<string, unknown>> = [
-    { type: "local", path: BACKUP_DIR, parallel: false },
-  ]
+const writeConfig = (includeFtp: boolean): void => {
+  const destinations: Array<Record<string, unknown>> = [{ type: "local", path: BACKUP_DIR, parallel: false }]
 
   if (includeFtp) {
     destinations.push({
@@ -39,26 +37,18 @@ function writeConfig(includeFtp: boolean): void {
 
   const config = {
     retention: 2,
-    sources: [
-      { path: `${TEST_DATA_DIR_1}/*` },
-      { path: `${TEST_DATA_DIR_2}/*` },
-    ],
+    sources: [{ path: `${TEST_DATA_DIR_1}/*` }, { path: `${TEST_DATA_DIR_2}/*` }],
     destinations,
   }
 
   writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2))
 }
 
-function writeOpenConfig(): void {
+const writeOpenConfig = (): void => {
   const config = {
     retention: 2,
-    sources: [
-      { path: `${TEST_DATA_DIR_1}/*` },
-      { path: `${TEST_DATA_DIR_2}/*` },
-    ],
-    destinations: [
-      { type: "local", path: BACKUP_DIR, parallel: false },
-    ],
+    sources: [{ path: `${TEST_DATA_DIR_1}/*` }, { path: `${TEST_DATA_DIR_2}/*` }],
+    destinations: [{ type: "local", path: BACKUP_DIR, parallel: false }],
     containers: [NGINX_NAME],
     databases: [
       {
@@ -74,7 +64,7 @@ function writeOpenConfig(): void {
   writeFileSync(OPEN_CONFIG_PATH, JSON.stringify(config, null, 2))
 }
 
-async function ensureContainer(name: string, image: string, args: string[]): Promise<boolean> {
+const ensureContainer = async (name: string, image: string, args: string[]): Promise<boolean> => {
   const existing = await $`docker ps -a --filter name=${name} -q`.text()
   if (existing.trim()) {
     await $`docker rm -f ${name}`.nothrow().quiet()
@@ -99,16 +89,26 @@ beforeAll(async () => {
   writeFileSync(join(TEST_DATA_DIR_1, "report.pdf"), "fake pdf content")
   writeFileSync(join(TEST_DATA_DIR_1, "notes.txt"), "some notes")
   writeFileSync(join(TEST_DATA_DIR_2, "app.config.yaml"), "key: value\n")
-  writeFileSync(join(TEST_DATA_DIR_2, "docker-compose.override.yml"), "services:\n  web:\n    ports:\n      - \"8080:80\"\n")
+  writeFileSync(
+    join(TEST_DATA_DIR_2, "docker-compose.override.yml"),
+    'services:\n  web:\n    ports:\n      - "8080:80"\n',
+  )
 
   await ensureContainer("chest-backup-e2e-ftp", "fauria/vsftpd", [
-    "-p", `${FTP_PORT}:21`,
-    "-p", "21100-21110:21100-21110",
-    "-e", `FTP_USER=${FTP_USER}`,
-    "-e", `FTP_PASS=${FTP_PASS}`,
-    "-e", "PASV_ADDRESS=127.0.0.1",
-    "-e", "PASV_MIN_PORT=21100",
-    "-e", "PASV_MAX_PORT=21110",
+    "-p",
+    `${FTP_PORT}:21`,
+    "-p",
+    "21100-21110:21100-21110",
+    "-e",
+    `FTP_USER=${FTP_USER}`,
+    "-e",
+    `FTP_PASS=${FTP_PASS}`,
+    "-e",
+    "PASV_ADDRESS=127.0.0.1",
+    "-e",
+    "PASV_MIN_PORT=21100",
+    "-e",
+    "PASV_MAX_PORT=21110",
   ])
 
   if (await $`docker ps --filter name=chest-backup-e2e-ftp -q`.text().then((t) => t.trim())) {
@@ -117,22 +117,29 @@ beforeAll(async () => {
 
   await ensureContainer(NGINX_NAME, "nginx:alpine", ["-p", "8080:80"])
 
-  const pgUp = await ensureContainer(PG_NAME, "postgres:16-alpine", [
-    "-e", "POSTGRES_USER=testuser",
-    "-e", "POSTGRES_PASSWORD=testpass",
-    "-e", "POSTGRES_DB=testdb",
+  const pgUp = await ensureContainer(PG_NAME, "postgres:18-alpine", [
+    "-e",
+    "POSTGRES_USER=testuser",
+    "-e",
+    "POSTGRES_PASSWORD=testpass",
+    "-e",
+    "POSTGRES_DB=testdb",
   ])
 
   if (pgUp) {
     for (let i = 0; i < 10; i++) {
-      const ready = await $`docker exec ${PG_NAME} pg_isready -U testuser -d testdb`.nothrow()
+      const ready = await $`docker exec ${PG_NAME} pg_isready -U testuser -d testdb`
+        .nothrow()
         .then((r) => r.exitCode === 0)
       if (ready) break
       await Bun.sleep(1000)
     }
 
     const seedSql = "/tmp/chest-backup-e2e-seed.sql"
-    writeFileSync(seedSql, "CREATE TABLE IF NOT EXISTS widgets (id serial primary key, name text);\nINSERT INTO widgets (name) VALUES ('gadget'), ('sprocket');\n")
+    writeFileSync(
+      seedSql,
+      "CREATE TABLE IF NOT EXISTS widgets (id serial primary key, name text);\nINSERT INTO widgets (name) VALUES ('gadget'), ('sprocket');\n",
+    )
     const proc = Bun.spawn(["docker", "exec", "-i", PG_NAME, "psql", "-U", "testuser", "-d", "testdb"], {
       stdin: Bun.file(seedSql),
       stdout: "pipe",
@@ -146,7 +153,9 @@ afterAll(async () => {
   for (const name of ["chest-backup-e2e-ftp", NGINX_NAME, PG_NAME]) {
     await $`docker rm -f ${name}`.nothrow().quiet()
   }
-  await $`rm -rf ${TEST_DATA_DIR_1} ${TEST_DATA_DIR_2} ${BACKUP_DIR} ${CONFIG_PATH} ${OPEN_CONFIG_PATH} /tmp/chest-backup-e2e-bad-config.json`.nothrow().quiet()
+  await $`rm -rf ${TEST_DATA_DIR_1} ${TEST_DATA_DIR_2} ${BACKUP_DIR} ${CONFIG_PATH} ${OPEN_CONFIG_PATH} /tmp/chest-backup-e2e-bad-config.json`
+    .nothrow()
+    .quiet()
 })
 
 describe("E2E Backup", () => {
@@ -327,22 +336,27 @@ describe("E2E Backup", () => {
     const config = {
       retention: 2,
       sources: [{ path: `${TEST_DATA_DIR_1}/*` }],
-      destinations: [{
-        type: "ftp" as const,
-        host: realFtpHost,
-        port: realFtpPort ?? 21,
-        user: realFtpUser,
-        password: realFtpPass,
-        path: realFtpPath,
-        secure: process.env.E2E_FTP_SECURE === "true",
-        parallel: false,
-      }],
+      destinations: [
+        {
+          type: "ftp" as const,
+          host: realFtpHost,
+          port: realFtpPort ?? 21,
+          user: realFtpUser,
+          password: realFtpPass,
+          path: realFtpPath,
+          secure: process.env.E2E_FTP_SECURE === "true",
+          parallel: false,
+        },
+      ],
     }
 
     const { runBackup } = await import("../../src/backup/orchestrator")
     const result = await runBackup(config)
 
-    console.log("Real FTP result:", JSON.stringify(result, (k, v) => k === "password" ? "***" : v, 2))
+    console.log(
+      "Real FTP result:",
+      JSON.stringify(result, (k, v) => (k === "password" ? "***" : v), 2),
+    )
 
     expect(result.success).toBe(true)
   })

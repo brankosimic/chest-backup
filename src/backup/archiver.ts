@@ -5,7 +5,7 @@ import { logger } from "../utils/logger"
 
 const TEMP_DIR = "/tmp"
 
-function formatTimestamp(ts: Date): string {
+const formatTimestamp = (ts: Date): string => {
   const y = ts.getFullYear()
   const m = String(ts.getMonth() + 1).padStart(2, "0")
   const d = String(ts.getDate()).padStart(2, "0")
@@ -15,23 +15,17 @@ function formatTimestamp(ts: Date): string {
   return `${y}${m}${d}-${h}${min}${s}`
 }
 
-function generateArchiveName(timestamp: string): string {
+const generateArchiveName = (timestamp: string): string => {
   return `chest-backup-${timestamp}.tar.gz`
 }
 
-async function createArchive(
-  timestamp: string,
-  sources: string[],
-  dbDumps: string[],
-): Promise<string> {
+const createArchive = async (timestamp: string, sources: string[], dbDumps: string[]): Promise<string> => {
   const archiveName = generateArchiveName(timestamp)
   const archivePath = join(TEMP_DIR, archiveName)
 
   const allFiles = [...sources, ...dbDumps]
 
-  if (!allFiles.length) {
-    throw new Error("no files to archive")
-  }
+  if (!allFiles.length) throw new Error("no files to archive")
 
   const relativePaths = allFiles.map((f) => f.replace(/^\//, ""))
 

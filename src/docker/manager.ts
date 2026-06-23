@@ -1,7 +1,7 @@
 import { $ } from "bun"
 import { logger } from "../utils/logger"
 
-async function stopContainers(names: string[]): Promise<void> {
+const stopContainers = async (names: string[]): Promise<void> => {
   for (const name of names) {
     try {
       await $`docker stop ${name}`.quiet()
@@ -13,7 +13,7 @@ async function stopContainers(names: string[]): Promise<void> {
   }
 }
 
-async function startContainers(names: string[]): Promise<void> {
+const startContainers = async (names: string[]): Promise<void> => {
   for (const name of names) {
     try {
       await $`docker start ${name}`.quiet()
@@ -25,4 +25,31 @@ async function startContainers(names: string[]): Promise<void> {
   }
 }
 
-export { stopContainers, startContainers }
+const ensureContainersStarted = async (containers: string[] | undefined): Promise<void> => {
+  if (!containers?.length) return
+  try {
+    await startContainers(containers)
+  } catch {
+    logger.debug("container restart (best-effort) failed")
+  }
+}
+
+const stopBackupContainers = async (containers: string[] | undefined, errors: string[]): Promise<void> => {
+  if (!containers?.length) return
+  try {
+    await stopContainers(containers)
+  } catch (err) {
+    errors.push(`Failed to stop containers: ${String(err)}`)
+  }
+}
+
+const startBackupContainers = async (containers: string[] | undefined, errors: string[]): Promise<void> => {
+  if (!containers?.length) return
+  try {
+    await startContainers(containers)
+  } catch (err) {
+    errors.push(`Failed to start containers: ${String(err)}`)
+  }
+}
+
+export { stopContainers, startContainers, ensureContainersStarted, stopBackupContainers, startBackupContainers }

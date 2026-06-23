@@ -5,12 +5,33 @@ import { logger } from "../utils/logger"
 
 const ARCHIVE_PATTERN = /^chest-backup-(\d{8}-\d{6})\.tar\.gz$/
 
-function parseTimestampFromName(name: string): string | null {
+const deleteArchiveFile = (destPath: string, file: string): void => {
+  const filePath = join(destPath, file)
+  try {
+    unlinkSync(filePath)
+    logger.info({ file }, "deleted old archive for retention")
+  } catch (err) {
+    logger.error({ file, err }, "failed to delete old archive")
+  }
+
+  const shaPath = `${filePath}.sha256`
+  try {
+    unlinkSync(shaPath)
+  } catch {
+    logger.debug({ file: shaPath }, "checksum file not found for cleanup")
+  }
+}
+
+const parseTimestampFromName = (name: string): string | null => {
   const match = ARCHIVE_PATTERN.exec(name)
   return match?.[1] ?? null
 }
 
-async function enforceRetention(destination: Destination, archivePrefix: string, globalRetention: number): Promise<void> {
+const enforceRetention = async (
+  destination: Destination,
+  archivePrefix: string,
+  globalRetention: number,
+): Promise<void> => {
   const retention = destination.retention ?? globalRetention
   const destPath = destination.path
 
@@ -34,16 +55,7 @@ async function enforceRetention(destination: Destination, archivePrefix: string,
   const toDelete = files.slice(retention)
 
   for (const file of toDelete) {
-    const filePath = join(destPath, file)
-    try {
-      unlinkSync(filePath)
-      logger.info({ file }, "deleted old archive for retention")
-    } catch (err) {
-      logger.error({ file, err }, "failed to delete old archive")
-    }
-
-    const shaPath = `${filePath}.sha256`
-    try { unlinkSync(shaPath) } catch { logger.debug({ file: shaPath }, "checksum file not found for cleanup") }
+    deleteArchiveFile(destPath, file)
   }
 }
 

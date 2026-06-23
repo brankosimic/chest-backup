@@ -7,6 +7,16 @@ interface VerifyResult {
   checksumFile: string
 }
 
+interface CollectedSources {
+  sources: string[]
+  dbDumps: string[]
+}
+
+interface ArchiveWithVerification {
+  archivePath: string
+  verification: VerifyResult | undefined
+}
+
 interface BackupResult {
   success: boolean
   timestamp: string
@@ -28,5 +38,7 @@ export type {
   DestinationHandler,
   StoreResult,
   VerifyResult,
+  CollectedSources,
+  ArchiveWithVerification,
   BackupResult,
 }
