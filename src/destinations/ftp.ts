@@ -1,4 +1,6 @@
 import { Client } from "basic-ftp"
+import net from "node:net"
+import tls from "node:tls"
 import type { Destination } from "../types/config"
 import type { StoreResult } from "../types/index"
 import { logger } from "../utils/logger"
@@ -29,22 +31,57 @@ const disableTlsSessionReuse = (client: Client): void => {
 
 const connectClient = async (client: Client, dest: Destination): Promise<void> => {
   const isExplicit = dest.secure === "explicit"
-  const accessOptions = {
-    host: dest.host,
-    port: dest.port ?? 21,
-    user: dest.user,
-    password: dest.password,
-    secure: isExplicit ? false : (dest.secure ?? false),
-    ...(dest.secure && dest.secure !== "explicit" && { secureOptions: { rejectUnauthorized: false, ...dest.secureOptions } }),
-  }
-
-  await client.access(accessOptions as Parameters<Client["access"]>[0])
 
   if (isExplicit) {
-    await (client as unknown as { startTLS: (opts?: Record<string, unknown>) => Promise<void> }).startTLS(dest.secureOptions as Record<string, unknown> ?? { rejectUnauthorized: false })
-  }
+    // Explicit TLS (STARTTLS)
+    const accessOptions = {
+      host: dest.host,
+      port: dest.port ?? 21,
+      user: dest.user,
+      password: dest.password,
+      secure: false,
+    }
+    await client.access(accessOptions as Parameters<Client["access"]>[0])
+    await (client as unknown as { startTLS: (opts?: Record<string, unknown>) => Promise<void> }).startTLS(
+      dest.secureOptions as Record<string, unknown> ?? { rejectUnauthorized: false },
+    )
+  } else {
+    // Implicit TLS - manual connection to avoid basic-ftp hanging
+    const serverSocket = net.createConnection({
+      host: dest.host!,
+      port: dest.port ?? 21,
+    })
 
-  disableTlsSessionReuse(client)
+    let banner = ""
+    await new Promise<void>((resolve, reject) => {
+      serverSocket.on("data", (d) => {
+        banner += d.toString()
+        if (banner.includes("\n")) resolve()
+      })
+      serverSocket.on("error", reject)
+      serverSocket.setTimeout(dest.timeout ?? CLIENT_TIMEOUT_MS, () => reject(new Error("Connection timeout")))
+    })
+
+    const tlsSocket = tls.connect({
+      socket: serverSocket,
+      host: dest.host!,
+      rejectUnauthorized: false,
+      ...(dest.secureOptions as Record<string, unknown>),
+      timeout: dest.timeout ?? CLIENT_TIMEOUT_MS,
+    })
+
+    await new Promise<void>((resolve, reject) => {
+      tlsSocket.on("secure", () => resolve())
+      tlsSocket.on("error", reject)
+      tlsSocket.setTimeout(dest.timeout ?? CLIENT_TIMEOUT_MS, () => reject(new Error("TLS handshake timeout")))
+    })
+
+    ;(client.ftp as { socket: unknown }).socket = tlsSocket
+    disableTlsSessionReuse(client)
+
+    // Authenticate
+    await client.login(dest.user!, dest.password!)
+  }
 }
 
 /**
@@ -61,6 +98,7 @@ const uploadChecksum = async (dest: Destination, checksumFile: string): Promise<
     const checksumName = checksumFile.split("/").pop() ?? ""
     logger.info({ remotePath: `${dest.path}/${checksumName}` }, "checksum uploaded to FTP destination")
   } finally {
+    try { (client.ftp.socket as { destroy: () => void })?.destroy() } catch {}
     client.close()
   }
 }
