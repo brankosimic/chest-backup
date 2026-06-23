@@ -16,6 +16,8 @@ services:
   ftp:
     container_name: chest-backup-e2e-ftp
     image: fauria/vsftpd
+    ports:
+      - "2121:21"
     environment:
       FTP_USER: testftp
       FTP_PASS: testftppass

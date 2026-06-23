@@ -1,6 +1,7 @@
 services:
   chest-backup:
     build: .
+    network_mode: host
     volumes:
       - ./chest-backup.json:/app/chest-backup.json:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
