@@ -90,7 +90,6 @@ const executeBackup = async (
     verification,
   }
 
-  sendNotification(config, result)
   return result
 }
 
@@ -103,6 +102,7 @@ const runBackup = async (config: Config): Promise<BackupResult> => {
   try {
     const result = await executeBackup(config, timestamp, errors, tempFiles)
     result.durationMs = Date.now() - startTime
+    await sendNotification(config, result)
     return result
   } finally {
     for (const file of tempFiles) {

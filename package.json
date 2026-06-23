@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "bun --watch src/index.ts",
     "build": "tsc",
-    "start": "bun src/index.ts",
+    "start": "docker compose up",
+    "start:now": "docker compose build --no-cache && docker compose run --rm chest-backup -- --run-now",
+    "start:dry": "docker compose run --rm chest-backup -- --dry-run",
     "test": "bun test --bail --timeout 120000 --path-ignore-patterns 'dist/**'",
     "test:unit": "bun test --bail --path-ignore-patterns 'dist/**' test/unit/",
     "test:e2e": "bun test --bail --path-ignore-patterns 'dist/**' test/e2e/",

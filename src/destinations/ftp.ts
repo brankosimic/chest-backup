@@ -3,8 +3,7 @@ import type { Destination } from "../types/config"
 import type { StoreResult } from "../types/index"
 import { logger } from "../utils/logger"
 
-const MAX_RETRIES = 3
-const BASE_DELAY_MS = 1000
+const CLIENT_TIMEOUT_MS = 3000
 
 const uploadFile = async (client: Client, localPath: string, remoteDir: string): Promise<void> => {
   const fileName = localPath.split("/").pop()
@@ -14,7 +13,7 @@ const uploadFile = async (client: Client, localPath: string, remoteDir: string):
 }
 
 const createFtpClient = (dest: Destination): Client => {
-  const client = new Client(dest.timeout ?? 30000, { allowSeparateTransferHost: false })
+  const client = new Client(dest.timeout ?? CLIENT_TIMEOUT_MS, { allowSeparateTransferHost: false })
   return client
 }
 
@@ -60,54 +59,6 @@ const uploadChecksum = async (dest: Destination, checksumFile: string): Promise<
   }
 }
 
-const tryUpload = async (
-  client: Client,
-  archivePath: string,
-  checksumFile: string | undefined,
-  dest: Destination,
-): Promise<StoreResult> => {
-  await client.ensureDir(dest.path)
-
-  const archiveName = archivePath.split("/").pop() ?? ""
-  await uploadFile(client, archivePath, dest.path)
-  logger.info({ remotePath: `${dest.path}/${archiveName}` }, "archive uploaded to FTP destination")
-
-  if (checksumFile) {
-    await uploadChecksum(dest, checksumFile)
-  }
-
-  return { success: true }
-}
-
-const uploadWithRetry = async (
-  archivePath: string,
-  checksumFile: string | undefined,
-  dest: Destination,
-): Promise<StoreResult> => {
-  let lastError: Error | undefined
-
-  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-    const client = createFtpClient(dest)
-
-    try {
-      await connectClient(client, dest)
-      const result = await tryUpload(client, archivePath, checksumFile, dest)
-      return result
-    } catch (err) {
-      lastError = err instanceof Error ? err : new Error(String(err))
-
-      if (attempt >= MAX_RETRIES) continue
-      const delay = BASE_DELAY_MS * Math.pow(2, attempt - 1)
-      logger.warn({ attempt, error: lastError.message, delayMs: delay }, "FTP connection failed, retrying")
-      await new Promise((resolve) => setTimeout(resolve, delay))
-    } finally {
-      client.close()
-    }
-  }
-
-  return { success: false, error: lastError?.message ?? "FTP connection failed" }
-}
-
 const storeFtp = async (
   archivePath: string,
   checksumFile: string | undefined,
@@ -115,7 +66,20 @@ const storeFtp = async (
 ): Promise<StoreResult> => {
   if (!dest.host || !dest.user || !dest.password) return { success: false, error: "FTP destination missing host, user, or password" }
 
-  return await uploadWithRetry(archivePath, checksumFile, dest)
+  const client = createFtpClient(dest)
+  try {
+    await connectClient(client, dest)
+    await client.ensureDir(dest.path)
+    const archiveName = archivePath.split("/").pop() ?? ""
+    await uploadFile(client, archivePath, dest.path)
+    logger.info({ remotePath: `${dest.path}/${archiveName}` }, "archive uploaded to FTP destination")
+    if (checksumFile) await uploadChecksum(dest, checksumFile)
+    return { success: true }
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : String(err) }
+  } finally {
+    client.close()
+  }
 }
 
-export { tryUpload, uploadWithRetry, storeFtp }
+export { storeFtp }

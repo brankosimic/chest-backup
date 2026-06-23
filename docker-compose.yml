@@ -4,12 +4,10 @@ services:
     volumes:
       - ./chest-backup.json:/app/chest-backup.json:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - backup-data:/var/lib/chest-backup
+      - /mnt/hoarder/Backups/server:/mnt/hoarder/Backups/server:rw
+      - /home/branko/Desktop/code/chest-backup/test/e2e:/backup-source/e2e:ro
     env_file:
       - .env
     environment:
       - TZ=UTC
     restart: unless-stopped
-
-volumes:
-  backup-data:

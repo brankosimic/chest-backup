@@ -28,7 +28,9 @@ const storeToDestination = async (
   retention: number,
   errors: string[],
 ): Promise<StoreResult> => {
+  const start = Date.now()
   const result = await handleDestination(archivePath, checksumFile, dest)
+  result.durationMs = Date.now() - start
 
   if (result.success) {
     try {

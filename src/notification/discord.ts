@@ -14,6 +14,22 @@ interface DiscordPayload {
   embeds: DiscordEmbed[]
 }
 
+const formatDuration = (ms: number): string => {
+  if (ms < 1000) return `${ms}ms`
+  const s = Math.floor(ms / 1000)
+  if (s < 60) return `${s}s`
+  const m = Math.floor(s / 60)
+  const remainingS = s % 60
+  return `${m}m ${remainingS}s`
+}
+
+const formatSize = (bytes: number): string => {
+  if (bytes < 1024) return `${bytes}B`
+  const kb = bytes / 1024
+  if (kb < 1024) return `${kb.toFixed(1)}KB`
+  return `${(kb / 1024).toFixed(1)}MB`
+}
+
 const buildEmbed = (result: BackupResult): DiscordEmbed => {
   const successCount = result.destinationResults.filter((r) => r.success).length
   const failCount = result.destinationResults.length - successCount
@@ -35,23 +51,17 @@ const buildEmbed = (result: BackupResult): DiscordEmbed => {
   const fields: DiscordEmbed["fields"] = []
 
   if (result.archiveName) fields.push({ name: "Archive", value: result.archiveName, inline: true })
-  if (result.archiveSize) {
-    const sizeMb = (result.archiveSize / 1024 / 1024).toFixed(2)
-    fields.push({ name: "Size", value: `${sizeMb} MB`, inline: true })
-  }
+  if (result.archiveSize) fields.push({ name: "Size", value: formatSize(result.archiveSize), inline: true })
 
   if (result.verification) {
     const passed = result.verification.integrity ? "Pass" : "Fail"
-    const shortChecksum = result.verification.checksum.slice(0, 16)
-    fields.push({
-      name: "Verification",
-      value: `Integrity: ${passed}\`\`\`sha256:${shortChecksum}...\`\`\``,
-      inline: false,
-    })
+    fields.push({ name: "Verification", value: `Integrity: ${passed}`, inline: false })
   }
 
-  fields.push({ name: "Duration", value: `${result.durationMs}ms`, inline: true })
+  fields.push({ name: "Duration", value: formatDuration(result.durationMs), inline: true })
   fields.push({ name: "Destinations", value: `${successCount} succeeded, ${failCount} failed`, inline: false })
+
+  result.destinationResults.forEach((d) => fields.push({ name: "Destination", value: `${d.error ? "Failed" : "OK"}${d.durationMs ? ` (${formatDuration(d.durationMs)})` : ""}`, inline: true }))
 
   if (result.errors.length)
     fields.push({ name: "Errors", value: result.errors.map((e) => `\`${e}\``).join("\n"), inline: false })
@@ -75,12 +85,14 @@ const sendDiscordNotification = async (webhookUrl: string, result: BackupResult)
   else logger.info("discord notification sent")
 }
 
-const sendNotification = (config: Config, result: BackupResult): void => {
+const sendNotification = async (config: Config, result: BackupResult): Promise<void> => {
   if (!config.notifications?.discord) return
 
-  sendDiscordNotification(config.notifications.discord.webhookUrl, result).catch((err) => {
+  try {
+    await sendDiscordNotification(config.notifications.discord.webhookUrl, result)
+  } catch (err) {
     logger.error({ err }, "failed to send notification")
-  })
+  }
 }
 
 export { sendDiscordNotification, sendNotification }
