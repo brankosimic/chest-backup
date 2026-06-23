@@ -11,7 +11,7 @@ interface Destination {
   password?: string
   retention?: number
   parallel?: boolean
-  secure?: boolean
+  secure?: boolean | "implicit"
   secureOptions?: Record<string, unknown>
   timeout?: number
 }

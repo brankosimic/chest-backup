@@ -1,0 +1,16 @@
+FROM oven/bun:latest
+
+RUN apt-get update && apt-get install -y --no-install-recommends docker-cli && \
+    rm -rf /var/lib/apt/lists/* && \
+    docker --version
+
+WORKDIR /app
+
+COPY package.json ./
+RUN bun install
+
+COPY . .
+
+RUN rm -rf dist/
+
+CMD ["bun", "test"]

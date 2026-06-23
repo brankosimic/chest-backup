@@ -1,0 +1,51 @@
+services:
+  postgres:
+    container_name: chest-backup-e2e-pg
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: testuser
+      POSTGRES_PASSWORD: testpass
+      POSTGRES_DB: testdb
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U testuser -d testdb"]
+      interval: 1s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  ftp:
+    container_name: chest-backup-e2e-ftp
+    image: fauria/vsftpd
+    environment:
+      FTP_USER: testftp
+      FTP_PASS: testftppass
+      PASV_ADDRESS: ftp
+      PASV_MIN_PORT: 21100
+      PASV_MAX_PORT: 21110
+    restart: unless-stopped
+
+  test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ftp:
+        condition: service_started
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - E2E_FTP_HOST=ftp
+      - E2E_FTP_PORT=21
+      - E2E_FTP_USER=testftp
+      - E2E_FTP_PASSWORD=testftppass
+      - E2E_PG_CONTAINER=chest-backup-e2e-pg
+      - E2E_DISCORD_WEBHOOK_URL=${E2E_DISCORD_WEBHOOK_URL}
+      - E2E_REAL_FTP_HOST=${E2E_REAL_FTP_HOST}
+      - E2E_REAL_FTP_PORT=${E2E_REAL_FTP_PORT}
+      - E2E_REAL_FTP_USER=${E2E_REAL_FTP_USER}
+      - E2E_REAL_FTP_PASSWORD=${E2E_REAL_FTP_PASSWORD}
+      - E2E_REAL_FTP_PATH=${E2E_REAL_FTP_PATH}
+      - E2E_REAL_FTP_SECURE=${E2E_REAL_FTP_SECURE}
+    # no restart policy — one-shot container
