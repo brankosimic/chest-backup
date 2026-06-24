@@ -1,7 +1,7 @@
 FROM oven/bun:latest AS base
 WORKDIR /app
 
-# Install Docker CLI for container lifecycle management
+# Install Docker CLI and PostgreSQL client for container lifecycle management and database dumps
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates curl gnupg && \
     install -m 0755 -d /etc/apt/keyrings && \
@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     chmod a+r /etc/apt/keyrings/docker.asc && \
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian bookworm stable" > /etc/apt/sources.list.d/docker.list && \
     apt-get update && \
-    apt-get install -y --no-install-recommends docker-ce-cli && \
+    apt-get install -y --no-install-recommends docker-ce-cli postgresql-client && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
