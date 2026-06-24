@@ -1,11 +1,10 @@
 import { unlinkSync, statSync } from "node:fs"
-import type { Config } from "../types/config"
-import type { BackupResult, VerifyResult, CollectedSources, ArchiveWithVerification } from "../types/index"
+import type { Config, DockerComposeSource } from "../types/config"
+import type { BackupResult, VerifyResult, ArchiveWithVerification } from "../types/index"
 import { formatTimestamp, createArchive } from "./archiver"
 import { verifyArchive } from "./verify"
 import { resolveSources } from "./sources"
 import { stopBackupContainers, startBackupContainers } from "../docker/manager"
-import { dumpDatabases } from "../database/postgres"
 import { dispatchToDestinations } from "../destinations/types"
 import { sendNotification } from "../notification/discord"
 import { logger } from "../utils/logger"
@@ -13,36 +12,25 @@ import { logger } from "../utils/logger"
 const collectSources = async (
   config: Config,
   timestamp: string,
-  errors: string[],
   tempFiles: string[],
-): Promise<CollectedSources> => {
-  await stopBackupContainers(config.containers, errors)
+  errors: string[],
+): Promise<{ sources: string[]; containers: string[] }> => {
+  const dockerSources = config.sources.filter((s): s is DockerComposeSource => s.type === "docker-compose")
+  await stopBackupContainers(dockerSources.flatMap((s) => s.containers), errors)
 
-  const [dbDumps, sources] = await Promise.all([
-    dumpDatabases(config, timestamp, tempFiles, errors),
-    (() => {
-      try {
-        return Promise.resolve(resolveSources(config.sources))
-      } catch (err) {
-        errors.push(`Source resolution failed: ${String(err)}`)
-        return Promise.resolve([] as string[])
-      }
-    })(),
-  ])
-
-  return { sources, dbDumps }
+  const result = await resolveSources(config, timestamp, tempFiles)
+  return { sources: result.paths, containers: result.containers }
 }
 
 const createArchiveWithVerification = async (
   timestamp: string,
   sources: string[],
-  dbDumps: string[],
   tempFiles: string[],
   errors: string[],
 ): Promise<ArchiveWithVerification | null> => {
   let archivePath: string
   try {
-    archivePath = await createArchive(timestamp, sources, dbDumps)
+    archivePath = await createArchive(timestamp, sources, [])
     tempFiles.push(archivePath)
   } catch (err) {
     errors.push(`Archive creation failed: ${String(err)}`)
@@ -66,16 +54,16 @@ const executeBackup = async (
   errors: string[],
   tempFiles: string[],
 ): Promise<BackupResult> => {
-  const { sources, dbDumps } = await collectSources(config, timestamp, errors, tempFiles)
+  const { sources, containers } = await collectSources(config, timestamp, tempFiles, errors)
 
-  if (!sources.length && !dbDumps.length) {
-    errors.push("No sources or database dumps to archive")
+  if (!sources.length) {
+    errors.push("No sources to archive")
     return { success: false, timestamp, durationMs: 0, destinationResults: [], errors }
   }
 
-  const archiveResult = await createArchiveWithVerification(timestamp, sources, dbDumps, tempFiles, errors)
+  const archiveResult = await createArchiveWithVerification(timestamp, sources, tempFiles, errors)
 
-  await startBackupContainers(config.containers, errors)
+  await startBackupContainers(containers, errors)
 
   if (!archiveResult) {
     return { success: false, timestamp, durationMs: 0, destinationResults: [], errors }

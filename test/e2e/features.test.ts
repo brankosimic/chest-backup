@@ -33,7 +33,7 @@ describe("features", () => {
     const extractDir = "/tmp/chest-backup-e2e-restart-extract"
     mkdirSync(extractDir, { recursive: true })
     await $`tar xzf ${join(E2E.BACKUP_DIR, latest)} -C ${extractDir}`.quiet()
-    const extracted = readdirSync(extractDir, { recursive: true }).map((f) => f.toString())
+    const extracted = readdirSync(extractDir, { recursive: true })
     const hasDbDump = extracted.some((f) => f.includes("db-dump"))
     expect(hasDbDump).toBe(true)
     await $`rm -rf ${extractDir}`.nothrow().quiet()
@@ -45,8 +45,7 @@ describe("features", () => {
 
     const containerConfig = {
       retention: 2,
-      containers: [E2E.PG_NAME],
-      sources: [{ path: `${E2E.TEST_DATA_DIR_1}/*` }],
+      sources: [{ type: "path" as const, path: `${E2E.TEST_DATA_DIR_1}/*` }],
       destinations: [{ type: "local", path: E2E.BACKUP_DIR, parallel: false }],
     }
     const containerConfigPath = "/tmp/chest-backup-e2e-container-config.json"
@@ -82,7 +81,7 @@ describe("features", () => {
     const extractDir = "/tmp/chest-backup-e2e-open-extract"
     mkdirSync(extractDir, { recursive: true })
     await $`tar xzf ${join(E2E.BACKUP_DIR, latest)} -C ${extractDir}`.quiet()
-    const extracted = readdirSync(extractDir, { recursive: true }).map((f) => f.toString())
+    const extracted = readdirSync(extractDir, { recursive: true })
     const hasDbDump = extracted.some((f) => f.includes("db-dump"))
     expect(hasDbDump).toBe(true)
     await $`rm -rf ${extractDir}`.nothrow().quiet()
@@ -91,7 +90,7 @@ describe("features", () => {
   test("backup to SFTP server via orchestrator", async () => {
     const config = {
       retention: 2,
-      sources: [{ path: `${E2E.TEST_DATA_DIR_1}/*` }],
+      sources: [{ type: "path" as const, path: `${E2E.TEST_DATA_DIR_1}/*` }],
       destinations: [
         {
           type: "sftp" as const,
@@ -115,7 +114,7 @@ describe("features", () => {
 
     const config = {
       retention: 2,
-      sources: [{ path: `${E2E.TEST_DATA_DIR_1}/*` }],
+      sources: [{ type: "path" as const, path: `${E2E.TEST_DATA_DIR_1}/*` }],
       destinations: [{ type: "local" as const, path: E2E.BACKUP_DIR, parallel: false }],
       notifications: {
         discord: {
@@ -148,7 +147,7 @@ describe("external SFTP", () => {
 
     const config = {
       retention: 2,
-      sources: [{ path: `${REAL_SOURCE}/*` }],
+      sources: [{ type: "path" as const, path: `${REAL_SOURCE}/*` }],
       destinations: [
         {
           type: "sftp" as const,

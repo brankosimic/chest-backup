@@ -4,7 +4,7 @@ import { ConfigSchema } from "../../src/config/schema"
 describe("ConfigSchema", () => {
   test("valid minimal config passes", () => {
     const result = ConfigSchema.safeParse({
-      sources: [{ path: "/data" }],
+      sources: [{ type: "path", path: "/data" }],
       destinations: [{ type: "local", path: "/backups" }],
     })
     expect(result.success).toBe(true)
@@ -18,16 +18,16 @@ describe("ConfigSchema", () => {
     const result = ConfigSchema.safeParse({
       schedule: "0 3 * * *",
       retention: 14,
-      sources: [{ path: "/data/docs" }, { path: "/data/config.yaml" }],
+      sources: [
+        { type: "path", path: "/data/docs" },
+        { type: "path", path: "/data/config.yaml" },
+        { type: "postgres", host: "localhost", port: 5432, user: "user", password: "pass", database: "testdb" },
+        { type: "docker-compose", name: "my-app", path: "/data/volumes", containers: ["app_db", "app_web"] },
+      ],
       destinations: [
         { type: "local", path: "/backups/local", retention: 30, parallel: false },
         { type: "sftp", host: "sftp.example.com", user: "user", password: "pass", path: "/remote", parallel: true },
       ],
-      databases: [
-        { type: "host", connectionString: "postgresql://user:pass@host/db", database: "testdb" },
-        { type: "docker", containerName: "pg", database: "testdb", username: "user", password: "pass" },
-      ],
-      containers: ["my-app"],
       notifications: { discord: { webhookUrl: "https://discord.com/api/webhooks/123/abc" } },
     })
     expect(result.success).toBe(true)
@@ -42,14 +42,14 @@ describe("ConfigSchema", () => {
 
   test("rejects config without destinations", () => {
     const result = ConfigSchema.safeParse({
-      sources: [{ path: "/data" }],
+      sources: [{ type: "path", path: "/data" }],
     })
     expect(result.success).toBe(false)
   })
 
   test("rejects invalid source path", () => {
     const result = ConfigSchema.safeParse({
-      sources: [{ path: "" }],
+      sources: [{ type: "path", path: "" }],
       destinations: [{ type: "local", path: "/backups" }],
     })
     expect(result.success).toBe(false)
@@ -57,7 +57,7 @@ describe("ConfigSchema", () => {
 
   test("rejects invalid destination type", () => {
     const result = ConfigSchema.safeParse({
-      sources: [{ path: "/data" }],
+      sources: [{ type: "path", path: "/data" }],
       destinations: [{ type: "s3", path: "/backups" }],
     })
     expect(result.success).toBe(false)
@@ -65,7 +65,7 @@ describe("ConfigSchema", () => {
 
   test("applies default retention and parallel", () => {
     const result = ConfigSchema.safeParse({
-      sources: [{ path: "/data" }],
+      sources: [{ type: "path", path: "/data" }],
       destinations: [{ type: "local", path: "/backups" }],
     })
     expect(result.success).toBe(true)
