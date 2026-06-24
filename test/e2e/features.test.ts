@@ -17,7 +17,7 @@ describe("features", () => {
     const startExit = await start.exited
     expect(startExit).toBe(0)
 
-    const pgReady = await E2E.waitForPort(E2E.PG_NAME, 5432)
+    const pgReady = await E2E.waitForPort(E2E.PG_HOST, E2E.PG_PORT)
     expect(pgReady).toBe(true)
 
     E2E.writeOpenConfig()
@@ -56,7 +56,7 @@ describe("features", () => {
     const exitCode = await proc.exited
     expect(exitCode).toBe(0)
 
-    const pgReady = await E2E.waitForPort(E2E.PG_NAME, 5432)
+    const pgReady = await E2E.waitForPort(E2E.PG_HOST, E2E.PG_PORT)
     expect(pgReady).toBe(true)
 
     const postCheck = Bun.spawn(["docker", "exec", "-i", E2E.PG_NAME, "psql", "-U", "testuser", "-d", "testdb"], {
@@ -88,19 +88,18 @@ describe("features", () => {
     await $`rm -rf ${extractDir}`.nothrow().quiet()
   })
 
-  test("backup to FTP server via orchestrator", async () => {
+  test("backup to SFTP server via orchestrator", async () => {
     const config = {
       retention: 2,
       sources: [{ path: `${E2E.TEST_DATA_DIR_1}/*` }],
       destinations: [
         {
-          type: "ftp" as const,
-          host: E2E.FTP_HOST,
-          port: E2E.FTP_PORT,
-          user: E2E.FTP_USER,
-          password: E2E.FTP_PASS,
-          path: "/",
-          secure: false,
+          type: "sftp" as const,
+          host: E2E.SFTP_HOST,
+          port: E2E.SFTP_PORT,
+          user: E2E.SFTP_USER,
+          password: E2E.SFTP_PASS,
+          path: "/upload",
           parallel: false,
         },
       ],
@@ -129,26 +128,37 @@ describe("features", () => {
     const result = await runBackup(config)
     expect(result.success).toBe(true)
   })
+})
 
-  test("backup to external FTP server", async () => {
-    expect(E2E.REAL_FTP_HOST, "E2E_REAL_FTP_HOST is required").toBeTruthy()
-    expect(E2E.REAL_FTP_USER, "E2E_REAL_FTP_USER is required").toBeTruthy()
-    expect(E2E.REAL_FTP_PASSWORD, "E2E_REAL_FTP_PASSWORD is required").toBeTruthy()
+describe("external SFTP", () => {
+  const REAL_SOURCE = "/tmp/chest-backup-e2e-real-sftp-source"
+
+  beforeAll(() => {
+    mkdirSync(REAL_SOURCE, { recursive: true })
+    writeFileSync(`${REAL_SOURCE}/test-file.txt`, "real sftp test content")
+  })
+
+  afterAll(() => {
+    $`rm -rf ${REAL_SOURCE}`.nothrow().quiet()
+  })
+
+  test("backup to external SFTP server", async () => {
+    expect(E2E.REAL_SFTP_HOST, "E2E_REAL_SFTP_HOST is required").toBeTruthy()
+    expect(E2E.REAL_SFTP_USER, "E2E_REAL_SFTP_USER is required").toBeTruthy()
 
     const config = {
       retention: 2,
-      sources: [{ path: `${E2E.TEST_DATA_DIR_1}/*` }],
+      sources: [{ path: `${REAL_SOURCE}/*` }],
       destinations: [
         {
-          type: "ftp" as const,
-          host: E2E.REAL_FTP_HOST!,
-          port: E2E.REAL_FTP_PORT,
-          user: E2E.REAL_FTP_USER!,
-          password: E2E.REAL_FTP_PASSWORD!,
-          path: E2E.REAL_FTP_PATH,
-          secure: E2E.REAL_FTP_SECURE,
-          timeout: 30000,
-          ...(E2E.REAL_FTP_SECURE_OPTIONS && { secureOptions: E2E.REAL_FTP_SECURE_OPTIONS }),
+          type: "sftp" as const,
+          host: E2E.REAL_SFTP_HOST!,
+          port: E2E.REAL_SFTP_PORT,
+          user: E2E.REAL_SFTP_USER!,
+          password: E2E.REAL_SFTP_PASSWORD,
+          privateKey: E2E.REAL_SFTP_PRIVATE_KEY,
+          path: E2E.REAL_SFTP_PATH!,
+          timeout: 10000,
           parallel: false,
         },
       ],
@@ -157,5 +167,5 @@ describe("features", () => {
     const { runBackup } = await import("../../src/backup/orchestrator")
     const result = await runBackup(config)
     expect(result.success).toBe(true)
-  }, { timeout: 30000 })
+  }, { timeout: 30_000 })
 })

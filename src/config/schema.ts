@@ -5,16 +5,15 @@ const SourceSchema = z.object({
 })
 
 const DestinationSchema = z.object({
-  type: z.enum(["local", "ftp"]),
+  type: z.enum(["local", "sftp"]),
   path: z.string().min(1),
   host: z.string().optional(),
   port: z.number().int().positive().optional(),
   user: z.string().optional(),
   password: z.string().optional(),
+  privateKey: z.string().optional(),
   retention: z.number().int().positive().optional(),
   parallel: z.boolean().optional().default(true),
-  secure: z.union([z.boolean(), z.literal("implicit"), z.literal("explicit")]).optional(),
-  secureOptions: z.record(z.unknown()).optional(),
   timeout: z.number().int().positive().optional(),
 })
 

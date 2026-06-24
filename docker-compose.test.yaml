@@ -13,17 +13,13 @@ services:
       retries: 20
     restart: unless-stopped
 
-  ftp:
-    container_name: chest-backup-e2e-ftp
-    image: fauria/vsftpd
-    ports:
-      - "2121:21"
+  sftp:
+    container_name: chest-backup-e2e-sftp
+    image: atmoz/sftp:latest
     environment:
-      FTP_USER: testftp
-      FTP_PASS: testftppass
-      PASV_ADDRESS: ftp
-      PASV_MIN_PORT: 21100
-      PASV_MAX_PORT: 21110
+      SFTP_USERS: testftp:testftppass:::upload
+    ports:
+      - "2121:22"
     restart: unless-stopped
 
   test-runner:
@@ -33,21 +29,24 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      ftp:
+      sftp:
         condition: service_started
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - ~/.ssh:/root/.ssh:ro
     environment:
-      - E2E_FTP_HOST=ftp
-      - E2E_FTP_PORT=21
-      - E2E_FTP_USER=testftp
-      - E2E_FTP_PASSWORD=testftppass
+      - E2E_SFTP_HOST=sftp
+      - E2E_SFTP_PORT=22
+      - E2E_SFTP_USER=testftp
+      - E2E_SFTP_PASSWORD=testftppass
+      - E2E_PG_HOST=chest-backup-e2e-pg
+      - E2E_PG_PORT=5432
       - E2E_PG_CONTAINER=chest-backup-e2e-pg
       - E2E_DISCORD_WEBHOOK_URL=${E2E_DISCORD_WEBHOOK_URL}
-      - E2E_REAL_FTP_HOST=${E2E_REAL_FTP_HOST}
-      - E2E_REAL_FTP_PORT=${E2E_REAL_FTP_PORT}
-      - E2E_REAL_FTP_USER=${E2E_REAL_FTP_USER}
-      - E2E_REAL_FTP_PASSWORD=${E2E_REAL_FTP_PASSWORD}
-      - E2E_REAL_FTP_PATH=${E2E_REAL_FTP_PATH}
-      - E2E_REAL_FTP_SECURE=${E2E_REAL_FTP_SECURE}
+      - E2E_REAL_SFTP_HOST=${E2E_REAL_SFTP_HOST}
+      - E2E_REAL_SFTP_PORT=${E2E_REAL_SFTP_PORT}
+      - E2E_REAL_SFTP_USER=${E2E_REAL_SFTP_USER}
+      - E2E_REAL_SFTP_PASSWORD=${E2E_REAL_SFTP_PASSWORD}
+      - E2E_REAL_SFTP_PATH=${E2E_REAL_SFTP_PATH}
+      - E2E_REAL_SFTP_PRIVATE_KEY=${E2E_REAL_SFTP_PRIVATE_KEY}
     # no restart policy — one-shot container

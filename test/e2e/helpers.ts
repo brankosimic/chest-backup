@@ -9,25 +9,21 @@ export const E2E = {
   CONFIG_PATH: "/tmp/chest-backup-e2e-config.json",
   OPEN_CONFIG_PATH: "/tmp/chest-backup-e2e-open-config.json",
 
-  FTP_HOST: process.env.E2E_FTP_HOST ?? "127.0.0.1",
-  FTP_PORT: process.env.E2E_FTP_PORT ? Number(process.env.E2E_FTP_PORT) : 2121,
-  FTP_USER: process.env.E2E_FTP_USER ?? "testftp",
-  FTP_PASS: process.env.E2E_FTP_PASSWORD ?? "testftppass",
-  PG_NAME: process.env.E2E_PG_CONTAINER ?? "chest-backup-e2e-pg",
+  SFTP_HOST: process.env.E2E_SFTP_HOST!,
+  SFTP_PORT: Number(process.env.E2E_SFTP_PORT!),
+  SFTP_USER: process.env.E2E_SFTP_USER!,
+  SFTP_PASS: process.env.E2E_SFTP_PASSWORD!,
+  PG_HOST: process.env.E2E_PG_HOST!,
+  PG_PORT: Number(process.env.E2E_PG_PORT!),
+  PG_NAME: process.env.E2E_PG_CONTAINER!,
 
   DISCORD_WEBHOOK_URL: process.env.E2E_DISCORD_WEBHOOK_URL,
-  REAL_FTP_HOST: process.env.E2E_REAL_FTP_HOST,
-  REAL_FTP_PORT: process.env.E2E_REAL_FTP_PORT ? Number(process.env.E2E_REAL_FTP_PORT) : 21,
-  REAL_FTP_USER: process.env.E2E_REAL_FTP_USER,
-  REAL_FTP_PASSWORD: process.env.E2E_REAL_FTP_PASSWORD,
-  REAL_FTP_PATH: process.env.E2E_REAL_FTP_PATH ?? "/",
-  REAL_FTP_SECURE: (() => {
-    const raw = process.env.E2E_REAL_FTP_SECURE
-    return raw === "true" ? true : raw === "implicit" ? ("implicit" as const) : undefined
-  })(),
-  REAL_FTP_SECURE_OPTIONS: process.env.E2E_REAL_FTP_SECURE_OPTIONS
-    ? (JSON.parse(process.env.E2E_REAL_FTP_SECURE_OPTIONS) as Record<string, unknown>)
-    : undefined,
+  REAL_SFTP_HOST: process.env.E2E_REAL_SFTP_HOST,
+  REAL_SFTP_PORT: Number(process.env.E2E_REAL_SFTP_PORT),
+  REAL_SFTP_USER: process.env.E2E_REAL_SFTP_USER,
+  REAL_SFTP_PASSWORD: process.env.E2E_REAL_SFTP_PASSWORD,
+  REAL_SFTP_PATH: process.env.E2E_REAL_SFTP_PATH,
+  REAL_SFTP_PRIVATE_KEY: process.env.E2E_REAL_SFTP_PRIVATE_KEY,
 
   waitForPort: async (host: string, port: number, timeoutMs = 30_000): Promise<boolean> => {
     const start = Date.now()
@@ -65,7 +61,7 @@ export const E2E = {
       sources: [{ path: `${E2E.TEST_DATA_DIR_1}/*` }, { path: `${E2E.TEST_DATA_DIR_2}/*` }],
       destinations: [
         { type: "local", path: E2E.BACKUP_DIR, parallel: false },
-        { type: "ftp", host: E2E.FTP_HOST, port: E2E.FTP_PORT, user: E2E.FTP_USER, password: E2E.FTP_PASS, path: "/", parallel: true },
+        { type: "sftp", host: E2E.SFTP_HOST, port: E2E.SFTP_PORT, user: E2E.SFTP_USER, password: E2E.SFTP_PASS, path: "/upload", parallel: true },
       ],
     }
 
@@ -112,8 +108,8 @@ export const E2E = {
 
     E2E.writeTestData()
 
-    const ftpReady = await E2E.waitForPort(E2E.FTP_HOST, E2E.FTP_PORT)
-    if (!ftpReady) throw new Error(`FTP server not reachable at ${E2E.FTP_HOST}:${E2E.FTP_PORT}`)
+    const sftpReady = await E2E.waitForPort(E2E.SFTP_HOST, E2E.SFTP_PORT)
+    if (!sftpReady) throw new Error(`SFTP server not reachable at ${E2E.SFTP_HOST}:${E2E.SFTP_PORT}`)
 
     const seedSql = "/tmp/chest-backup-e2e-seed.sql"
     writeFileSync(

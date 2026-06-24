@@ -2,7 +2,7 @@ import type { Config } from "../types/config"
 import type { Destination } from "../types/config"
 import type { StoreResult } from "../types/index"
 import { storeLocal } from "./local"
-import { storeFtp } from "./ftp"
+import { storeSftp } from "./sftp"
 import { enforceRetention } from "../backup/retention"
 import { logger } from "../utils/logger"
 
@@ -13,8 +13,7 @@ const handleDestination = async (
 ): Promise<StoreResult> => {
   try {
     if (dest.type === "local") return await storeLocal(archivePath, checksumFile, dest)
-    if (dest.type === "ftp") return await storeFtp(archivePath, checksumFile, dest)
-    return { success: false, error: `Unknown destination type: ${dest.type}` }
+    return await storeSftp(archivePath, checksumFile, dest)
   } catch (err) {
     logger.error({ dest: dest.path, err }, "destination store failed")
     return { success: false, error: String(err) }

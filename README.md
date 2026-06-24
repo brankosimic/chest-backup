@@ -7,7 +7,7 @@ A scheduled backup tool for files, Docker containers, and PostgreSQL databases.
 - **File backup** — archive arbitrary paths and files
 - **Docker container backups** — backup running containers
 - **PostgreSQL database backups** — support for host-connected and Docker-based databases
-- **Multiple destinations** — local filesystem and FTP
+- **Multiple destinations** — local filesystem and SFTP
 - **Cron scheduling** — run backups on a schedule or one-off
 - **Retention policies** — automatic cleanup of old backups per destination
 - **Discord notifications** — receive alerts on backup success/failure
@@ -82,11 +82,11 @@ docker compose up -d
       "parallel": true
     },
     {
-      "type": "ftp",
+      "type": "sftp",
       "host": "backups.example.com",
-      "port": 21,
+      "port": 22,
       "user": "backupuser",
-      "password": "${FTP_PASSWORD}",
+      "privateKey": "~/.ssh/backup_key_ed25519",
       "path": "/backups",
       "parallel": false
     }
@@ -128,7 +128,7 @@ docker compose up -d
 src/
 ├── backup/      # Backup orchestration, archiving, retention, verification
 ├── config/      # Config loading, validation, env interpolation
-├── destinations/ # Local and FTP backup destinations
+├── destinations/ # Local and SFTP backup destinations
 ├── database/    # PostgreSQL backups
 ├── docker/      # Docker container management
 ├── notification/ # Discord webhook notifications

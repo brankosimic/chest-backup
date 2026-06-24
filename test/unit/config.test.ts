@@ -21,7 +21,7 @@ describe("ConfigSchema", () => {
       sources: [{ path: "/data/docs" }, { path: "/data/config.yaml" }],
       destinations: [
         { type: "local", path: "/backups/local", retention: 30, parallel: false },
-        { type: "ftp", host: "ftp.example.com", user: "user", password: "pass", path: "/remote", parallel: true },
+        { type: "sftp", host: "sftp.example.com", user: "user", password: "pass", path: "/remote", parallel: true },
       ],
       databases: [
         { type: "host", connectionString: "postgresql://user:pass@host/db", database: "testdb" },

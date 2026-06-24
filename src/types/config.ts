@@ -3,16 +3,15 @@ interface Source {
 }
 
 interface Destination {
-  type: "local" | "ftp"
+  type: "local" | "sftp"
   path: string
   host?: string
   port?: number
   user?: string
   password?: string
+  privateKey?: string
   retention?: number
   parallel?: boolean
-  secure?: boolean | "implicit" | "explicit"
-  secureOptions?: Record<string, unknown>
   timeout?: number
 }
 
