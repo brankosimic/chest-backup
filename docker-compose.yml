@@ -1,5 +1,5 @@
 services:
-  chest-backup:
+  app:
     build: .
     network_mode: host
     volumes:
