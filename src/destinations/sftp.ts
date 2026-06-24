@@ -71,7 +71,7 @@ const uploadWithProgress = async (
   const startTime = Date.now()
   let uploadedBytes = 0
 
-  const readStream = createReadStream(filePath)
+  const readStream = createReadStream(filePath, { highWaterMark: 1024 * 1024 })
   const writeStream = sftp.createWriteStream(remotePath)
 
   const progressInterval = setInterval(() => {
