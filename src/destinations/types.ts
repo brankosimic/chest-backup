@@ -2,7 +2,7 @@ import type { Config } from "../types/config"
 import type { Destination } from "../types/config"
 import type { StoreResult } from "../types/index"
 import { storeLocal } from "./local"
-import { storeSftp } from "./sftp"
+import { storeSftp, enforceRetentionSftp } from "./sftp"
 import { enforceRetention } from "../backup/retention"
 import { logger } from "../utils/logger"
 
@@ -32,9 +32,13 @@ const storeToDestination = async (
   result.durationMs = Date.now() - start
   result.destLabel = dest.type
 
-  if (result.success && dest.type === "local") {
+  if (result.success) {
     try {
-      enforceRetention(dest, "chest-backup", retention)
+      if (dest.type === "local") {
+        enforceRetention(dest, "chest-backup", retention)
+      } else {
+        await enforceRetentionSftp(dest, "chest-backup", retention)
+      }
     } catch (err) {
       errors.push(`Retention enforcement failed for ${dest.path}: ${String(err)}`)
     }

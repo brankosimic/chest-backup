@@ -4,6 +4,7 @@ import { homedir } from "node:os"
 import type { Destination } from "../types/config"
 import type { StoreResult } from "../types/index"
 import { logger } from "../utils/logger"
+import { ARCHIVE_PATTERN, parseTimestampFromName } from "../backup/retention"
 
 const connectClient = async (sftp: SFTPClient, dest: Destination): Promise<void> => {
   const config: SFTPClient.ConnectOptions = {
@@ -58,4 +59,46 @@ const storeSftp = async (
   }
 }
 
-export { storeSftp }
+const enforceRetentionSftp = async (dest: Destination, archivePrefix: string, globalRetention: number): Promise<void> => {
+  if (!dest.host || !dest.user) return
+
+  const retention = dest.retention ?? globalRetention
+  const sftp = new SFTPClient()
+
+  try {
+    await connectClient(sftp, dest)
+
+    const files = (await sftp.list(dest.path))
+      .map((f) => f.name)
+      .filter((f) => f.startsWith(archivePrefix) && ARCHIVE_PATTERN.test(f))
+
+    if (files.length <= retention) return
+
+    files.sort((a, b) => {
+      const tsA = parseTimestampFromName(a)
+      const tsB = parseTimestampFromName(b)
+      if (!tsA || !tsB) return 0
+      return tsB.localeCompare(tsA)
+    })
+
+    const toDelete = files.slice(retention)
+    const base = dest.path.replace(/\/+$/, "")
+
+    for (const file of toDelete) {
+      await sftp.delete(`${base}/${file}`)
+      logger.info({ file }, "deleted old archive via SFTP for retention")
+      try {
+        await sftp.delete(`${base}/${file}.sha256`)
+      } catch {
+        logger.debug({ file: `${file}.sha256` }, "checksum file not found for SFTP retention cleanup")
+      }
+    }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    logger.warn({ path: dest.path, error: msg }, "SFTP retention failed")
+  } finally {
+    await sftp.end()
+  }
+}
+
+export { storeSftp, enforceRetentionSftp }
