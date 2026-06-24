@@ -5,11 +5,11 @@ import { ConfigSchema } from "./schema"
 
 function resolveEnvVars(value: unknown): unknown {
   if (typeof value === "string") {
-    return value.replace(/\$\{(\w+)\}/g, (_match, name) => {
+    return value.replace(/\$\{(\w+)\}/g, (_match: string, name: string) => {
       if (!(name in process.env)) {
         throw new Error(`Environment variable "${name}" is not set (referenced in config)`)
       }
-      return process.env[name]!
+      return process.env[name] as string
     })
   }
   if (Array.isArray(value)) {
@@ -36,7 +36,7 @@ function loadConfig(path?: string): Config {
     throw new Error(`Config validation failed:\n${issues}`)
   }
 
-  return result.data as Config
+  return result.data
 }
 
 export { loadConfig }

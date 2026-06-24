@@ -27,11 +27,11 @@ const parseTimestampFromName = (name: string): string | null => {
   return match?.[1] ?? null
 }
 
-const enforceRetention = async (
+const enforceRetention = (
   destination: Destination,
   archivePrefix: string,
   globalRetention: number,
-): Promise<void> => {
+): void => {
   const retention = destination.retention ?? globalRetention
   const destPath = destination.path
 

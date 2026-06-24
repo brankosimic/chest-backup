@@ -10,11 +10,11 @@ function copyChecksum(checksumFile: string, destDir: string): void {
   cpSync(checksumFile, join(destDir, shaName))
 }
 
-async function storeLocal(
+function storeLocal(
   archivePath: string,
   checksumFile: string | undefined,
   dest: Destination,
-): Promise<StoreResult> {
+): StoreResult {
   const destDir = dirname(dest.path)
   mkdirSync(destDir, { recursive: true })
 

@@ -6,7 +6,7 @@ import { logger } from "../utils/logger"
 const TEMP_DIR = "/tmp"
 
 const formatTimestamp = (ts: Date): string => {
-  const y = ts.getFullYear()
+  const y = String(ts.getFullYear())
   const m = String(ts.getMonth() + 1).padStart(2, "0")
   const d = String(ts.getDate()).padStart(2, "0")
   const h = String(ts.getHours()).padStart(2, "0")

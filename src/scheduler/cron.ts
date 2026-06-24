@@ -39,7 +39,7 @@ class Scheduler {
       const next = interval.next().getTime()
       const delay = Math.max(0, next - Date.now())
 
-      this.timeoutId = setTimeout(async () => {
+      this.timeoutId = setTimeout(() => {
         if (!this.active) return
 
         if (this.running) {
@@ -49,14 +49,16 @@ class Scheduler {
         }
 
         this.running = true
-        try {
-          await this.callback()
-        } catch (err) {
-          logger.error({ err }, "scheduled backup failed")
-        } finally {
-          this.running = false
-          this.scheduleNext()
-        }
+        void (async () => {
+          try {
+            await this.callback()
+          } catch (err) {
+            logger.error({ err }, "scheduled backup failed")
+          } finally {
+            this.running = false
+            this.scheduleNext()
+          }
+        })()
       }, delay)
     } catch (err) {
       logger.error({ err }, "failed to parse cron expression")

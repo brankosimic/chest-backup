@@ -3,7 +3,7 @@ import { Glob } from "bun"
 import type { Source } from "../types/config"
 import { logger } from "../utils/logger"
 
-async function resolveSources(sources: Source[]): Promise<string[]> {
+function resolveSources(sources: Source[]): string[] {
   const resolved = new Set<string>()
 
   for (const source of sources) {

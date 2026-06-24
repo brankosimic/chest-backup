@@ -27,7 +27,7 @@ const DatabaseConfigSchema = z.object({
 })
 
 const DiscordConfigSchema = z.object({
-  webhookUrl: z.string().url(),
+  webhookUrl: z.url(),
 })
 
 const NotificationsConfigSchema = z.object({

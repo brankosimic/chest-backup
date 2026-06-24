@@ -20,10 +20,14 @@ const collectSources = async (
 
   const [dbDumps, sources] = await Promise.all([
     dumpDatabases(config, timestamp, tempFiles, errors),
-    resolveSources(config.sources).catch((err) => {
-      errors.push(`Source resolution failed: ${String(err)}`)
-      return [] as string[]
-    }),
+    (() => {
+      try {
+        return Promise.resolve(resolveSources(config.sources))
+      } catch (err) {
+        errors.push(`Source resolution failed: ${String(err)}`)
+        return Promise.resolve([] as string[])
+      }
+    })(),
   ])
 
   await startBackupContainers(config.containers, errors)

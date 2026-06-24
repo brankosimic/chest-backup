@@ -15,16 +15,16 @@ interface DiscordPayload {
 }
 
 const formatDuration = (ms: number): string => {
-  if (ms < 1000) return `${ms}ms`
+  if (ms < 1000) return `${String(ms)}ms`
   const s = Math.floor(ms / 1000)
-  if (s < 60) return `${s}s`
+  if (s < 60) return `${String(s)}s`
   const m = Math.floor(s / 60)
   const remainingS = s % 60
-  return `${m}m ${remainingS}s`
+  return `${String(m)}m ${String(remainingS)}s`
 }
 
 const formatSize = (bytes: number): string => {
-  if (bytes < 1024) return `${bytes}B`
+  if (bytes < 1024) return `${String(bytes)}B`
   const kb = bytes / 1024
   if (kb < 1024) return `${kb.toFixed(1)}KB`
   return `${(kb / 1024).toFixed(1)}MB`
@@ -59,7 +59,7 @@ const buildEmbed = (result: BackupResult): DiscordEmbed => {
   }
 
   fields.push({ name: "Duration", value: formatDuration(result.durationMs), inline: true })
-  fields.push({ name: "Destinations", value: `${successCount} succeeded, ${failCount} failed`, inline: false })
+  fields.push({ name: "Destinations", value: `${String(successCount)} succeeded, ${String(failCount)} failed`, inline: false })
 
   result.destinationResults.forEach((d) => fields.push({ name: d.destLabel ?? "Destination", value: `${d.error ? "Failed" : "OK"}${d.durationMs !== undefined ? ` (${formatDuration(d.durationMs)})` : ""}`, inline: true }))
 

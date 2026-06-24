@@ -12,7 +12,7 @@ const handleDestination = async (
   dest: Destination,
 ): Promise<StoreResult> => {
   try {
-    if (dest.type === "local") return await storeLocal(archivePath, checksumFile, dest)
+    if (dest.type === "local") return storeLocal(archivePath, checksumFile, dest)
     return await storeSftp(archivePath, checksumFile, dest)
   } catch (err) {
     logger.error({ dest: dest.path, err }, "destination store failed")
@@ -34,7 +34,7 @@ const storeToDestination = async (
 
   if (result.success) {
     try {
-      await enforceRetention(dest, "chest-backup", retention)
+      enforceRetention(dest, "chest-backup", retention)
     } catch (err) {
       errors.push(`Retention enforcement failed for ${dest.path}: ${String(err)}`)
     }
