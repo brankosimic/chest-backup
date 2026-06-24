@@ -1,5 +1,5 @@
 import SFTPClient from "ssh2-sftp-client"
-import { readFileSync, statSync, createReadStream } from "node:fs"
+import { readFileSync, statSync } from "node:fs"
 import { homedir } from "node:os"
 import type { Destination } from "../types/config"
 import type { StoreResult } from "../types/index"
@@ -69,59 +69,18 @@ const uploadWithProgress = async (
 ): Promise<{ uploadedSize: number; durationMs: number; speed: number }> => {
   const fileSize = statSync(filePath).size
   const startTime = Date.now()
-  let uploadedBytes = 0
 
-  const readStream = createReadStream(filePath, { highWaterMark: 1024 * 1024 })
-  const writeStream = sftp.createWriteStream(remotePath)
+  logger.info({ remotePath, size: fileSize }, "Started uploading to SFTP destination")
 
-  const progressInterval = setInterval(() => {
-    const elapsed = Date.now() - startTime
-    const speed = elapsed > 0 ? uploadedBytes / (elapsed / 1000) : 0
-    const progress = Math.round((uploadedBytes / fileSize) * 100)
-    logger.info({ progress, uploadedBytes, fileSize, speed: Math.round(speed) }, "SFTP upload progress")
-
-    if (uploadedBytes >= fileSize) {
-      clearInterval(progressInterval)
-    }
-  }, 10_000)
-
-  return new Promise((resolve, reject) => {
-    let completed = false
-
-    readStream.on("data", (chunk: Buffer) => {
-      uploadedBytes += chunk.length
-    })
-
-    const cleanup = () => {
-      if (completed) return
-      completed = true
-      clearInterval(progressInterval)
-    }
-
-    writeStream.on("error", (err: Error) => {
-      cleanup()
-      readStream.destroy()
-      reject(err)
-    })
-
-    writeStream.on("close", () => {
-      cleanup()
-      const durationMs = Date.now() - startTime
-      const speed = durationMs > 0 ? uploadedBytes / (durationMs / 1000) : 0
-      resolve({ uploadedSize: uploadedBytes, durationMs, speed })
-    })
-
-    readStream.on("end", () => {
-      writeStream.end()
-    })
-
-    readStream.on("error", (err: Error) => {
-      cleanup()
-      reject(err)
-    })
-
-    readStream.pipe(writeStream)
+  await sftp.fastPut(filePath, remotePath, {
+    concurrency: 64,
+    chunkSize: 262_144,
   })
+
+  const durationMs = Date.now() - startTime
+  const speed = durationMs > 0 ? fileSize / (durationMs / 1000) : 0
+
+  return { uploadedSize: fileSize, durationMs, speed }
 }
 
 const enforceRetentionSftp = async (dest: Destination, archivePrefix: string, globalRetention: number): Promise<void> => {
