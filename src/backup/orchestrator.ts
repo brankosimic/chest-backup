@@ -30,7 +30,6 @@ const collectSources = async (
     })(),
   ])
 
-  await startBackupContainers(config.containers, errors)
   return { sources, dbDumps }
 }
 
@@ -75,6 +74,9 @@ const executeBackup = async (
   }
 
   const archiveResult = await createArchiveWithVerification(timestamp, sources, dbDumps, tempFiles, errors)
+
+  await startBackupContainers(config.containers, errors)
+
   if (!archiveResult) {
     return { success: false, timestamp, durationMs: 0, destinationResults: [], errors }
   }

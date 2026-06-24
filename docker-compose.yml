@@ -7,9 +7,10 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /mnt/hoarder/Backups/server:/mnt/hoarder/Backups/server:rw
       - /home/branko/Desktop/code/chest-backup/test/e2e:/backup-source/e2e:ro
+      - /home/branko/Desktop/server/immich-pgdata:/backup-source/immich-pgdata:ro
       - /home/branko/.ssh/mini_pc_id_ed25519:/root/.ssh/mini_pc_id_ed25519:ro
     env_file:
       - .env
     environment:
-      - TZ=UTC
+      - TZ=Europe/Sarajevo
     restart: unless-stopped

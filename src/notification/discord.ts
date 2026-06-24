@@ -30,6 +30,13 @@ const formatSize = (bytes: number): string => {
   return `${(kb / 1024).toFixed(1)}MB`
 }
 
+const formatSpeed = (bytesPerSec: number): string => {
+  if (bytesPerSec < 1024) return `${Math.round(bytesPerSec)}B/s`
+  const kb = bytesPerSec / 1024
+  if (kb < 1024) return `${kb.toFixed(1)}KB/s`
+  return `${(kb / 1024).toFixed(1)}MB/s`
+}
+
 const buildEmbed = (result: BackupResult): DiscordEmbed => {
   const successCount = result.destinationResults.filter((r) => r.success).length
   const failCount = result.destinationResults.length - successCount
@@ -61,7 +68,10 @@ const buildEmbed = (result: BackupResult): DiscordEmbed => {
   fields.push({ name: "Duration", value: formatDuration(result.durationMs), inline: true })
   fields.push({ name: "Destinations", value: `${String(successCount)} succeeded, ${String(failCount)} failed`, inline: false })
 
-  result.destinationResults.forEach((d) => fields.push({ name: d.destLabel ?? "Destination", value: `${d.error ? "Failed" : "OK"}${d.durationMs !== undefined ? ` (${formatDuration(d.durationMs)})` : ""}`, inline: true }))
+  result.destinationResults.forEach((d) => {
+    const speedStr = d.speed !== undefined ? ` | ${formatSpeed(d.speed)}` : ""
+    fields.push({ name: d.destLabel ?? "Destination", value: `${d.error ? "Failed" : "OK"}${d.durationMs !== undefined ? ` (${formatDuration(d.durationMs)})` : ""}${speedStr}`, inline: true })
+  })
 
   if (result.errors.length)
     fields.push({ name: "Errors", value: result.errors.map((e) => `\`${e}\``).join("\n"), inline: false })
