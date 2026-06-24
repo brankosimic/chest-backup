@@ -3,8 +3,12 @@ import type { Config } from "../types/config"
 import { logger } from "../utils/logger"
 
 const dumpHostDatabase = async (connString: string, dbName: string | undefined, outputPath: string): Promise<void> => {
-  if (dbName) await $`pg_dump ${connString} -d ${dbName} -Fc -f ${outputPath}`.quiet()
-  else await $`pg_dumpall ${connString} -f ${outputPath}`.quiet()
+  if (dbName) {
+    const dbOnly = connString.replace(/\/[^/]+$/, `/${dbName}`)
+    await $`pg_dump ${dbOnly} -Fc -f ${outputPath}`.quiet()
+  } else {
+    await $`pg_dumpall ${connString} -f ${outputPath}`.quiet()
+  }
   logger.info({ outputPath }, "host database dump completed")
 }
 
