@@ -32,7 +32,7 @@ const storeToDestination = async (
   result.durationMs = Date.now() - start
   result.destLabel = dest.type
 
-  if (result.success) {
+  if (result.success && dest.type === "local") {
     try {
       enforceRetention(dest, "chest-backup", retention)
     } catch (err) {
