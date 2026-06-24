@@ -1,15 +1,39 @@
 import { $ } from "bun"
 import type { Config } from "../types/config"
 import { logger } from "../utils/logger"
+import { existsSync } from "node:fs"
+
+const getPgDumpPath = (): string => {
+  // Check which pg_dump versions are available
+  const versions = [18, 17, 16]
+  for (const v of versions) {
+    const path = `/usr/lib/postgresql/${v}/bin/pg_dump`
+    if (existsSync(path)) return path
+  }
+  return "pg_dump" // fallback to PATH
+}
+
+const detectServerVersion = async (connString: string): Promise<number> => {
+  try {
+    const result = await $`psql ${connString} -t -A -c "SHOW server_version_num;"`.quiet().text()
+    const versionNum = parseInt(result.trim(), 10)
+    return Math.floor(versionNum / 10000)
+  } catch {
+    return 18 // fallback to latest
+  }
+}
 
 const dumpHostDatabase = async (connString: string, dbName: string | undefined, outputPath: string): Promise<void> => {
-  if (dbName) {
-    const dbOnly = connString.replace(/\/[^/]+$/, `/${dbName}`)
-    await $`pg_dump ${dbOnly} -Fc -f ${outputPath}`.quiet()
-  } else {
-    await $`pg_dumpall ${connString} -f ${outputPath}`.quiet()
-  }
-  logger.info({ outputPath }, "host database dump completed")
+  const pgDump = getPgDumpPath()
+  const serverVersion = await detectServerVersion(connString)
+  logger.info({ serverVersion, pgDump }, "detected host database server version")
+
+  const cmd = dbName
+    ? `${pgDump} ${connString.replace(/\/[^/]+$/, `/${dbName}`)} -Fc -f ${outputPath}`
+    : `${pgDump}all ${connString} -f ${outputPath}`
+
+  await $`bash -c "${cmd}"`
+  logger.info({ outputPath, serverVersion }, "host database dump completed")
 }
 
 const dumpDockerDatabase = async (
