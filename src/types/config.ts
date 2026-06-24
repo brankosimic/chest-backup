@@ -1,6 +1,25 @@
-interface Source {
+type PathSource = {
+  type: "path"
   path: string
 }
+
+type PostgresSource = {
+  type: "postgres"
+  host: string
+  port: number
+  user: string
+  password: string
+  database: string
+}
+
+type DockerComposeSource = {
+  type: "docker-compose"
+  name: string
+  path: string
+  containers: string[]
+}
+
+type Source = PathSource | PostgresSource | DockerComposeSource
 
 interface Destination {
   type: "local" | "sftp"
@@ -13,15 +32,6 @@ interface Destination {
   retention?: number
   parallel?: boolean
   timeout?: number
-}
-
-interface DatabaseConfig {
-  type: "host" | "docker"
-  database?: string
-  connectionString?: string
-  containerName?: string
-  username?: string
-  password?: string
 }
 
 interface DiscordConfig {
@@ -37,9 +47,7 @@ interface Config {
   retention: number
   sources: Source[]
   destinations: Destination[]
-  databases?: DatabaseConfig[]
-  containers?: string[]
   notifications?: NotificationsConfig
 }
 
-export type { Config, Source, Destination, DatabaseConfig, DiscordConfig, NotificationsConfig }
+export type { Config, Source, PathSource, PostgresSource, DockerComposeSource, Destination, DiscordConfig, NotificationsConfig }

@@ -1,6 +1,22 @@
 import { readdirSync, mkdirSync, writeFileSync, existsSync } from "node:fs"
 import { join } from "node:path"
 import { $ } from "bun"
+import { logger } from "../../src/utils/logger"
+
+const attemptConnection = async (host: string, port: number): Promise<void> => {
+  await Bun.connect({
+    hostname: host,
+    port,
+    socket: {
+      open(tcp) {
+        tcp.end()
+      },
+      close() { logger.debug("socket closed") },
+      data() { logger.debug("socket data received") },
+      drain() { logger.debug("socket drained") },
+    },
+  })
+}
 
 export const E2E = {
   TEST_DATA_DIR_1: "/tmp/chest-backup-e2e-data/docs",
@@ -30,18 +46,7 @@ export const E2E = {
 
     while (Date.now() - start < timeoutMs) {
       try {
-        await Bun.connect({
-          hostname: host,
-          port,
-          socket: {
-            open(tcp) {
-              tcp.end()
-            },
-            close() {},
-            data() {},
-            drain() {},
-          },
-        })
+        await attemptConnection(host, port)
         return true
       } catch {
         await Bun.sleep(500)
@@ -58,7 +63,10 @@ export const E2E = {
   writeConfig(): void {
     const config = {
       retention: 2,
-      sources: [{ path: `${E2E.TEST_DATA_DIR_1}/*` }, { path: `${E2E.TEST_DATA_DIR_2}/*` }],
+      sources: [
+        { type: "path", path: `${E2E.TEST_DATA_DIR_1}/*` },
+        { type: "path", path: `${E2E.TEST_DATA_DIR_2}/*` },
+      ],
       destinations: [
         { type: "local", path: E2E.BACKUP_DIR, parallel: false },
         { type: "sftp", host: E2E.SFTP_HOST, port: E2E.SFTP_PORT, user: E2E.SFTP_USER, password: E2E.SFTP_PASS, path: "/upload", parallel: true },
@@ -71,17 +79,12 @@ export const E2E = {
   writeOpenConfig(): void {
     const config = {
       retention: 2,
-      sources: [{ path: `${E2E.TEST_DATA_DIR_1}/*` }, { path: `${E2E.TEST_DATA_DIR_2}/*` }],
-      destinations: [{ type: "local", path: E2E.BACKUP_DIR, parallel: false }],
-      databases: [
-        {
-          type: "docker",
-          containerName: E2E.PG_NAME,
-          database: "testdb",
-          username: "testuser",
-          password: "testpass",
-        },
+      sources: [
+        { type: "path", path: `${E2E.TEST_DATA_DIR_1}/*` },
+        { type: "path", path: `${E2E.TEST_DATA_DIR_2}/*` },
+        { type: "postgres", host: "localhost", port: 5432, user: "testuser", password: "testpass", database: "testdb" },
       ],
+      destinations: [{ type: "local", path: E2E.BACKUP_DIR, parallel: false }],
     }
 
     writeFileSync(E2E.OPEN_CONFIG_PATH, JSON.stringify(config, null, 2))

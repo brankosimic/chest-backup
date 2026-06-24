@@ -1,16 +1,13 @@
 import { $ } from "bun"
-import type { Config } from "../types/config"
+import type { PostgresSource, Source } from "../types/config"
 import { logger } from "../utils/logger"
 import { existsSync } from "node:fs"
 
 const getPgDumpPath = (): string => {
-  // Check which pg_dump versions are available
   const versions = [18, 17, 16]
-  for (const v of versions) {
-    const path = `/usr/lib/postgresql/${v}/bin/pg_dump`
-    if (existsSync(path)) return path
-  }
-  return "pg_dump" // fallback to PATH
+
+  const paths = versions.map((v) => `/usr/lib/postgresql/${v}/bin/pg_dump`)
+  return paths.find(existsSync) ?? "pg_dump"
 }
 
 const detectServerVersion = async (connString: string): Promise<number> => {
@@ -19,7 +16,8 @@ const detectServerVersion = async (connString: string): Promise<number> => {
     const versionNum = parseInt(result.trim(), 10)
     return Math.floor(versionNum / 10000)
   } catch {
-    return 18 // fallback to latest
+    logger.debug({ connString }, "failed to detect server version, using fallback")
+    return 18
   }
 }
 
@@ -59,30 +57,44 @@ const dumpDockerDatabase = async (
   }
 }
 
-const dumpDatabases = async (
-  config: Config,
+const dumpPostgresSources = async (
+  sources: Source[],
   timestamp: string,
   tempFiles: string[],
-  errors: string[],
 ): Promise<string[]> => {
-  if (!config.databases?.length) return []
+  const postgresSources = sources.filter((s): s is PostgresSource => s.type === "postgres")
+  if (!postgresSources.length) return []
 
-  const dbDumps: string[] = []
-  for (const db of config.databases) {
-    const outputPath = `/tmp/db-dump-${timestamp}-${crypto.randomUUID()}.dump`
-    tempFiles.push(outputPath)
-    try {
-      if (db.type === "host" && db.connectionString) {
-        await dumpHostDatabase(db.connectionString, db.database, outputPath)
-      } else if (db.type === "docker" && db.containerName) {
-        await dumpDockerDatabase(db.containerName, db.database, db.username, db.password ?? "", outputPath)
-      }
-      dbDumps.push(outputPath)
-    } catch (err) {
-      errors.push(`Database dump failed: ${String(err)}`)
-    }
-  }
-  return dbDumps
+  return dumpPostgresSourceBatch(postgresSources, timestamp, tempFiles)
 }
 
-export { dumpHostDatabase, dumpDockerDatabase, dumpDatabases }
+const dumpSinglePostgresSource = async (
+  source: PostgresSource,
+  timestamp: string,
+  tempFiles: string[],
+): Promise<string | null> => {
+  const outputPath = `/tmp/db-dump-${timestamp}-${crypto.randomUUID()}.dump`
+  tempFiles.push(outputPath)
+  try {
+    await dumpHostDatabase(
+      `postgresql://${source.user}:${source.password}@${source.host}:${source.port}/${source.database}`,
+      undefined,
+      outputPath,
+    )
+    return outputPath
+  } catch (err) {
+    logger.error({ source: source.database, err }, "postgres dump failed")
+    return null
+  }
+}
+
+const dumpPostgresSourceBatch = async (
+  sources: PostgresSource[],
+  timestamp: string,
+  tempFiles: string[],
+): Promise<string[]> => {
+  const results = await Promise.all(sources.map((s) => dumpSinglePostgresSource(s, timestamp, tempFiles)))
+  return results.filter((r): r is string => r !== null)
+}
+
+export { dumpHostDatabase, dumpDockerDatabase, dumpPostgresSources }

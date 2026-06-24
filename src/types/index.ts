@@ -1,15 +1,15 @@
-import type { Config, Source, Destination, DatabaseConfig, DiscordConfig, NotificationsConfig } from "./config"
+import type { Config, Source, Destination, DockerComposeSource, PostgresSource, PathSource, DiscordConfig, NotificationsConfig } from "./config"
 import type { DestinationHandler, StoreResult } from "./destination"
+
+interface CollectedSources {
+  sources: string[]
+  dbDumps: string[]
+}
 
 interface VerifyResult {
   integrity: boolean
   checksum: string
   checksumFile: string
-}
-
-interface CollectedSources {
-  sources: string[]
-  dbDumps: string[]
 }
 
 interface ArchiveWithVerification {
@@ -31,8 +31,10 @@ interface BackupResult {
 export type {
   Config,
   Source,
+  PathSource,
+  PostgresSource,
+  DockerComposeSource,
   Destination,
-  DatabaseConfig,
   DiscordConfig,
   NotificationsConfig,
   DestinationHandler,

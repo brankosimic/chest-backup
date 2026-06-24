@@ -1,28 +1,42 @@
 import { existsSync } from "node:fs"
 import { Glob } from "bun"
-import type { Source } from "../types/config"
+import type { Config, Source } from "../types/config"
 import { logger } from "../utils/logger"
+import { dumpPostgresSources } from "../database/postgres"
 
-function resolveSources(sources: Source[]): string[] {
-  const resolved = new Set<string>()
+const resolveSourcePaths = (source: Source): string[] => {
+  if (source.type !== "path") return []
 
-  for (const source of sources) {
-    const globber = new Glob(source.path)
-    const matches = Array.from(globber.scanSync({ absolute: true }))
+  const globber = new Glob(source.path)
+  const matches = Array.from(globber.scanSync({ absolute: true }))
 
-    if (!matches.length) {
-      logger.warn({ path: source.path }, "source path matched no files")
-      continue
-    }
-
-    for (const match of matches) {
-      if (existsSync(match)) {
-        resolved.add(match)
-      }
-    }
+  if (!matches.length) {
+    logger.warn({ path: source.path }, "source path matched no files")
+    return []
   }
 
-  return Array.from(resolved)
+  return matches.filter(existsSync)
+}
+
+const resolvePaths = (sources: Source[]): string[] => [
+  ...new Set(sources.flatMap(resolveSourcePaths)),
+]
+
+const resolveContainers = (sources: Source[]): string[] =>
+  sources.flatMap((s) => (s.type === "docker-compose" ? s.containers : []))
+
+const resolveSources = async (
+  config: Config,
+  timestamp: string,
+  tempFiles: string[],
+): Promise<{ paths: string[]; containers: string[] }> => {
+  const paths = resolvePaths(config.sources)
+  const containers = resolveContainers(config.sources)
+
+  const dbDumps = await dumpPostgresSources(config.sources, timestamp, tempFiles)
+  paths.push(...dbDumps)
+
+  return { paths, containers }
 }
 
 export { resolveSources }

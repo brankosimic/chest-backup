@@ -1,8 +1,31 @@
 import { z } from "zod"
 
-const SourceSchema = z.object({
+const PathSourceSchema = z.object({
+  type: z.literal("path"),
   path: z.string().min(1),
 })
+
+const PostgresSourceSchema = z.object({
+  type: z.literal("postgres"),
+  host: z.string().min(1),
+  port: z.number().int().positive(),
+  user: z.string().min(1),
+  password: z.string().min(1),
+  database: z.string().min(1),
+})
+
+const DockerComposeSourceSchema = z.object({
+  type: z.literal("docker-compose"),
+  name: z.string().min(1),
+  path: z.string().min(1),
+  containers: z.array(z.string().min(1)),
+})
+
+const SourceSchema = z.discriminatedUnion("type", [
+  PathSourceSchema,
+  PostgresSourceSchema,
+  DockerComposeSourceSchema,
+])
 
 const DestinationSchema = z.object({
   type: z.enum(["local", "sftp"]),
@@ -15,15 +38,6 @@ const DestinationSchema = z.object({
   retention: z.number().int().positive().optional(),
   parallel: z.boolean().optional().default(true),
   timeout: z.number().int().positive().optional(),
-})
-
-const DatabaseConfigSchema = z.object({
-  type: z.enum(["host", "docker"]),
-  database: z.string().optional(),
-  connectionString: z.string().optional(),
-  containerName: z.string().optional(),
-  username: z.string().optional(),
-  password: z.string().optional(),
 })
 
 const DiscordConfigSchema = z.object({
@@ -39,8 +53,6 @@ const ConfigSchema = z.object({
   retention: z.number().int().positive().default(7),
   sources: z.array(SourceSchema).min(1),
   destinations: z.array(DestinationSchema).min(1),
-  databases: z.array(DatabaseConfigSchema).optional(),
-  containers: z.array(z.string().min(1)).optional(),
   notifications: NotificationsConfigSchema.optional(),
 })
 
