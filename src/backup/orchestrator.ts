@@ -4,7 +4,7 @@ import type { BackupResult, VerifyResult, CollectedSources, ArchiveWithVerificat
 import { formatTimestamp, createArchive } from "./archiver"
 import { verifyArchive } from "./verify"
 import { resolveSources } from "./sources"
-import { stopBackupContainers, startBackupContainers, ensureContainersStarted } from "../docker/manager"
+import { stopBackupContainers, startBackupContainers } from "../docker/manager"
 import { dumpDatabases } from "../database/postgres"
 import { dispatchToDestinations } from "../destinations/types"
 import { sendNotification } from "../notification/discord"
@@ -118,8 +118,6 @@ const runBackup = async (config: Config): Promise<BackupResult> => {
         logger.debug({ file }, "temp file cleanup failed")
       }
     }
-
-    await ensureContainersStarted(config.containers)
   }
 }
 
