@@ -6,7 +6,7 @@
     "dev": "bun --watch src/index.ts",
     "build": "tsc",
     "start": "docker compose up -d",
-    "start:now": "docker compose build && docker compose run --rm app -- --run-now",
+    "start:now": "docker ps -q --filter \"name=chest-backup-app-run\" | xargs -r docker stop && docker compose build && docker compose run --rm app -- --run-now",
     "start:dry": "docker compose run --rm app -- --dry-run",
     "test": "bun test --bail --timeout 120000 --path-ignore-patterns 'dist/**'",
     "test:unit": "bun test --bail --path-ignore-patterns 'dist/**' test/unit/",

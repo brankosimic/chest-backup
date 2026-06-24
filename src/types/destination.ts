@@ -5,6 +5,7 @@ interface StoreResult {
   error?: string
   durationMs?: number
   destLabel?: string
+  speed?: number
 }
 
 interface DestinationHandler {
