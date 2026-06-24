@@ -30,6 +30,7 @@ const storeToDestination = async (
   const start = Date.now()
   const result = await handleDestination(archivePath, checksumFile, dest)
   result.durationMs = Date.now() - start
+  result.destLabel = dest.type
 
   if (result.success) {
     try {

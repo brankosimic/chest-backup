@@ -61,7 +61,7 @@ const buildEmbed = (result: BackupResult): DiscordEmbed => {
   fields.push({ name: "Duration", value: formatDuration(result.durationMs), inline: true })
   fields.push({ name: "Destinations", value: `${successCount} succeeded, ${failCount} failed`, inline: false })
 
-  result.destinationResults.forEach((d) => fields.push({ name: "Destination", value: `${d.error ? "Failed" : "OK"}${d.durationMs ? ` (${formatDuration(d.durationMs)})` : ""}`, inline: true }))
+  result.destinationResults.forEach((d) => fields.push({ name: d.destLabel ?? "Destination", value: `${d.error ? "Failed" : "OK"}${d.durationMs !== undefined ? ` (${formatDuration(d.durationMs)})` : ""}`, inline: true }))
 
   if (result.errors.length)
     fields.push({ name: "Errors", value: result.errors.map((e) => `\`${e}\``).join("\n"), inline: false })

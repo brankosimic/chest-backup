@@ -4,6 +4,7 @@ interface StoreResult {
   success: boolean
   error?: string
   durationMs?: number
+  destLabel?: string
 }
 
 interface DestinationHandler {
