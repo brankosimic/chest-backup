@@ -1,21 +1,25 @@
-import { existsSync } from "node:fs"
+import { existsSync, statSync } from "node:fs"
 import { Glob } from "bun"
 import type { Config, Source } from "../types/config"
 import { logger } from "../utils/logger"
 import { dumpPostgresSources } from "../database/postgres"
 
 const resolveSourcePaths = (source: Source): string[] => {
-  if (source.type !== "path") return []
+  if (source.type === "postgres") return []
 
-  const globber = new Glob(source.path)
-  const matches = Array.from(globber.scanSync({ absolute: true }))
-
-  if (!matches.length) {
-    logger.warn({ path: source.path }, "source path matched no files")
+  if (!existsSync(source.path)) {
+    logger.warn({ path: source.path }, "source path does not exist")
     return []
   }
 
-  return matches.filter(existsSync)
+  const stat = statSync(source.path)
+  if (stat.isDirectory()) {
+    const globber = new Glob(`${source.path}/**/*`)
+    const matches = Array.from(globber.scanSync({ absolute: true }))
+    return matches.filter(existsSync)
+  }
+
+  return [source.path]
 }
 
 const resolvePaths = (sources: Source[]): string[] => [

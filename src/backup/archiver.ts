@@ -1,5 +1,5 @@
 import { $ } from "bun"
-import { statSync } from "node:fs"
+import { statSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
 import { logger } from "../utils/logger"
 
@@ -27,9 +27,10 @@ const createArchive = async (timestamp: string, sources: string[], dbDumps: stri
 
   if (!allFiles.length) throw new Error("no files to archive")
 
-  const relativePaths = allFiles.map((f) => f.replace(/^\//, ""))
+  const fileList = join(TEMP_DIR, `file-list-${timestamp}.txt`)
+  writeFileSync(fileList, allFiles.map((f) => f.replace(/^\//, "")).join("\n"))
 
-  await $`tar czf ${archivePath} -C / ${relativePaths}`.quiet()
+  await $`tar czf ${archivePath} -C / -T ${fileList}`.quiet()
 
   const stats = statSync(archivePath)
   logger.info({ archiveName, size: stats.size, fileCount: allFiles.length }, "archive created")

@@ -1,5 +1,5 @@
 import { $ } from "bun"
-import type { PostgresSource, Source } from "../types/config"
+import type { ParsedConnString, PostgresSource, Source } from "../types/config"
 import { logger } from "../utils/logger"
 import { existsSync } from "node:fs"
 
@@ -10,13 +10,25 @@ const getPgDumpPath = (): string => {
   return paths.find(existsSync) ?? "pg_dump"
 }
 
+const parseConnString = (connString: string): ParsedConnString => {
+  const url = new URL(connString)
+  return {
+    host: url.hostname,
+    port: parseInt(url.port, 10),
+    user: url.username,
+    password: url.password,
+  }
+}
+
 const detectServerVersion = async (connString: string): Promise<number> => {
   try {
     const result = await $`psql ${connString} -t -A -c "SHOW server_version_num;"`.quiet().text()
     const versionNum = parseInt(result.trim(), 10)
     return Math.floor(versionNum / 10000)
   } catch {
-    logger.debug({ connString }, "failed to detect server version, using fallback")
+    const sanitized = new URL(connString)
+    sanitized.password = "***"
+    logger.debug({ connString: sanitized.toString() }, "failed to detect server version, using fallback")
     return 18
   }
 }
@@ -26,11 +38,11 @@ const dumpHostDatabase = async (connString: string, dbName: string | undefined, 
   const serverVersion = await detectServerVersion(connString)
   logger.info({ serverVersion, pgDump }, "detected host database server version")
 
-  const cmd = dbName
-    ? `${pgDump} ${connString.replace(/\/[^/]+$/, `/${dbName}`)} -Fc -f ${outputPath}`
-    : `${pgDump}all ${connString} -f ${outputPath}`
-
-  await $`bash -c "${cmd}"`
+  if (dbName) await $`${pgDump} ${connString} -Fc -f ${outputPath}`.quiet()
+  else {
+    const { host, port, user, password } = parseConnString(connString)
+    await $`PGPASSWORD=${password} ${pgDump}all -h ${host} -p ${port} -U ${user} -f ${outputPath}`.quiet()
+  }
   logger.info({ outputPath, serverVersion }, "host database dump completed")
 }
 

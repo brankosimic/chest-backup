@@ -1,0 +1,30 @@
+# chest-backup systemd user service
+#
+# Install:
+#   cp chest-backup.service.example chest-backup.service
+#   # replace paths below, then:
+#   ln -sf $PWD/chest-backup.service ~/.config/systemd/user/chest-backup.service
+#   systemctl --user daemon-reload
+#   systemctl --user enable --now chest-backup
+#
+# %h expands to $HOME at runtime.
+
+[Unit]
+Description=chest-backup - automated backup daemon
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/project-path/chest-backup
+EnvironmentFile=%h/project-path/chest-backup/.env
+ExecStart=/path/to/bun src/index.ts
+Restart=on-failure
+RestartSec=30s
+StandardOutput=journal
+StandardError=journal
+
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=default.target

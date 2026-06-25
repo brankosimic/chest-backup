@@ -2,7 +2,7 @@ import SFTPClient from "ssh2-sftp-client"
 import { readFileSync, statSync } from "node:fs"
 import { homedir } from "node:os"
 import type { Destination } from "../types/config"
-import type { StoreResult } from "../types/index"
+import type { StoreResult, UploadProgress } from "../types/destination"
 import { logger } from "../utils/logger"
 import { ARCHIVE_PATTERN, parseTimestampFromName } from "../backup/retention"
 
@@ -11,7 +11,7 @@ const connectClient = async (sftp: SFTPClient, dest: Destination): Promise<void>
     host: dest.host,
     port: dest.port ?? 22,
     username: dest.user,
-    readyTimeout: dest.timeout ?? 10_000,
+    readyTimeout: dest.timeout ?? 2_147_483_647,
   }
 
   if (dest.password) config.password = dest.password
@@ -66,7 +66,7 @@ const uploadWithProgress = async (
   sftp: SFTPClient,
   filePath: string,
   remotePath: string,
-): Promise<{ uploadedSize: number; durationMs: number; speed: number }> => {
+): Promise<UploadProgress> => {
   const fileSize = statSync(filePath).size
   const startTime = Date.now()
 
@@ -81,6 +81,16 @@ const uploadWithProgress = async (
   const speed = durationMs > 0 ? fileSize / (durationMs / 1000) : 0
 
   return { uploadedSize: fileSize, durationMs, speed }
+}
+
+const deleteSftpFile = async (sftp: SFTPClient, base: string, file: string): Promise<void> => {
+  await sftp.delete(`${base}/${file}`)
+  logger.info({ file }, "deleted old archive via SFTP for retention")
+  try {
+    await sftp.delete(`${base}/${file}.sha256`)
+  } catch {
+    logger.debug({ file: `${file}.sha256` }, "checksum file not found for SFTP retention cleanup")
+  }
 }
 
 const enforceRetentionSftp = async (dest: Destination, archivePrefix: string, globalRetention: number): Promise<void> => {
@@ -109,13 +119,7 @@ const enforceRetentionSftp = async (dest: Destination, archivePrefix: string, gl
     const base = dest.path.replace(/\/+$/, "")
 
     for (const file of toDelete) {
-      await sftp.delete(`${base}/${file}`)
-      logger.info({ file }, "deleted old archive via SFTP for retention")
-      try {
-        await sftp.delete(`${base}/${file}.sha256`)
-      } catch {
-        logger.debug({ file: `${file}.sha256` }, "checksum file not found for SFTP retention cleanup")
-      }
+      await deleteSftpFile(sftp, base, file)
     }
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
