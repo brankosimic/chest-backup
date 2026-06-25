@@ -3,6 +3,13 @@ type PathSource = {
   path: string
 }
 
+type ParsedConnString = {
+  host: string
+  port: number
+  user: string
+  password: string
+}
+
 type PostgresSource = {
   type: "postgres"
   host: string
@@ -50,4 +57,4 @@ interface Config {
   notifications?: NotificationsConfig
 }
 
-export type { Config, Source, PathSource, PostgresSource, DockerComposeSource, Destination, DiscordConfig, NotificationsConfig }
+export type { Config, Source, PathSource, PostgresSource, DockerComposeSource, Destination, ParsedConnString, DiscordConfig, NotificationsConfig }

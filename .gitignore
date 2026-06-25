@@ -2,4 +2,5 @@ node_modules/
 dist/
 .env
 chest-backup.json
+chest-backup.service
 *.log
