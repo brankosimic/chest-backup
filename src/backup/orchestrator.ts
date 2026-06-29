@@ -6,31 +6,19 @@ import { verifyArchive } from "./verify"
 import { resolveSources } from "./sources"
 import { stopBackupContainers, startBackupContainers } from "../docker/manager"
 import { dispatchToDestinations } from "../destinations/types"
-import { sendNotification } from "../notification/discord"
+import { sendStartedNotification, sendCompletedNotification } from "../notification/discord"
 import { logger } from "../utils/logger"
-
-const collectSources = async (
-  config: Config,
-  timestamp: string,
-  tempFiles: string[],
-  errors: string[],
-): Promise<{ sources: string[]; containers: string[] }> => {
-  const dockerSources = config.sources.filter((s): s is DockerComposeSource => s.type === "docker-compose")
-  await stopBackupContainers(dockerSources.flatMap((s) => s.containers), errors)
-
-  const result = await resolveSources(config, timestamp, tempFiles)
-  return { sources: result.paths, containers: result.containers }
-}
 
 const createArchiveWithVerification = async (
   timestamp: string,
   sources: string[],
   tempFiles: string[],
   errors: string[],
+  tempDir: string,
 ): Promise<ArchiveWithVerification | null> => {
   let archivePath: string
   try {
-    archivePath = await createArchive(timestamp, sources, [])
+    archivePath = await createArchive(timestamp, sources, [], tempDir, tempFiles)
     tempFiles.push(archivePath)
   } catch (err) {
     errors.push(`Archive creation failed: ${String(err)}`)
@@ -54,27 +42,39 @@ const executeBackup = async (
   errors: string[],
   tempFiles: string[],
 ): Promise<BackupResult> => {
-  const { sources, containers } = await collectSources(config, timestamp, tempFiles, errors)
+  const dockerSources = config.sources.filter((s): s is DockerComposeSource => s.type === "docker-compose")
+  const containers = dockerSources.flatMap((s) => s.containers)
 
-  if (!sources.length) {
-    errors.push("No sources to archive")
-    return { success: false, timestamp, durationMs: 0, destinationResults: [], errors }
+  await stopBackupContainers(containers, errors)
+
+  let sources: string[]
+  let archiveResult: ArchiveWithVerification | null
+  const tempDir = config.tempDir ?? "/tmp"
+
+  try {
+    const resolved = await resolveSources(config, timestamp, tempFiles)
+    sources = resolved.paths
+
+    if (!sources.length) {
+      errors.push("No sources to archive")
+      return { success: false, timestamp, durationMs: 0, destinationResults: [], errors }
+    }
+
+    archiveResult = await createArchiveWithVerification(timestamp, sources, tempFiles, errors, tempDir)
+  } finally {
+    await startBackupContainers(containers, errors)
   }
-
-  const archiveResult = await createArchiveWithVerification(timestamp, sources, tempFiles, errors)
-
-  await startBackupContainers(containers, errors)
 
   if (!archiveResult) {
     return { success: false, timestamp, durationMs: 0, destinationResults: [], errors }
   }
 
   const { archivePath, verification } = archiveResult
-  const destinationResults = await dispatchToDestinations(archivePath, verification?.checksumFile, config, errors)
-  const successCount = destinationResults.filter((r) => r.success).length
+  const destinationResults = await dispatchToDestinations(archivePath, verification?.checksumFile, verification?.checksum, config, errors)
+  const allOk = destinationResults.every((r) => r.success)
 
-  const result: BackupResult = {
-    success: successCount === destinationResults.length,
+  return {
+    success: allOk,
     timestamp,
     archiveName: archivePath.split("/").pop() ?? "unknown",
     archiveSize: statSync(archivePath).size,
@@ -83,8 +83,6 @@ const executeBackup = async (
     errors,
     verification,
   }
-
-  return result
 }
 
 const runBackup = async (config: Config): Promise<BackupResult> => {
@@ -93,11 +91,23 @@ const runBackup = async (config: Config): Promise<BackupResult> => {
   const errors: string[] = []
   const tempFiles: string[] = []
 
+  await sendStartedNotification(config, timestamp)
+
   try {
     const result = await executeBackup(config, timestamp, errors, tempFiles)
     result.durationMs = Date.now() - startTime
-    await sendNotification(config, result)
+    await sendCompletedNotification(config, result)
     return result
+  } catch (err) {
+    const failedResult: BackupResult = {
+      success: false,
+      timestamp,
+      durationMs: Date.now() - startTime,
+      destinationResults: [],
+      errors: [String(err)],
+    }
+    await sendCompletedNotification(config, failedResult)
+    return failedResult
   } finally {
     for (const file of tempFiles) {
       try {

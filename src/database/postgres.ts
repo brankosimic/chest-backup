@@ -1,7 +1,8 @@
 import { $ } from "bun"
-import type { ParsedConnString, PostgresSource, Source } from "../types/config"
-import { logger } from "../utils/logger"
 import { existsSync } from "node:fs"
+import { join } from "node:path"
+import type { ParsedConnString, PostgresContainerSource, PostgresSource, Source } from "../types/config"
+import { logger } from "../utils/logger"
 
 const getPgDumpPath = (): string => {
   const versions = [18, 17, 16]
@@ -73,19 +74,21 @@ const dumpPostgresSources = async (
   sources: Source[],
   timestamp: string,
   tempFiles: string[],
+  tempDir: string,
 ): Promise<string[]> => {
   const postgresSources = sources.filter((s): s is PostgresSource => s.type === "postgres")
   if (!postgresSources.length) return []
 
-  return dumpPostgresSourceBatch(postgresSources, timestamp, tempFiles)
+  return dumpPostgresSourceBatch(postgresSources, timestamp, tempFiles, tempDir)
 }
 
 const dumpSinglePostgresSource = async (
   source: PostgresSource,
   timestamp: string,
   tempFiles: string[],
+  tempDir: string,
 ): Promise<string | null> => {
-  const outputPath = `/tmp/db-dump-${timestamp}-${crypto.randomUUID()}.dump`
+  const outputPath = join(tempDir, `db-dump-${timestamp}-${crypto.randomUUID()}.dump`)
   tempFiles.push(outputPath)
   try {
     await dumpHostDatabase(
@@ -104,9 +107,35 @@ const dumpPostgresSourceBatch = async (
   sources: PostgresSource[],
   timestamp: string,
   tempFiles: string[],
+  tempDir: string,
 ): Promise<string[]> => {
-  const results = await Promise.all(sources.map((s) => dumpSinglePostgresSource(s, timestamp, tempFiles)))
+  const results = await Promise.all(sources.map((s) => dumpSinglePostgresSource(s, timestamp, tempFiles, tempDir)))
   return results.filter((r): r is string => r !== null)
 }
 
-export { dumpHostDatabase, dumpDockerDatabase, dumpPostgresSources }
+const dumpPostgresContainerSources = async (
+  sources: Source[],
+  timestamp: string,
+  tempFiles: string[],
+  tempDir: string,
+): Promise<string[]> => {
+  const containerSources = sources.filter((s): s is PostgresContainerSource => s.type === "postgres-container")
+  if (!containerSources.length) return []
+
+  const results = await Promise.all(
+    containerSources.map(async (source) => {
+      const outputPath = join(tempDir, `db-dump-${timestamp}-${crypto.randomUUID()}.dump`)
+      tempFiles.push(outputPath)
+      try {
+        await dumpDockerDatabase(source.containerName, source.database, source.user, source.password, outputPath)
+        return outputPath
+      } catch (err) {
+        logger.error({ source: source.containerName, err }, "container postgres dump failed")
+        return null
+      }
+    }),
+  )
+  return results.filter((r): r is string => r !== null)
+}
+
+export { dumpHostDatabase, dumpDockerDatabase, dumpPostgresSources, dumpPostgresContainerSources }

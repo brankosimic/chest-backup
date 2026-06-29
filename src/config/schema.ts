@@ -14,6 +14,14 @@ const PostgresSourceSchema = z.object({
   database: z.string().min(1),
 })
 
+const PostgresContainerSourceSchema = z.object({
+  type: z.literal("postgres-container"),
+  containerName: z.string().min(1),
+  user: z.string().min(1),
+  password: z.string().min(1),
+  database: z.string().min(1),
+})
+
 const DockerComposeSourceSchema = z.object({
   type: z.literal("docker-compose"),
   name: z.string().min(1),
@@ -24,6 +32,7 @@ const DockerComposeSourceSchema = z.object({
 const SourceSchema = z.discriminatedUnion("type", [
   PathSourceSchema,
   PostgresSourceSchema,
+  PostgresContainerSourceSchema,
   DockerComposeSourceSchema,
 ])
 
@@ -51,6 +60,7 @@ const NotificationsConfigSchema = z.object({
 const ConfigSchema = z.object({
   schedule: z.string().optional(),
   retention: z.number().int().positive().default(7),
+  tempDir: z.string().optional().default("/tmp"),
   sources: z.array(SourceSchema).min(1),
   destinations: z.array(DestinationSchema).min(1),
   notifications: NotificationsConfigSchema.optional(),

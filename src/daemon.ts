@@ -16,6 +16,7 @@ const startDaemon = async (config: Config): Promise<void> => {
   const scheduler = new Scheduler(config.schedule as string, async () => {
     isBackupRunning = true
     tray.setState("running", "Backup in progress")
+    tray.notify("Backup Started", "Backup operation is in progress…")
 
     const result = await runBackup(config)
     isBackupRunning = false
@@ -62,6 +63,7 @@ const makeTrayCallbacks = (
 
     setRunning(true)
     tray.setState("running", "Backup in progress")
+    tray.notify("Backup Started", "Manual backup operation is in progress…")
 
     void runBackup(config).then((result) => {
       setRunning(false)
@@ -96,17 +98,26 @@ const makeTrayCallbacks = (
 })
 
 const updateAfterBackup = (tray: TrayBridge, result: BackupResult): void => {
-  const message = result.success
-    ? `Completed — ${result.archiveName ?? ""}`
-    : `Failed — ${result.errors[0] ?? "unknown error"}`
+  const allSkipped = result.destinationResults.length > 0 && result.destinationResults.every((r) => r.skipped)
+  const someSkipped = result.destinationResults.some((r) => r.skipped)
 
-  tray.setState(result.success ? "success" : "error", message)
+  const message = allSkipped
+    ? "Skipped — No changes"
+    : result.success
+      ? `Completed — ${result.archiveName ?? ""}`
+      : `Failed — ${result.errors[0] ?? "unknown error"}`
+
+  tray.setState(allSkipped ? "idle" : result.success ? "success" : "error", message)
   logger.info({ success: result.success, durationMs: result.durationMs }, "backup completed")
 
-  if (result.success) {
-    tray.notify("Backup Successful", `Archive: ${result.archiveName ?? "unknown"}`)
-  } else {
+  if (!result.success) {
     tray.notify("Backup Failed", result.errors[0] ?? "unknown error")
+  } else if (allSkipped) {
+    tray.notify("Backup Skipped", "All destinations already have the latest backup — no changes needed")
+  } else if (someSkipped) {
+    tray.notify("Backup Successful", `Archive: ${result.archiveName ?? "unknown"} (some destinations skipped — identical)`)
+  } else {
+    tray.notify("Backup Successful", `Archive: ${result.archiveName ?? "unknown"}`)
   }
 }
 

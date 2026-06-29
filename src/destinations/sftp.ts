@@ -25,6 +25,32 @@ const connectClient = async (sftp: SFTPClient, dest: Destination): Promise<void>
   await sftp.connect(config)
 }
 
+const getLatestChecksumSftp = async (sftp: SFTPClient, dest: Destination): Promise<string | null> => {
+  try {
+    const files = (await sftp.list(dest.path))
+      .map((f) => f.name)
+      .filter((f) => ARCHIVE_PATTERN.test(f))
+
+    if (!files.length) return null
+
+    files.sort((a, b) => {
+      const tsA = parseTimestampFromName(a)
+      const tsB = parseTimestampFromName(b)
+      if (!tsA || !tsB) return 0
+      return tsB.localeCompare(tsA)
+    })
+
+    const latest = files[0]
+    if (!latest) return null
+
+    const shaContent = (await sftp.get(`${dest.path.replace(/\/+$/, "")}/${latest}.sha256`)) as string
+    const firstLine = shaContent.split("\n")[0] ?? ""
+    return firstLine.split(/\s+/)[0] ?? null
+  } catch {
+    return null
+  }
+}
+
 const storeSftp = async (
   archivePath: string,
   checksumFile: string | undefined,
@@ -129,4 +155,4 @@ const enforceRetentionSftp = async (dest: Destination, archivePrefix: string, gl
   }
 }
 
-export { storeSftp, enforceRetentionSftp }
+export { connectClient, getLatestChecksumSftp, storeSftp, enforceRetentionSftp }
