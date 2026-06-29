@@ -1,4 +1,4 @@
-import { unlinkSync, statSync } from "node:fs"
+import { mkdirSync, unlinkSync, statSync } from "node:fs"
 import type { Config, DockerComposeSource } from "../types/config"
 import type { BackupResult, VerifyResult, ArchiveWithVerification } from "../types/index"
 import { formatTimestamp, createArchive } from "./archiver"
@@ -50,6 +50,7 @@ const executeBackup = async (
   let sources: string[]
   let archiveResult: ArchiveWithVerification | null
   const tempDir = config.tempDir ?? "/tmp"
+  mkdirSync(tempDir, { recursive: true })
 
   try {
     const resolved = await resolveSources(config, timestamp, tempFiles)
