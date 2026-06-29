@@ -75,11 +75,13 @@ const runBackup = async (config: Config): Promise<BackupResult> => {
   const tempFiles: string[] = []
 
   await sendStartedNotification(config, timestamp)
+  logger.info({ timestamp }, "backup started")
 
   try {
     const result = await executeBackup(config, timestamp, errors, tempFiles)
     result.durationMs = Date.now() - startTime
     await sendCompletedNotification(config, result)
+    logger.info({ success: result.success, durationMs: result.durationMs, timestamp }, "backup finished")
     return result
   } catch (err) {
     const failedResult: BackupResult = {
@@ -90,6 +92,7 @@ const runBackup = async (config: Config): Promise<BackupResult> => {
       errors: [String(err)],
     }
     await sendCompletedNotification(config, failedResult)
+    logger.info({ success: false, durationMs: failedResult.durationMs, timestamp }, "backup finished")
     return failedResult
   } finally {
     for (const file of tempFiles) {
