@@ -1,11 +1,14 @@
 import { existsSync, statSync } from "node:fs"
 import { Glob } from "bun"
-import type { Config, Source } from "../types/config"
+import type { Config, Source, PostgresSource, PostgresContainerSource } from "../types/config"
 import { logger } from "../utils/logger"
-import { dumpPostgresSources } from "../database/postgres"
+import { dumpPostgresContainerSources, dumpPostgresSources } from "../database/postgres"
+
+const isDbSource = (s: Source): s is PostgresSource | PostgresContainerSource =>
+  ["postgres", "postgres-container"].includes(s.type)
 
 const resolveSourcePaths = (source: Source): string[] => {
-  if (source.type === "postgres") return []
+  if (isDbSource(source)) return []
 
   if (!existsSync(source.path)) {
     logger.warn({ path: source.path }, "source path does not exist")
@@ -36,9 +39,11 @@ const resolveSources = async (
 ): Promise<{ paths: string[]; containers: string[] }> => {
   const paths = resolvePaths(config.sources)
   const containers = resolveContainers(config.sources)
+  const tempDir = config.tempDir ?? "/tmp"
 
-  const dbDumps = await dumpPostgresSources(config.sources, timestamp, tempFiles)
-  paths.push(...dbDumps)
+  const dbDumps = await dumpPostgresSources(config.sources, timestamp, tempFiles, tempDir)
+  const containerDbDumps = await dumpPostgresContainerSources(config.sources, timestamp, tempFiles, tempDir)
+  paths.push(...dbDumps, ...containerDbDumps)
 
   return { paths, containers }
 }

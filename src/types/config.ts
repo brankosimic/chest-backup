@@ -19,6 +19,14 @@ type PostgresSource = {
   database: string
 }
 
+type PostgresContainerSource = {
+  type: "postgres-container"
+  containerName: string
+  user: string
+  password: string
+  database: string
+}
+
 type DockerComposeSource = {
   type: "docker-compose"
   name: string
@@ -26,7 +34,7 @@ type DockerComposeSource = {
   containers: string[]
 }
 
-type Source = PathSource | PostgresSource | DockerComposeSource
+type Source = PathSource | PostgresSource | PostgresContainerSource | DockerComposeSource
 
 interface Destination {
   type: "local" | "sftp"
@@ -52,9 +60,10 @@ interface NotificationsConfig {
 interface Config {
   schedule?: string
   retention: number
+  tempDir?: string
   sources: Source[]
   destinations: Destination[]
   notifications?: NotificationsConfig
 }
 
-export type { Config, Source, PathSource, PostgresSource, DockerComposeSource, Destination, ParsedConnString, DiscordConfig, NotificationsConfig }
+export type { Config, Source, PathSource, PostgresSource, PostgresContainerSource, DockerComposeSource, Destination, ParsedConnString, DiscordConfig, NotificationsConfig }

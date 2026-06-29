@@ -6,6 +6,8 @@ interface StoreResult {
   durationMs?: number
   destLabel?: string
   speed?: number
+  skipped?: boolean
+  skippedReason?: string
 }
 
 type UploadProgress = {
