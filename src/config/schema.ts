@@ -47,6 +47,7 @@ const DestinationSchema = z.object({
   retention: z.number().int().positive().optional(),
   parallel: z.boolean().optional().default(true),
   timeout: z.number().int().positive().optional(),
+  skip: z.boolean().optional().default(false),
 })
 
 const DiscordConfigSchema = z.object({

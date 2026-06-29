@@ -77,8 +77,12 @@ const dispatchToDestinations = async (
   config: Config,
   errors: string[],
 ): Promise<StoreResult[]> => {
-  const sequential = config.destinations.filter((d) => !d.parallel)
-  const parallel = config.destinations.filter((d) => d.parallel)
+  const active = config.destinations.filter((d) => !d.skip)
+  const skipped = config.destinations.filter((d) => d.skip)
+  skipped.forEach((dest) => logger.info({ dest: dest.path, type: dest.type }, "destination skipped per config"))
+
+  const sequential = active.filter((d) => !d.parallel)
+  const parallel = active.filter((d) => d.parallel)
   const results: StoreResult[] = []
 
   for (const dest of sequential) {

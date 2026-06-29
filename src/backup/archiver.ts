@@ -29,6 +29,7 @@ const createArchive = async (timestamp: string, sources: string[], dbDumps: stri
   writeFileSync(fileList, allFiles.map((f) => f.replace(/^\//, "")).join("\n"))
   tempFiles?.push(fileList)
 
+  logger.info({ archiveName, fileCount: allFiles.length }, "archive creation started")
   await $`tar czf ${archivePath} -C / -T ${fileList}`.quiet()
 
   const stats = statSync(archivePath)

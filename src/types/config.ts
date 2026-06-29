@@ -47,6 +47,7 @@ interface Destination {
   retention?: number
   parallel?: boolean
   timeout?: number
+  skip?: boolean
 }
 
 interface DiscordConfig {
