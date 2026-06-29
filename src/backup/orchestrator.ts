@@ -1,6 +1,6 @@
 import { mkdirSync, unlinkSync, statSync } from "node:fs"
 import type { Config, DockerComposeSource } from "../types/config"
-import type { BackupResult, VerifyResult, ArchiveWithVerification } from "../types/index"
+import type { BackupResult, VerifyResult } from "../types/index"
 import { formatTimestamp, createArchive } from "./archiver"
 import { verifyArchive } from "./verify"
 import { resolveSources } from "./sources"
@@ -8,33 +8,6 @@ import { stopBackupContainers, startBackupContainers } from "../docker/manager"
 import { dispatchToDestinations } from "../destinations/types"
 import { sendStartedNotification, sendCompletedNotification } from "../notification/discord"
 import { logger } from "../utils/logger"
-
-const createArchiveWithVerification = async (
-  timestamp: string,
-  sources: string[],
-  tempFiles: string[],
-  errors: string[],
-  tempDir: string,
-): Promise<ArchiveWithVerification | null> => {
-  let archivePath: string
-  try {
-    archivePath = await createArchive(timestamp, sources, [], tempDir, tempFiles)
-    tempFiles.push(archivePath)
-  } catch (err) {
-    errors.push(`Archive creation failed: ${String(err)}`)
-    return null
-  }
-
-  let verification: VerifyResult | undefined
-  try {
-    verification = await verifyArchive(archivePath)
-    tempFiles.push(verification.checksumFile)
-  } catch (err) {
-    errors.push(`Archive verification failed: ${String(err)}`)
-  }
-
-  return { archivePath, verification }
-}
 
 const executeBackup = async (
   config: Config,
@@ -47,30 +20,39 @@ const executeBackup = async (
 
   await stopBackupContainers(containers, errors)
 
-  let sources: string[]
-  let archiveResult: ArchiveWithVerification | null
+  let archivePath: string | null = null
   const tempDir = config.tempDir ?? "/tmp"
   mkdirSync(tempDir, { recursive: true })
 
   try {
     const resolved = await resolveSources(config, timestamp, tempFiles)
-    sources = resolved.paths
+    const sources = resolved.paths
 
     if (!sources.length) {
       errors.push("No sources to archive")
       return { success: false, timestamp, durationMs: 0, destinationResults: [], errors }
     }
 
-    archiveResult = await createArchiveWithVerification(timestamp, sources, tempFiles, errors, tempDir)
+    archivePath = await createArchive(timestamp, sources, [], tempDir, tempFiles)
+    tempFiles.push(archivePath)
   } finally {
+    // Restart containers ASAP — archive is complete, minimize downtime
     await startBackupContainers(containers, errors)
   }
 
-  if (!archiveResult) {
+  if (!archivePath) {
     return { success: false, timestamp, durationMs: 0, destinationResults: [], errors }
   }
 
-  const { archivePath, verification } = archiveResult
+  // Verification runs with containers already back up — non-critical nice-to-have
+  let verification: VerifyResult | undefined
+  try {
+    verification = await verifyArchive(archivePath)
+    tempFiles.push(verification.checksumFile)
+  } catch (err) {
+    errors.push(`Archive verification failed: ${String(err)}`)
+  }
+
   const destinationResults = await dispatchToDestinations(archivePath, verification?.checksumFile, verification?.checksum, config, errors)
   const allOk = destinationResults.every((r) => r.success)
 

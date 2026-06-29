@@ -12,11 +12,6 @@ interface VerifyResult {
   checksumFile: string
 }
 
-interface ArchiveWithVerification {
-  archivePath: string
-  verification: VerifyResult | undefined
-}
-
 interface BackupResult {
   success: boolean
   timestamp: string
@@ -41,6 +36,5 @@ export type {
   StoreResult,
   VerifyResult,
   CollectedSources,
-  ArchiveWithVerification,
   BackupResult,
 }
