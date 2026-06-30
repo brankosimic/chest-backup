@@ -1,3 +1,4 @@
-const apiUrl = import.meta.env.VITE_API_URL ?? "http://localhost:5199"
+// Use relative path so nginx can proxy /api/ to the backend
+const apiUrl = ""
 
 export { apiUrl }
