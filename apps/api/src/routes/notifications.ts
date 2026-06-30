@@ -1,6 +1,7 @@
 import { Hono } from "hono"
 import { NotificationsSchema } from "../lib/validation"
 import { getNotifications, updateNotifications } from "../lib/store"
+import { validateBody } from "../lib/routes"
 
 const notifications = new Hono()
 
@@ -10,13 +11,8 @@ notifications.get("/", (c) => {
 })
 
 notifications.put("/", (c) => {
-  const body = c.req.jsonSync()
-  const result = NotificationsSchema.safeParse(body)
-
-  if (!result.success) {
-    return c.json({ success: false, error: "Validation failed", message: result.error.issues[0]?.message }, 400)
-  }
-
+  const result = validateBody(NotificationsSchema, c)
+  if (!result.ok) return result.error
   const updated = updateNotifications(result.data)
   return c.json({ success: true, data: updated })
 })

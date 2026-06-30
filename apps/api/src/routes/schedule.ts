@@ -1,6 +1,7 @@
 import { Hono } from "hono"
 import { ScheduleSchema } from "../lib/validation"
 import { getSchedule, updateSchedule } from "../lib/store"
+import { validateBody } from "../lib/routes"
 
 const schedule = new Hono()
 
@@ -10,13 +11,8 @@ schedule.get("/", (c) => {
 })
 
 schedule.put("/", (c) => {
-  const body = c.req.jsonSync()
-  const result = ScheduleSchema.safeParse(body)
-
-  if (!result.success) {
-    return c.json({ success: false, error: "Validation failed", message: result.error.issues[0]?.message }, 400)
-  }
-
+  const result = validateBody(ScheduleSchema, c)
+  if (!result.ok) return result.error
   const updated = updateSchedule(result.data)
   return c.json({ success: true, data: updated })
 })

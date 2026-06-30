@@ -1,7 +1,7 @@
 "use client"
 
 import { useTranslation } from "react-i18next"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Header } from "@/components/layout/header"
 import { formatDuration, formatDate } from "@/lib/utils"

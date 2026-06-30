@@ -7,7 +7,7 @@ import en from "@/locales/en/translation.json"
 import bs from "@/locales/bs/translation.json"
 
 const i18n = i18next.createInstance()
-i18n.use(initReactI18next).init({
+void i18n.use(initReactI18next).init({
   resources: {
     en: { translation: en },
     bs: { translation: bs },

@@ -1,6 +1,7 @@
 import { Hono } from "hono"
 import { RetentionSchema } from "../lib/validation"
 import { getRetention, updateRetention } from "../lib/store"
+import { validateBody } from "../lib/routes"
 
 const retention = new Hono()
 
@@ -10,13 +11,8 @@ retention.get("/", (c) => {
 })
 
 retention.put("/", (c) => {
-  const body = c.req.jsonSync()
-  const result = RetentionSchema.safeParse(body)
-
-  if (!result.success) {
-    return c.json({ success: false, error: "Validation failed", message: result.error.issues[0]?.message }, 400)
-  }
-
+  const result = validateBody(RetentionSchema, c)
+  if (!result.ok) return result.error
   const updated = updateRetention(result.data)
   return c.json({ success: true, data: updated })
 })

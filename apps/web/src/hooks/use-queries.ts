@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import type { Source, Destination, BackupRecord } from "@chest-backup/shared"
+import type { Source, Destination } from "@chest-backup/shared"
 import {
   fetchSources,
   fetchSource,

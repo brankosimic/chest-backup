@@ -63,7 +63,8 @@ const RetentionSchema = z.object({
 const NotificationsSchema = z.object({
   discord: z
     .object({
-      webhookUrl: z.string().url("Invalid URL"),
+      // eslint-disable-next-line @typescript-eslint/no-deprecated
+      webhookUrl: z.string().url(),
       enabled: z.boolean().optional().default(true),
     })
     .optional(),

@@ -3,7 +3,6 @@
 import { I18nProvider } from "@/components/I18nProvider"
 import { Sidebar } from "@/components/layout/sidebar"
 import { MobileNav } from "@/components/layout/mobile-nav"
-import { ThemeToggle } from "@/components/layout/theme-toggle"
 
 export default function DashboardLayout(props: { children: React.ReactNode }) {
   return (
