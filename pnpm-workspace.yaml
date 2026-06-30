@@ -3,4 +3,5 @@ allowBuilds:
   ssh2: true
 packages:
   - "apps/*"
+  - "packages/*"
   - "src"

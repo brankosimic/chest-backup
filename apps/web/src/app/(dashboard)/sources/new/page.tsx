@@ -7,16 +7,16 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select } from "@/components/ui/select"
-import { Sidebar } from "@/components/layout/sidebar"
-import { MobileNav } from "@/components/layout/mobile-nav"
 import { Header } from "@/components/layout/header"
+import { useCreateSource } from "@/hooks/use-queries"
 import type { FormEvent } from "react"
 
 export default function NewSourcePage() {
   const { t } = useTranslation()
   const router = useRouter()
+  const createMutation = useCreateSource()
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const handleCreate = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const formData = new FormData(e.target as HTMLFormElement)
     const type = formData.get("type") as string
@@ -43,58 +43,49 @@ export default function NewSourcePage() {
     }
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/sources`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      })
-      if (res.ok) router.push("/sources")
+      await createMutation.mutateAsync(body)
+      router.push("/sources")
     } catch {
       alert("Failed to create source")
     }
   }
 
   return (
-    <div className="flex min-h-screen">
-      <Sidebar />
-      <MobileNav />
+    <div className="mx-auto max-w-2xl">
+      <Header title={t("sources.addSource")} />
 
-      <main className="flex-1 overflow-auto">
-        <div className="mx-auto max-w-2xl p-6 pt-20 md:pt-6">
-          <Header title={t("sources.addSource")} />
+      <Card>
+        <CardHeader>
+          <CardTitle>New Source</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleCreate} className="space-y-4">
+            <div className="space-y-2">
+              <Label>Source Type</Label>
+              <Select value="" onChange={() => {}} name="type">
+                <option value="path">Path</option>
+                <option value="postgres">PostgreSQL</option>
+                <option value="postgres-container">PostgreSQL Container</option>
+                <option value="docker-compose">Docker Compose</option>
+              </Select>
+            </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>New Source</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleCreate} className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Source Type</Label>
-                  <Select value={""} onChange={() => {}} name="type">
-                    <option value="path">Path</option>
-                    <option value="postgres">PostgreSQL</option>
-                    <option value="postgres-container">PostgreSQL Container</option>
-                    <option value="docker-compose">Docker Compose</option>
-                  </Select>
-                </div>
+            <div className="space-y-2">
+              <Label htmlFor="path">Path</Label>
+              <Input id="path" name="path" placeholder="/data/documents" />
+            </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="path">Path</Label>
-                  <Input id="path" name="path" placeholder="/data/documents" />
-                </div>
-
-                <div className="flex gap-2 pt-4">
-                  <Button type="submit">{t("common.create")}</Button>
-                  <Button type="button" variant="outline" onClick={() => { router.push("/sources") }}>
-                    {t("common.cancel")}
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
-      </main>
+            <div className="flex gap-2 pt-4">
+              <Button type="submit" disabled={createMutation.isPending}>
+                {createMutation.isPending ? t("common.loading") : t("common.create")}
+              </Button>
+              <Button type="button" variant="outline" onClick={() => router.push("/sources")}>
+                {t("common.cancel")}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   )
 }

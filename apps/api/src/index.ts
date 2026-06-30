@@ -1,6 +1,7 @@
 import { Hono } from "hono"
 import { cors } from "./middleware/cors"
 import { errorHandling } from "./middleware/error"
+import { port as PORT } from "./env"
 import { backups } from "./routes/backups"
 import { destinations } from "./routes/destinations"
 import { logs } from "./routes/logs"
@@ -25,8 +26,6 @@ app.route("/api/logs", logs)
 app.route("/api/system", system)
 
 app.get("/", (c) => c.json({ success: true, message: "Chest-Backup API" }))
-
-const PORT = Number(process.env.API_PORT) || 3001
 
 Bun.serve({
   fetch: app.fetch,

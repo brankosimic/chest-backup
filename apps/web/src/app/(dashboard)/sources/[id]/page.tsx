@@ -1,72 +1,41 @@
 "use client"
 
 import { useTranslation } from "react-i18next"
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect } from "react"
+import { useRouter, useParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select } from "@/components/ui/select"
-import { Sidebar } from "@/components/layout/sidebar"
-import { MobileNav } from "@/components/layout/mobile-nav"
 import { Header } from "@/components/layout/header"
+import { useSource, useUpdateSource } from "@/hooks/use-queries"
+import type { Source } from "@chest-backup/shared"
 
-interface Source {
-  id: string
-  type: string
-  path?: string
-  host?: string
-  port?: number
-  user?: string
-  password?: string
-  database?: string
-  containerName?: string
-  name?: string
-  containers?: string[]
-}
-
-export default function SourceEditPage(props: { params: Promise<{ id: string }> }) {
+export default function SourceEditPage() {
   const { t } = useTranslation()
   const router = useRouter()
-  const [source, setSource] = useState<Source | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
+  const params = useParams()
+  const id = params.id as string
+
+  const { data: source, isLoading } = useSource(id)
+  const updateMutation = useUpdateSource()
+  const [form, setForm] = useState<Record<string, unknown>>({})
 
   useEffect(() => {
-    const loadSource = async () => {
-      const params = await props.params
-      try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/sources/${params.id}`)
-        const data = await res.json()
-        setSource(data.data)
-      } catch {
-        router.push("/sources")
-      } finally {
-        setLoading(false)
-      }
-    }
-    loadSource()
-  }, [props.params, router])
+    if (source) setForm(source as unknown as Record<string, unknown>)
+  }, [source])
 
   const handleSave = async () => {
-    if (!source) return
-    setSaving(true)
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/sources/${source.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(source),
-      })
+      await updateMutation.mutateAsync({ id, data: form })
       router.push("/sources")
     } catch {
       alert("Failed to save")
-    } finally {
-      setSaving(false)
     }
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
@@ -76,122 +45,69 @@ export default function SourceEditPage(props: { params: Promise<{ id: string }> 
 
   if (!source) return null
 
+  const type = (form.type as string) ?? source.type
+
   return (
-    <div className="flex min-h-screen">
-      <Sidebar />
-      <MobileNav />
+    <div className="mx-auto max-w-2xl">
+      <Header title={t("sources.editSource")} subtitle={`Type: ${source.type}`} />
 
-      <main className="flex-1 overflow-auto">
-        <div className="mx-auto max-w-2xl p-6 pt-20 md:pt-6">
-          <Header title={t("sources.editSource")} subtitle={`Type: ${source.type}`} />
+      <Card>
+        <CardHeader>
+          <CardTitle>Source Configuration</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label>Type</Label>
+            <Select value={type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
+              <option value="path">Path</option>
+              <option value="postgres">PostgreSQL</option>
+              <option value="postgres-container">PostgreSQL Container</option>
+              <option value="docker-compose">Docker Compose</option>
+            </Select>
+          </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Source Configuration</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Type</Label>
-                <Select
-                  value={source.type}
-                  onChange={(e) => setSource({ ...source, type: e.target.value })}
-                >
-                  <option value="path">Path</option>
-                  <option value="postgres">PostgreSQL</option>
-                  <option value="postgres-container">PostgreSQL Container</option>
-                  <option value="docker-compose">Docker Compose</option>
-                </Select>
-              </div>
+          {type === "path" && (
+            <div className="space-y-2">
+              <Label>Path</Label>
+              <Input value={(form.path as string) ?? ""} onChange={(e) => setForm({ ...form, path: e.target.value })} placeholder="/data/documents" />
+            </div>
+          )}
 
-              {source.type === "path" && (
-                <div className="space-y-2">
-                  <Label>Path</Label>
-                  <Input
-                    value={source.path ?? ""}
-                    onChange={(e) => setSource({ ...source, path: e.target.value })}
-                    placeholder="/data/documents"
-                  />
-                </div>
-              )}
+          {type === "postgres" && (
+            <>
+              <div className="space-y-2"><Label>Host</Label><Input value={(form.host as string) ?? ""} onChange={(e) => setForm({ ...form, host: e.target.value })} /></div>
+              <div className="space-y-2"><Label>Port</Label><Input type="number" value={(form.port as number) ?? 5432} onChange={(e) => setForm({ ...form, port: Number(e.target.value) })} /></div>
+              <div className="space-y-2"><Label>User</Label><Input value={(form.user as string) ?? ""} onChange={(e) => setForm({ ...form, user: e.target.value })} /></div>
+              <div className="space-y-2"><Label>Password</Label><Input type="password" value={(form.password as string) ?? ""} onChange={(e) => setForm({ ...form, password: e.target.value })} /></div>
+              <div className="space-y-2"><Label>Database</Label><Input value={(form.database as string) ?? ""} onChange={(e) => setForm({ ...form, database: e.target.value })} /></div>
+            </>
+          )}
 
-              {source.type === "postgres" && (
-                <>
-                  <div className="space-y-2">
-                    <Label>Host</Label>
-                    <Input value={source.host ?? ""} onChange={(e) => setSource({ ...source, host: e.target.value })} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Port</Label>
-                    <Input type="number" value={source.port ?? 5432} onChange={(e) => setSource({ ...source, port: Number(e.target.value) })} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>User</Label>
-                    <Input value={source.user ?? ""} onChange={(e) => setSource({ ...source, user: e.target.value })} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Password</Label>
-                    <Input type="password" value={source.password ?? ""} onChange={(e) => setSource({ ...source, password: e.target.value })} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Database</Label>
-                    <Input value={source.database ?? ""} onChange={(e) => setSource({ ...source, database: e.target.value })} />
-                  </div>
-                </>
-              )}
+          {type === "postgres-container" && (
+            <>
+              <div className="space-y-2"><Label>Container Name</Label><Input value={(form.containerName as string) ?? ""} onChange={(e) => setForm({ ...form, containerName: e.target.value })} /></div>
+              <div className="space-y-2"><Label>User</Label><Input value={(form.user as string) ?? ""} onChange={(e) => setForm({ ...form, user: e.target.value })} /></div>
+              <div className="space-y-2"><Label>Password</Label><Input type="password" value={(form.password as string) ?? ""} onChange={(e) => setForm({ ...form, password: e.target.value })} /></div>
+              <div className="space-y-2"><Label>Database</Label><Input value={(form.database as string) ?? ""} onChange={(e) => setForm({ ...form, database: e.target.value })} /></div>
+            </>
+          )}
 
-              {source.type === "postgres-container" && (
-                <>
-                  <div className="space-y-2">
-                    <Label>Container Name</Label>
-                    <Input value={source.containerName ?? ""} onChange={(e) => setSource({ ...source, containerName: e.target.value })} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>User</Label>
-                    <Input value={source.user ?? ""} onChange={(e) => setSource({ ...source, user: e.target.value })} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Password</Label>
-                    <Input type="password" value={source.password ?? ""} onChange={(e) => setSource({ ...source, password: e.target.value })} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Database</Label>
-                    <Input value={source.database ?? ""} onChange={(e) => setSource({ ...source, database: e.target.value })} />
-                  </div>
-                </>
-              )}
+          {type === "docker-compose" && (
+            <>
+              <div className="space-y-2"><Label>Name</Label><Input value={(form.name as string) ?? ""} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
+              <div className="space-y-2"><Label>Path</Label><Input value={(form.path as string) ?? ""} onChange={(e) => setForm({ ...form, path: e.target.value })} /></div>
+              <div className="space-y-2"><Label>Containers (comma-separated)</Label><Input value={((form.containers as string[]) ?? []).join(", ")} onChange={(e) => setForm({ ...form, containers: e.target.value.split(",").map((c) => c.trim()) })} /></div>
+            </>
+          )}
 
-              {source.type === "docker-compose" && (
-                <>
-                  <div className="space-y-2">
-                    <Label>Name</Label>
-                    <Input value={source.name ?? ""} onChange={(e) => setSource({ ...source, name: e.target.value })} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Path</Label>
-                    <Input value={source.path ?? ""} onChange={(e) => setSource({ ...source, path: e.target.value })} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Containers (comma-separated)</Label>
-                    <Input
-                      value={(source.containers ?? []).join(", ")}
-                      onChange={(e) => setSource({ ...source, containers: e.target.value.split(",").map((c) => c.trim()) })}
-                    />
-                  </div>
-                </>
-              )}
-
-              <div className="flex gap-2 pt-4">
-                <Button onClick={handleSave} disabled={saving}>
-                  {saving ? t("common.loading") : t("common.save")}
-                </Button>
-                <Button variant="outline" onClick={() => router.push("/sources")}>
-                  {t("common.cancel")}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </main>
+          <div className="flex gap-2 pt-4">
+            <Button onClick={handleSave} disabled={updateMutation.isPending}>
+              {updateMutation.isPending ? t("common.loading") : t("common.save")}
+            </Button>
+            <Button variant="outline" onClick={() => router.push("/sources")}>{t("common.cancel")}</Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

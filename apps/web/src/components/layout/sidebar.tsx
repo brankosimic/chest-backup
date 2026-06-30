@@ -5,23 +5,37 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
+import {
+  LayoutDashboard,
+  Database,
+  HardDrive,
+  Clock,
+  Shield,
+  Bell,
+  History,
+  FileText,
+  Settings,
+  Box,
+} from "lucide-react"
+import type { LucideIcon } from "lucide-react"
 
 interface NavItem {
   href: string
   label: string
+  icon: LucideIcon
   badge?: string
 }
 
 const navItems: NavItem[] = [
-  { href: "/dashboard", label: "nav.dashboard" },
-  { href: "/sources", label: "nav.sources" },
-  { href: "/destinations", label: "nav.destinations" },
-  { href: "/schedule", label: "nav.schedule" },
-  { href: "/retention", label: "nav.retention" },
-  { href: "/notifications", label: "nav.notifications" },
-  { href: "/history", label: "nav.history" },
-  { href: "/logs", label: "nav.logs" },
-  { href: "/settings", label: "nav.settings" },
+  { href: "/dashboard", label: "nav.dashboard", icon: LayoutDashboard },
+  { href: "/sources", label: "nav.sources", icon: Database },
+  { href: "/destinations", label: "nav.destinations", icon: HardDrive },
+  { href: "/schedule", label: "nav.schedule", icon: Clock },
+  { href: "/retention", label: "nav.retention", icon: Shield },
+  { href: "/notifications", label: "nav.notifications", icon: Bell },
+  { href: "/history", label: "nav.history", icon: History },
+  { href: "/logs", label: "nav.logs", icon: FileText },
+  { href: "/settings", label: "nav.settings", icon: Settings },
 ]
 
 const Sidebar = ({ collapsed = false }: { collapsed?: boolean }) => {
@@ -29,20 +43,17 @@ const Sidebar = ({ collapsed = false }: { collapsed?: boolean }) => {
   const pathname = usePathname()
 
   return (
-    <aside className={cn("flex h-full w-64 flex-col border-r bg-sidebar-background", collapsed && "w-16")}>
+    <aside className={cn("hidden md:flex h-full w-64 flex-col border-r bg-sidebar-background", collapsed && "w-16")}>
       <div className="flex h-16 items-center border-b border-sidebar-border px-4">
         <Link href="/dashboard" className="flex items-center gap-2 text-lg font-semibold text-sidebar-primary-foreground">
-          <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-            <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
-            <line x1="12" y1="22.08" x2="12" y2="12" />
-          </svg>
+          <Box className="h-6 w-6" />
           {!collapsed && <span>Chest-Backup</span>}
         </Link>
       </div>
 
       <nav className="flex-1 space-y-1 px-2 py-4">
         {navItems.map((item) => {
+          const Icon = item.icon
           const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href))
           return (
             <Link
@@ -53,7 +64,8 @@ const Sidebar = ({ collapsed = false }: { collapsed?: boolean }) => {
                 isActive ? "bg-sidebar-accent text-sidebar-primary-foreground" : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-primary-foreground",
               )}
             >
-              <span className="flex-1">{!collapsed && t(item.label)}</span>
+              <Icon className="h-4 w-4 shrink-0" />
+              {!collapsed && <span className="flex-1">{t(item.label)}</span>}
               {item.badge && <Badge variant="secondary">{item.badge}</Badge>}
             </Link>
           )
