@@ -1,7 +1,6 @@
 import type { Source, Destination, BackupRecord } from "@chest-backup/shared"
-import { apiUrl } from "./env"
 
-const BASE_URL = apiUrl
+const BASE_URL = ""
 
 interface ApiResponse<T> {
   success: boolean
