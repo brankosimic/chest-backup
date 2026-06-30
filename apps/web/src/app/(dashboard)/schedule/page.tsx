@@ -52,7 +52,7 @@ export default function SchedulePage() {
         <CardContent className="space-y-6">
           <div className="space-y-2">
             <Label>Cron Expression</Label>
-            <Input value={schedule} onChange={(e) => setSchedule(e.target.value)} placeholder="0 3 * * *" />
+            <Input value={schedule} onChange={(e) => { setSchedule(e.target.value); }} placeholder="0 3 * * *" />
             <p className="text-xs text-muted-foreground">Format: minute hour day-of-month month day-of-week</p>
           </div>
 
@@ -80,7 +80,7 @@ export default function SchedulePage() {
             <Label>{t("schedule.presets")}</Label>
             <div className="grid gap-2 sm:grid-cols-3">
               {cronPresets.map((preset) => (
-                <Button key={preset.value} variant="outline" size="sm" onClick={() => setSchedule(preset.value)}>
+                <Button key={preset.value} variant="outline" size="sm" onClick={() => { setSchedule(preset.value); }}>
                   {t(preset.label)}
                 </Button>
               ))}

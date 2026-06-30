@@ -58,7 +58,7 @@ export default function NotificationsPage() {
             <Label>{t("notifications.webhookUrl")}</Label>
             <Input
               value={webhookUrl}
-              onChange={(e) => setWebhookUrl(e.target.value)}
+              onChange={(e) => { setWebhookUrl(e.target.value); }}
               placeholder={t("notifications.webhookUrlPlaceholder")}
             />
           </div>

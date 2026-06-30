@@ -1,6 +1,10 @@
 import type { Context } from "hono"
 import type { ZodType } from "zod"
 
+interface BunRequest extends Request {
+  jsonSync(): unknown
+}
+
 type JsonData = Record<string, unknown>
 
 type Result<T> =
@@ -8,7 +12,7 @@ type Result<T> =
   | { ok: false; error: Response }
 
 const validateBody = <T>(schema: ZodType<T>, c: Context): Result<T> => {
-  const body = c.req.jsonSync() as JsonData
+  const body = (c.req.raw as BunRequest).jsonSync() as JsonData
   const result = schema.safeParse(body)
 
   if (!result.success) {

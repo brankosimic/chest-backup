@@ -33,7 +33,7 @@ export default function LogsPage() {
       <Header title={t("logs.title")} subtitle={t("logs.subtitle")} />
 
       <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center">
-        <Select value={levelFilter} onChange={(e) => setLevelFilter(e.target.value)}>
+        <Select value={levelFilter} onChange={(e) => { setLevelFilter(e.target.value); }}>
           <option value="all">{t("logs.allLevels")}</option>
           <option value="debug">{t("logs.debug")}</option>
           <option value="info">{t("logs.info")}</option>
@@ -44,7 +44,7 @@ export default function LogsPage() {
         <Input
           placeholder={t("common.search")}
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => { setSearch(e.target.value); }}
           className="max-w-xs"
         />
       </div>

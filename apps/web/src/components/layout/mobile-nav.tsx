@@ -32,7 +32,7 @@ const MobileNav = () => {
   return (
     <>
       <button
-        onClick={() => setOpen((prev) => !prev)}
+        onClick={() => { setOpen((prev) => !prev); }}
         className="fixed left-4 top-4 z-50 flex h-10 w-10 items-center justify-center rounded-md border bg-background md:hidden"
         aria-label="Toggle menu"
       >

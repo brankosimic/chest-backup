@@ -79,7 +79,7 @@ export default function NewSourcePage() {
               <Button type="submit" disabled={createMutation.isPending}>
                 {createMutation.isPending ? t("common.loading") : t("common.create")}
               </Button>
-              <Button type="button" variant="outline" onClick={() => router.push("/sources")}>
+              <Button type="button" variant="outline" onClick={() => { router.push("/sources"); }}>
                 {t("common.cancel")}
               </Button>
             </div>

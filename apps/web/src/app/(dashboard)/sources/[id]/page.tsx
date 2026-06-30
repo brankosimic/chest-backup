@@ -57,7 +57,7 @@ export default function SourceEditPage() {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label>Type</Label>
-            <Select value={type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
+            <Select value={type} onChange={(e) => { setForm({ ...form, type: e.target.value }); }}>
               <option value="path">Path</option>
               <option value="postgres">PostgreSQL</option>
               <option value="postgres-container">PostgreSQL Container</option>
@@ -68,34 +68,34 @@ export default function SourceEditPage() {
           {type === "path" && (
             <div className="space-y-2">
               <Label>Path</Label>
-              <Input value={(form.path as string) ?? ""} onChange={(e) => setForm({ ...form, path: e.target.value })} placeholder="/data/documents" />
+              <Input value={(form.path as string) ?? ""} onChange={(e) => { setForm({ ...form, path: e.target.value }); }} placeholder="/data/documents" />
             </div>
           )}
 
           {type === "postgres" && (
             <>
-              <div className="space-y-2"><Label>Host</Label><Input value={(form.host as string) ?? ""} onChange={(e) => setForm({ ...form, host: e.target.value })} /></div>
-              <div className="space-y-2"><Label>Port</Label><Input type="number" value={(form.port as number) ?? 5432} onChange={(e) => setForm({ ...form, port: Number(e.target.value) })} /></div>
-              <div className="space-y-2"><Label>User</Label><Input value={(form.user as string) ?? ""} onChange={(e) => setForm({ ...form, user: e.target.value })} /></div>
-              <div className="space-y-2"><Label>Password</Label><Input type="password" value={(form.password as string) ?? ""} onChange={(e) => setForm({ ...form, password: e.target.value })} /></div>
-              <div className="space-y-2"><Label>Database</Label><Input value={(form.database as string) ?? ""} onChange={(e) => setForm({ ...form, database: e.target.value })} /></div>
+              <div className="space-y-2"><Label>Host</Label><Input value={(form.host as string) ?? ""} onChange={(e) => { setForm({ ...form, host: e.target.value }); }} /></div>
+              <div className="space-y-2"><Label>Port</Label><Input type="number" value={(form.port as number) ?? 5432} onChange={(e) => { setForm({ ...form, port: Number(e.target.value) }); }} /></div>
+              <div className="space-y-2"><Label>User</Label><Input value={(form.user as string) ?? ""} onChange={(e) => { setForm({ ...form, user: e.target.value }); }} /></div>
+              <div className="space-y-2"><Label>Password</Label><Input type="password" value={(form.password as string) ?? ""} onChange={(e) => { setForm({ ...form, password: e.target.value }); }} /></div>
+              <div className="space-y-2"><Label>Database</Label><Input value={(form.database as string) ?? ""} onChange={(e) => { setForm({ ...form, database: e.target.value }); }} /></div>
             </>
           )}
 
           {type === "postgres-container" && (
             <>
-              <div className="space-y-2"><Label>Container Name</Label><Input value={(form.containerName as string) ?? ""} onChange={(e) => setForm({ ...form, containerName: e.target.value })} /></div>
-              <div className="space-y-2"><Label>User</Label><Input value={(form.user as string) ?? ""} onChange={(e) => setForm({ ...form, user: e.target.value })} /></div>
-              <div className="space-y-2"><Label>Password</Label><Input type="password" value={(form.password as string) ?? ""} onChange={(e) => setForm({ ...form, password: e.target.value })} /></div>
-              <div className="space-y-2"><Label>Database</Label><Input value={(form.database as string) ?? ""} onChange={(e) => setForm({ ...form, database: e.target.value })} /></div>
+              <div className="space-y-2"><Label>Container Name</Label><Input value={(form.containerName as string) ?? ""} onChange={(e) => { setForm({ ...form, containerName: e.target.value }); }} /></div>
+              <div className="space-y-2"><Label>User</Label><Input value={(form.user as string) ?? ""} onChange={(e) => { setForm({ ...form, user: e.target.value }); }} /></div>
+              <div className="space-y-2"><Label>Password</Label><Input type="password" value={(form.password as string) ?? ""} onChange={(e) => { setForm({ ...form, password: e.target.value }); }} /></div>
+              <div className="space-y-2"><Label>Database</Label><Input value={(form.database as string) ?? ""} onChange={(e) => { setForm({ ...form, database: e.target.value }); }} /></div>
             </>
           )}
 
           {type === "docker-compose" && (
             <>
-              <div className="space-y-2"><Label>Name</Label><Input value={(form.name as string) ?? ""} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
-              <div className="space-y-2"><Label>Path</Label><Input value={(form.path as string) ?? ""} onChange={(e) => setForm({ ...form, path: e.target.value })} /></div>
-              <div className="space-y-2"><Label>Containers (comma-separated)</Label><Input value={((form.containers as string[]) ?? []).join(", ")} onChange={(e) => setForm({ ...form, containers: e.target.value.split(",").map((c) => c.trim()) })} /></div>
+              <div className="space-y-2"><Label>Name</Label><Input value={(form.name as string) ?? ""} onChange={(e) => { setForm({ ...form, name: e.target.value }); }} /></div>
+              <div className="space-y-2"><Label>Path</Label><Input value={(form.path as string) ?? ""} onChange={(e) => { setForm({ ...form, path: e.target.value }); }} /></div>
+              <div className="space-y-2"><Label>Containers (comma-separated)</Label><Input value={((form.containers as string[]) ?? []).join(", ")} onChange={(e) => { setForm({ ...form, containers: e.target.value.split(",").map((c) => c.trim()) }); }} /></div>
             </>
           )}
 
@@ -103,7 +103,7 @@ export default function SourceEditPage() {
             <Button onClick={handleSave} disabled={updateMutation.isPending}>
               {updateMutation.isPending ? t("common.loading") : t("common.save")}
             </Button>
-            <Button variant="outline" onClick={() => router.push("/sources")}>{t("common.cancel")}</Button>
+            <Button variant="outline" onClick={() => { router.push("/sources"); }}>{t("common.cancel")}</Button>
           </div>
         </CardContent>
       </Card>

@@ -60,7 +60,7 @@ describe("backup", () => {
     const localRetDir = "/tmp/chest-backup-e2e-retention-test"
     const config = {
       retention: 5,
-      sources: [{ path: `${E2E.TEST_DATA_DIR_1}/*` }],
+      sources: [{ type: "path", path: `${E2E.TEST_DATA_DIR_1}/*` }],
       destinations: [
         { type: "local" as const, path: localRetDir, retention: 1, parallel: false },
       ],
@@ -81,7 +81,7 @@ describe("backup", () => {
     const parallelDir = "/tmp/chest-backup-e2e-parallel-test"
     const config = {
       retention: 2,
-      sources: [{ path: `${E2E.TEST_DATA_DIR_1}/*` }],
+      sources: [{ type: "path", path: `${E2E.TEST_DATA_DIR_1}/*` }],
       destinations: [
         { type: "local" as const, path: E2E.BACKUP_DIR, parallel: true },
         { type: "local" as const, path: parallelDir, parallel: true },

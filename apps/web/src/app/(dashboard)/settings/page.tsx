@@ -30,12 +30,12 @@ export default function SettingsPage() {
         <CardContent className="space-y-6">
           <div className="space-y-2">
             <Label>{t("settings.tempDir")}</Label>
-            <Input value={tempDir} onChange={(e) => setTempDir(e.target.value)} placeholder={t("settings.tempDirPlaceholder")} />
+            <Input value={tempDir} onChange={(e) => { setTempDir(e.target.value); }} placeholder={t("settings.tempDirPlaceholder")} />
           </div>
 
           <div className="space-y-2">
             <Label>{t("settings.language")}</Label>
-            <Select value={language} onChange={(e) => setLanguage(e.target.value)}>
+            <Select value={language} onChange={(e) => { setLanguage(e.target.value); }}>
               <option value="en">English</option>
               <option value="bs">Bosanski</option>
             </Select>

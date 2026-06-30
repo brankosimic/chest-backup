@@ -31,7 +31,7 @@ describe("CLI", () => {
   test("noop mode exits 0 without schedule or --run-now", async () => {
     const config = {
       retention: 2,
-      sources: [{ path: `${E2E.TEST_DATA_DIR_1}/*` }],
+      sources: [{ type: "path", path: `${E2E.TEST_DATA_DIR_1}/*` }],
       destinations: [{ type: "local" as const, path: E2E.BACKUP_DIR, parallel: false }],
     }
     const noopConfigPath = "/tmp/chest-backup-e2e-noop-config.json"
@@ -49,7 +49,7 @@ describe("CLI", () => {
 
     const config = {
       retention: 2,
-      sources: [{ path: "${E2E_ENV_TEST_SOURCE}/*" }],
+      sources: [{ type: "path", path: "${E2E_ENV_TEST_SOURCE}/*" }],
       destinations: [{ type: "local" as const, path: E2E.BACKUP_DIR, parallel: false }],
     }
     const envConfigPath = "/tmp/chest-backup-e2e-env-config.json"
@@ -71,7 +71,7 @@ describe("CLI", () => {
     const daemonConfig = {
       schedule: "0 3 * * *",
       retention: 2,
-      sources: [{ path: `${E2E.TEST_DATA_DIR_1}/*` }],
+      sources: [{ type: "path", path: `${E2E.TEST_DATA_DIR_1}/*` }],
       destinations: [{ type: "local", path: E2E.BACKUP_DIR, parallel: false }],
     }
     const daemonConfigPath = "/tmp/chest-backup-e2e-daemon-config.json"

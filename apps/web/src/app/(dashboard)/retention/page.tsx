@@ -44,7 +44,7 @@ export default function RetentionPage() {
         <CardContent className="space-y-6">
           <div className="space-y-2">
             <Label>{t("retention.globalRetention")}</Label>
-            <Input type="number" min={1} value={globalRetention} onChange={(e) => setGlobalRetention(Number(e.target.value))} />
+            <Input type="number" min={1} value={globalRetention} onChange={(e) => { setGlobalRetention(Number(e.target.value)); }} />
           </div>
 
           <div className="space-y-3">

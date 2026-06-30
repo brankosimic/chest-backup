@@ -149,7 +149,7 @@ export default function DashboardPage() {
         <Button
           variant="default"
           size="lg"
-          onClick={() => triggerMutation.mutate()}
+          onClick={() => { triggerMutation.mutate(); }}
           disabled={triggerMutation.isPending}
         >
           <Play className="mr-2 h-4 w-4" />
