@@ -1,6 +1,10 @@
 node_modules/
 dist/
+.next/
 .env
 chest-backup.json
 chest-backup.service
 *.log
+apps/api/.env
+apps/web/.env.local
+apps/web/.env.production

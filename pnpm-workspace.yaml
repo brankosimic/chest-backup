@@ -1,3 +1,6 @@
 allowBuilds:
   cpu-features: true
   ssh2: true
+packages:
+  - "apps/*"
+  - "src"
