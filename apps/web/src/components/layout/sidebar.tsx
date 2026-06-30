@@ -1,8 +1,5 @@
-"use client"
-
 import { useTranslation } from "react-i18next"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { Link, useLocation } from "react-router-dom"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -40,12 +37,12 @@ const navItems: NavItem[] = [
 
 const Sidebar = ({ collapsed = false }: { collapsed?: boolean }) => {
   const { t } = useTranslation()
-  const pathname = usePathname()
+  const { pathname } = useLocation()
 
   return (
     <aside className={cn("hidden md:flex h-full w-64 flex-col border-r bg-sidebar-background", collapsed && "w-16")}>
       <div className="flex h-16 items-center border-b border-sidebar-border px-4">
-        <Link href="/dashboard" className="flex items-center gap-2 text-lg font-semibold text-sidebar-primary-foreground">
+        <Link to="/dashboard" className="flex items-center gap-2 text-lg font-semibold text-sidebar-primary-foreground">
           <Box className="h-6 w-6" />
           {!collapsed && <span>Chest-Backup</span>}
         </Link>
@@ -58,7 +55,7 @@ const Sidebar = ({ collapsed = false }: { collapsed?: boolean }) => {
           return (
             <Link
               key={item.href}
-              href={item.href}
+              to={item.href}
               className={cn(
                 "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
                 isActive ? "bg-sidebar-accent text-sidebar-primary-foreground" : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-primary-foreground",

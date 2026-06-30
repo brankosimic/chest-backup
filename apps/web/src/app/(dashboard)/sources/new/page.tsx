@@ -1,7 +1,5 @@
-"use client"
-
 import { useTranslation } from "react-i18next"
-import { useRouter } from "next/navigation"
+import { useNavigate } from "react-router-dom"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,7 +11,7 @@ import type { FormEvent } from "react"
 
 export default function NewSourcePage() {
   const { t } = useTranslation()
-  const router = useRouter()
+  const navigate = useNavigate()
   const createMutation = useCreateSource()
 
   const handleCreate = async (e: FormEvent<HTMLFormElement>) => {
@@ -44,7 +42,7 @@ export default function NewSourcePage() {
 
     try {
       await createMutation.mutateAsync(body)
-      router.push("/sources")
+      navigate("/sources")
     } catch {
       alert("Failed to create source")
     }
@@ -79,7 +77,7 @@ export default function NewSourcePage() {
               <Button type="submit" disabled={createMutation.isPending}>
                 {createMutation.isPending ? t("common.loading") : t("common.create")}
               </Button>
-              <Button type="button" variant="outline" onClick={() => { router.push("/sources"); }}>
+              <Button type="button" variant="outline" onClick={() => { navigate("/sources"); }}>
                 {t("common.cancel")}
               </Button>
             </div>

@@ -1,7 +1,5 @@
-"use client"
-
 import { useTranslation } from "react-i18next"
-import Link from "next/link"
+import { Link } from "react-router-dom"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -28,7 +26,7 @@ export default function DestinationsPage() {
         title={t("destinations.title")}
         subtitle={t("destinations.subtitle")}
         action={
-          <Link href="/destinations/new">
+          <Link to="/destinations/new">
             <Button>
               <Plus className="mr-2 h-4 w-4" />
               {t("destinations.addDestination")}
@@ -47,7 +45,7 @@ export default function DestinationsPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {destinations.map((dest: Destination) => (
-            <Link key={dest.id} href={`/destinations/${dest.id}`}>
+            <Link key={dest.id} to={`/destinations/${dest.id}`}>
               <Card className="hover:shadow-md transition-shadow">
                 <CardHeader>
                   <div className="flex items-center justify-between">

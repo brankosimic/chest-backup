@@ -1,8 +1,6 @@
-"use client"
-
 import { useTranslation } from "react-i18next"
 import { useState, useEffect } from "react"
-import { useRouter, useParams } from "next/navigation"
+import { useNavigate, useParams } from "react-router-dom"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,9 +11,8 @@ import { useSource, useUpdateSource } from "@/hooks/use-queries"
 
 export default function SourceEditPage() {
   const { t } = useTranslation()
-  const router = useRouter()
-  const params = useParams()
-  const id = params.id as string
+  const navigate = useNavigate()
+  const { id } = useParams<{ id: string }>() as { id: string }
 
   const { data: source, isLoading } = useSource(id)
   const updateMutation = useUpdateSource()
@@ -28,7 +25,7 @@ export default function SourceEditPage() {
   const handleSave = async () => {
     try {
       await updateMutation.mutateAsync({ id, data: form })
-      router.push("/sources")
+      navigate("/sources")
     } catch {
       alert("Failed to save")
     }
@@ -103,7 +100,7 @@ export default function SourceEditPage() {
             <Button onClick={handleSave} disabled={updateMutation.isPending}>
               {updateMutation.isPending ? t("common.loading") : t("common.save")}
             </Button>
-            <Button variant="outline" onClick={() => { router.push("/sources"); }}>{t("common.cancel")}</Button>
+            <Button variant="outline" onClick={() => { navigate("/sources"); }}>{t("common.cancel")}</Button>
           </div>
         </CardContent>
       </Card>

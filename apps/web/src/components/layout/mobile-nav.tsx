@@ -1,9 +1,6 @@
-"use client"
-
 import { useTranslation } from "react-i18next"
 import { useState } from "react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { Link, useLocation } from "react-router-dom"
 import { cn } from "@/lib/utils"
 import { Menu, X, Box } from "lucide-react"
 
@@ -27,7 +24,7 @@ const navItems: NavItem[] = [
 const MobileNav = () => {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
-  const pathname = usePathname()
+  const { pathname } = useLocation()
 
   return (
     <>
@@ -52,7 +49,7 @@ const MobileNav = () => {
                 return (
                   <Link
                     key={item.href}
-                    href={item.href}
+                    to={item.href}
                     onClick={() => { setOpen(false) }}
                     className={cn(
                       "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
