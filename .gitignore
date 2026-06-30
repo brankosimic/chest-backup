@@ -4,3 +4,8 @@ dist/
 chest-backup.json
 chest-backup.service
 *.log
+apps/*/dist/
+apps/web/.env
+*.tsbuildinfo
+data/*
+!data/.gitkeep

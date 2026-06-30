@@ -1,0 +1,106 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "history": "History",
+    "sources": "Sources",
+    "destinations": "Destinations",
+    "logs": "Logs",
+    "settings": "Settings"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Backup system overview",
+    "totalBackups": "Total Backups",
+    "successful": "Successful",
+    "failed": "Failed",
+    "lastBackup": "Last Backup",
+    "nextSchedule": "Next Schedule",
+    "uptime": "Uptime",
+    "triggerBackup": "Trigger Backup",
+    "triggering": "Triggering...",
+    "status": "Status",
+    "noBackups": "No backups recorded yet",
+    "successRate": "Success Rate",
+    "quickActions": "Quick Actions",
+    "backupNow": "Run Backup Now",
+    "viewHistory": "View Full History"
+  },
+  "history": {
+    "title": "Backup History",
+    "subtitle": "All recorded backup operations",
+    "table": {
+      "timestamp": "Timestamp",
+      "status": "Status",
+      "duration": "Duration",
+      "archive": "Archive",
+      "errors": "Errors",
+      "destinations": "Destinations",
+      "size": "Size"
+    },
+    "noHistory": "No backup history found"
+  },
+  "sources": {
+    "title": "Backup Sources",
+    "subtitle": "Configured sources to backup",
+    "type": "Type",
+    "path": "Path",
+    "database": "Database",
+    "containers": "Containers",
+    "label": "Label",
+    "noSources": "No sources configured"
+  },
+  "destinations": {
+    "title": "Destinations",
+    "subtitle": "Where backups are stored",
+    "type": "Type",
+    "path": "Path",
+    "host": "Host",
+    "retention": "Retention",
+    "status": "Status",
+    "active": "Active",
+    "skipped": "Skipped",
+    "noDestinations": "No destinations configured"
+  },
+  "logs": {
+    "title": "System Logs",
+    "subtitle": "Recent backup daemon logs",
+    "noLogs": "No logs available",
+    "refresh": "Refresh",
+    "refreshing": "Refreshing..."
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Application configuration",
+    "theme": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "version": "Version",
+    "schedule": "Schedule",
+    "retention": "Retention",
+    "notifications": "Notifications",
+    "notificationsEnabled": "Enabled",
+    "notificationsDisabled": "Disabled",
+    "apiInfo": "API Information",
+    "apiEndpoint": "API Endpoint"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "success": "Success",
+    "failed": "Failed",
+    "noData": "No data available",
+    "retry": "Retry",
+    "close": "Close",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "minutes": "min",
+    "seconds": "s",
+    "never": "Never",
+    "unknown": "Unknown",
+    "idle": "Idle",
+    "running": "Running",
+    "skipped": "Skipped",
+    "yes": "Yes",
+    "no": "No"
+  }
+}

@@ -1,10 +1,15 @@
 {
-  "name": "@chest-backup/app",
+  "name": "@chest-backup/monorepo",
   "version": "1.0.0",
+  "private": true,
   "type": "module",
   "scripts": {
     "dev": "bun --watch src/index.ts",
+    "dev:api": "bun --watch apps/api/src/index.ts",
+    "dev:web": "cd apps/web && pnpm dev",
     "build": "tsc",
+    "build:api": "cd apps/api && pnpm build",
+    "build:web": "cd apps/web && pnpm build",
     "start": "systemctl --user start chest-backup",
     "stop": "systemctl --user stop chest-backup",
     "status": "systemctl --user status chest-backup",

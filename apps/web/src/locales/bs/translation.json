@@ -1,0 +1,106 @@
+{
+  "nav": {
+    "dashboard": "Kontrolna ploča",
+    "history": "Historija",
+    "sources": "Izvori",
+    "destinations": "Odredišta",
+    "logs": "Zapisnici",
+    "settings": "Postavke"
+  },
+  "dashboard": {
+    "title": "Kontrolna ploča",
+    "subtitle": "Pregled sistema za backup",
+    "totalBackups": "Ukupno backupa",
+    "successful": "Uspješnih",
+    "failed": "Neuspješnih",
+    "lastBackup": "Posljednji backup",
+    "nextSchedule": "Sljedeći raspored",
+    "uptime": "Vrijeme rada",
+    "triggerBackup": "Pokreni backup",
+    "triggering": "Pokrećem...",
+    "status": "Status",
+    "noBackups": "Još nema zabilježenih backupa",
+    "successRate": "Stopa uspješnosti",
+    "quickActions": "Brze akcije",
+    "backupNow": "Pokreni backup sada",
+    "viewHistory": "Pregledaj historiju"
+  },
+  "history": {
+    "title": "Historija backupa",
+    "subtitle": "Sve zabilježene operacije backupa",
+    "table": {
+      "timestamp": "Vrijeme",
+      "status": "Status",
+      "duration": "Trajanje",
+      "archive": "Arhiva",
+      "errors": "Greške",
+      "destinations": "Odredišta",
+      "size": "Veličina"
+    },
+    "noHistory": "Nema historije backupa"
+  },
+  "sources": {
+    "title": "Izvori backupa",
+    "subtitle": "Konfigurirani izvori za backup",
+    "type": "Tip",
+    "path": "Putanja",
+    "database": "Baza podataka",
+    "containers": "Kontejneri",
+    "label": "Oznaka",
+    "noSources": "Nema konfiguriranih izvora"
+  },
+  "destinations": {
+    "title": "Odredišta",
+    "subtitle": "Gdje se backupovi pohranjuju",
+    "type": "Tip",
+    "path": "Putanja",
+    "host": "Server",
+    "retention": "Čuvanje",
+    "status": "Status",
+    "active": "Aktivno",
+    "skipped": "Preskočeno",
+    "noDestinations": "Nema konfiguriranih odredišta"
+  },
+  "logs": {
+    "title": "Sistemski zapisnici",
+    "subtitle": "Nedavni zapisnici backup demona",
+    "noLogs": "Nema dostupnih zapisnika",
+    "refresh": "Osvježi",
+    "refreshing": "Osvježavam..."
+  },
+  "settings": {
+    "title": "Postavke",
+    "subtitle": "Konfiguracija aplikacije",
+    "theme": "Tema",
+    "light": "Svijetla",
+    "dark": "Tamna",
+    "version": "Verzija",
+    "schedule": "Raspored",
+    "retention": "Čuvanje",
+    "notifications": "Obavijesti",
+    "notificationsEnabled": "Omogućene",
+    "notificationsDisabled": "Onemogućene",
+    "apiInfo": "API informacije",
+    "apiEndpoint": "API krajnja tačka"
+  },
+  "common": {
+    "loading": "Učitavanje...",
+    "error": "Došlo je do greške",
+    "success": "Uspjeh",
+    "failed": "Neuspješno",
+    "noData": "Nema dostupnih podataka",
+    "retry": "Pokušaj ponovo",
+    "close": "Zatvori",
+    "confirm": "Potvrdi",
+    "cancel": "Odustani",
+    "minutes": "min",
+    "seconds": "s",
+    "never": "Nikad",
+    "unknown": "Nepoznato",
+    "idle": "Miruje",
+    "running": "Pokrenut",
+    "skipped": "Preskočeno",
+    "yes": "Da",
+    "no": "Ne"
+  }
+}
