@@ -10,6 +10,11 @@ const isDbSource = (s: Source): s is PostgresSource | PostgresContainerSource =>
 const resolveSourcePaths = (source: Source): string[] => {
   if (isDbSource(source)) return []
 
+  const globber = new Glob(source.path)
+  const matches = Array.from(globber.scanSync({ absolute: true })).filter(existsSync)
+
+  if (matches.length > 0) return matches
+
   if (!existsSync(source.path)) {
     logger.warn({ path: source.path }, "source path does not exist")
     return []
@@ -17,9 +22,9 @@ const resolveSourcePaths = (source: Source): string[] => {
 
   const stat = statSync(source.path)
   if (stat.isDirectory()) {
-    const globber = new Glob(`${source.path}/**/*`)
-    const matches = Array.from(globber.scanSync({ absolute: true }))
-    return matches.filter(existsSync)
+    const dirGlobber = new Glob(`${source.path}/**/*`)
+    const dirMatches = Array.from(dirGlobber.scanSync({ absolute: true }))
+    return dirMatches.filter(existsSync)
   }
 
   return [source.path]

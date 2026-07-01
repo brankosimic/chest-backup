@@ -1,3 +1,9 @@
 allowBuilds:
   cpu-features: true
   ssh2: true
+packages:
+  - apps/*
+  - packages/*
+  - src
+
+onlyBuiltDependencies: '["cpu-features","ssh2"]'

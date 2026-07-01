@@ -20,10 +20,10 @@ const executeBackup = async (
 
   await stopBackupContainers(containers, errors)
 
-  let archivePath: string | null = null
   const tempDir = config.tempDir ?? "/tmp"
   mkdirSync(tempDir, { recursive: true })
 
+  let archivePath: string | null | undefined
   try {
     const resolved = await resolveSources(config, timestamp, tempFiles)
     const sources = resolved.paths

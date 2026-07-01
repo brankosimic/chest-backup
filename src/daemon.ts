@@ -4,13 +4,21 @@ import { Scheduler } from "./scheduler/cron"
 import { TrayBridge } from "./tray/bridge"
 import type { TrayCallbacks } from "./types/tray"
 import { logger } from "./utils/logger"
+import { loadConfig } from "./config/loader"
 import type { Config, BackupResult } from "./types/index"
 
-const startDaemon = async (config: Config): Promise<void> => {
+const startDaemon = async (onBackupComplete?: (result: BackupResult) => void): Promise<void> => {
+  const configPath = process.env.CHEST_CONFIG_PATH
+  if (!configPath) {
+    logger.warn("CHEST_CONFIG_PATH not set, daemon cannot start")
+    return
+  }
+
+  const config = loadConfig(configPath)
   const tray = new TrayBridge()
   let isBackupRunning = false
 
-  const trayCallbacks = makeTrayCallbacks(tray, config, () => isBackupRunning, (v) => { isBackupRunning = v })
+  const trayCallbacks = makeTrayCallbacks(tray, config, () => isBackupRunning, (v) => { isBackupRunning = v }, onBackupComplete)
   await tryStartTray(tray, trayCallbacks)
 
   const scheduler = new Scheduler(config.schedule as string, async () => {
@@ -21,6 +29,7 @@ const startDaemon = async (config: Config): Promise<void> => {
     const result = await runBackup(config)
     isBackupRunning = false
     updateAfterBackup(tray, result)
+    onBackupComplete?.(result)
   })
 
   scheduler.start()
@@ -57,6 +66,7 @@ const makeTrayCallbacks = (
   config: Config,
   getRunning: () => boolean,
   setRunning: (v: boolean) => void,
+  onBackupComplete?: (result: BackupResult) => void,
 ): TrayCallbacks => ({
   onRunNow: () => {
     if (getRunning()) return
@@ -68,6 +78,7 @@ const makeTrayCallbacks = (
     void runBackup(config).then((result) => {
       setRunning(false)
       updateAfterBackup(tray, result)
+      onBackupComplete?.(result)
     })
   },
 
@@ -98,7 +109,7 @@ const makeTrayCallbacks = (
 })
 
 const updateAfterBackup = (tray: TrayBridge, result: BackupResult): void => {
-  const allSkipped = result.destinationResults.length > 0 && result.destinationResults.every((r) => r.skipped)
+  const allSkipped = !!result.destinationResults.length && result.destinationResults.every((r) => r.skipped)
   const someSkipped = result.destinationResults.some((r) => r.skipped)
 
   const message = allSkipped
@@ -110,15 +121,10 @@ const updateAfterBackup = (tray: TrayBridge, result: BackupResult): void => {
   tray.setState(allSkipped ? "idle" : result.success ? "success" : "error", message)
   logger.info({ success: result.success, durationMs: result.durationMs }, "backup completed")
 
-  if (!result.success) {
-    tray.notify("Backup Failed", result.errors[0] ?? "unknown error")
-  } else if (allSkipped) {
-    tray.notify("Backup Skipped", "All destinations already have the latest backup — no changes needed")
-  } else if (someSkipped) {
-    tray.notify("Backup Successful", `Archive: ${result.archiveName ?? "unknown"} (some destinations skipped — identical)`)
-  } else {
-    tray.notify("Backup Successful", `Archive: ${result.archiveName ?? "unknown"}`)
-  }
+  if (!result.success) tray.notify("Backup Failed", result.errors[0] ?? "unknown error")
+  else if (allSkipped) tray.notify("Backup Skipped", "All destinations already have the latest backup — no changes needed")
+  else if (someSkipped) tray.notify("Backup Successful", `Archive: ${result.archiveName ?? "unknown"} (some destinations skipped — identical)`)
+  else tray.notify("Backup Successful", `Archive: ${result.archiveName ?? "unknown"}`)
 }
 
 export { startDaemon }

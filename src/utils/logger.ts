@@ -1,7 +1,8 @@
 import pino from "pino"
+import { logLevel } from "../env"
 
 const logger = pino({
-  level: process.env.LOG_LEVEL,
+  level: logLevel,
 })
 
 export { logger }
