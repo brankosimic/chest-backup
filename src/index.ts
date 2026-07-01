@@ -26,7 +26,7 @@ const main = async (): Promise<void> => {
     process.exit(0)
   }
 
-  await startDaemon(config)
+  await startDaemon()
 }
 
 const extractArg = (args: string[], key: string): string | undefined => {

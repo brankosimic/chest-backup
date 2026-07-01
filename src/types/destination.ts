@@ -1,14 +1,5 @@
 import type { Destination } from "./config"
-
-interface StoreResult {
-  success: boolean
-  error?: string
-  durationMs?: number
-  destLabel?: string
-  speed?: number
-  skipped?: boolean
-  skippedReason?: string
-}
+import type { StoreResult } from "@chest-backup/shared"
 
 type UploadProgress = {
   uploadedSize: number

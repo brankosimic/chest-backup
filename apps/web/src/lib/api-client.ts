@@ -1,12 +1,6 @@
-import type { Source, Destination, BackupRecord } from "@chest-backup/shared"
+import type { Source, Destination, BackupRecord, ApiResponse } from "@chest-backup/shared"
 
 const BASE_URL = ""
-
-interface ApiResponse<T> {
-  success: boolean
-  data?: T
-  error?: string
-}
 
 const apiFetch = async <T>(path: string, init?: RequestInit): Promise<T> => {
   const response = await fetch(`${BASE_URL}${path}`, {

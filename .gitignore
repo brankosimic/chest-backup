@@ -6,6 +6,8 @@ dist/
 chest-backup.json
 chest-backup.service
 *.log
+*.tsbuildinfo
+.chest-data/
 apps/api/.env
 apps/web/.env.local
 apps/web/.env.production
