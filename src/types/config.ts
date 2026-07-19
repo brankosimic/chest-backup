@@ -32,6 +32,7 @@ type DockerComposeSource = {
   name: string
   path: string
   containers: string[]
+  include?: string[]
 }
 
 type Source = PathSource | PostgresSource | PostgresContainerSource | DockerComposeSource

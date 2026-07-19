@@ -27,6 +27,7 @@ const DockerComposeSourceSchema = z.object({
   name: z.string().min(1, "Name is required"),
   path: z.string().min(1, "Path is required"),
   containers: z.array(z.string().min(1, "Container name is required")),
+  include: z.array(z.string().min(1)).optional(),
 })
 
 const SourceSchema = z.discriminatedUnion("type", [

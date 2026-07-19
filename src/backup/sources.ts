@@ -10,6 +10,9 @@ const isDbSource = (s: Source): s is PostgresSource | PostgresContainerSource =>
 const resolveSourcePaths = (source: Source): string[] => {
   if (isDbSource(source)) return []
 
+  if (source.type === "docker-compose" && source.include?.length)
+    return [...new Set(source.include.flatMap(pattern => [...new Glob(`${source.path}/${pattern}`).scanSync({ absolute: true })].filter(existsSync)))]
+
   const globber = new Glob(source.path)
   const matches = Array.from(globber.scanSync({ absolute: true })).filter(existsSync)
 
