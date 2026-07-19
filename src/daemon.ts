@@ -95,7 +95,7 @@ const makeTrayCallbacks = (
   },
 
   onViewLogs: () => {
-    const child = spawn("konsole", ["--hold", "-e", "journalctl", "--user", "-u", "chest-backup", "-n", "50", "--no-pager"], {
+    const child = spawn("konsole", ["--hold", "-e", "journalctl", "--user", "-u", "chest-backup", "-n", "50", "-f", "--no-pager"], {
       detached: true,
       stdio: "ignore",
     })
