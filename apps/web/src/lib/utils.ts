@@ -5,11 +5,14 @@ const cn = (...inputs: ClassValue[]): string => twMerge(clsx(inputs))
 
 const formatDuration = (ms: number): string => {
   if (ms < 1000) return `${String(ms)}ms`
-  const s = Math.floor(ms / 1000)
-  if (s < 60) return `${String(s)}s`
-  const m = Math.floor(s / 60)
-  const remainingS = s % 60
-  return `${String(m)}m ${String(remainingS)}s`
+  const totalSec = Math.round(ms / 1000)
+  if (totalSec < 60) return `${String(totalSec)}s`
+  const m = Math.floor(totalSec / 60)
+  const remainingS = totalSec % 60
+  if (m < 60) return `${String(m)}m ${String(remainingS)}s`
+  const h = Math.floor(m / 60)
+  const remainingM = m % 60
+  return `${String(h)}h ${String(remainingM)}m`
 }
 
 const formatSize = (bytes: number): string => {
@@ -19,12 +22,14 @@ const formatSize = (bytes: number): string => {
   const mb = kb / 1024
   if (mb < 1024) return `${mb.toFixed(1)} MB`
   const gb = mb / 1024
-  return `${gb.toFixed(1)} GB`
+  if (gb < 1024) return `${gb.toFixed(1)} GB`
+  const tb = gb / 1024
+  return `${tb.toFixed(2)} TB`
 }
 
 const formatDate = (dateStr: string): string => {
   const date = new Date(dateStr)
-  return date.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })
+  return date.toLocaleString(navigator.language, { timeZone: "UTC" })
 }
 
 const formatUptime = (seconds: number): string => {

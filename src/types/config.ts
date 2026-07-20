@@ -39,6 +39,7 @@ type Source = PathSource | PostgresSource | PostgresContainerSource | DockerComp
 
 interface Destination {
   type: "local" | "sftp"
+  name?: string
   path: string
   host?: string
   port?: number

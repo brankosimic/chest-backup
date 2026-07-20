@@ -48,6 +48,8 @@
     "backupChart": "Backup History",
     "quickActions": "Quick Actions",
     "runBackup": "Run Backup Now",
+    "fileCount": "Files",
+    "size": "Size",
     "storageByDestination": "By Destination"
   },
   "sources": {
@@ -79,6 +81,7 @@
     "subtitle": "Manage backup destinations",
     "addDestination": "Add Destination",
     "editDestination": "Edit Destination",
+    "name": "Friendly Name",
     "destinationType": "Destination Type",
     "local": "Local",
     "sftp": "SFTP",

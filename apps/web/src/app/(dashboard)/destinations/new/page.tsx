@@ -18,6 +18,7 @@ export default function NewDestinationPage() {
   const navigate = useNavigate()
   const createMutation = useCreateDestination()
   const [type, setType] = useState("local")
+  const [name, setName] = useState("")
   const [path, setPath] = useState("")
   const [host, setHost] = useState("")
   const [port, setPort] = useState(22)
@@ -31,7 +32,7 @@ export default function NewDestinationPage() {
 
   const handleCreate = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const body: Record<string, unknown> = { type, path }
+    const body: Record<string, unknown> = { type, name: name || undefined, path }
 
     if (type === "sftp") {
       body.host = host
@@ -70,6 +71,11 @@ export default function NewDestinationPage() {
                 <option value="local">Local</option>
                 <option value="sftp">SFTP</option>
               </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="name">{t("destinations.name")}</Label>
+              <Input id="name" value={name} onChange={(e) => { setName(e.target.value); }} placeholder="My Server" />
             </div>
 
             <div className="space-y-2">

@@ -48,6 +48,8 @@
     "backupChart": "Historija backup-ova",
     "quickActions": "Brze akcije",
     "runBackup": "Pokreni backup odmah",
+    "fileCount": "Datoteke",
+    "size": "Veličina",
     "storageByDestination": "Po odredištu"
   },
   "sources": {
@@ -79,6 +81,7 @@
     "subtitle": "Upravljajte odredištima za backup",
     "addDestination": "Dodaj odredište",
     "editDestination": "Uredi odredište",
+    "name": "Naziv",
     "destinationType": "Tip odredišta",
     "local": "Lokalno",
     "sftp": "SFTP",

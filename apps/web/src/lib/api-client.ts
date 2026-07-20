@@ -57,7 +57,7 @@ const fetchBackups = (page = 1, limit = 50) =>
   apiFetch<{ data: BackupRecord[]; total: number; page: number; limit: number }>(`/api/backups?page=${page}&limit=${limit}`)
 
 const fetchBackupStats = () =>
-  apiFetch<{ total: number; success: number; failed: number; avgDuration: number; totalSize: number; destinations: { type: string; path: string; totalSize: number; fileCount: number }[] }>("/api/backups/stats")
+  apiFetch<{ total: number; success: number; failed: number; avgDuration: number; totalSize: number; destinations: { type: string; name?: string; path: string; totalSize: number; fileCount: number; avgDurationMs: number }[] }>("/api/backups/stats")
 
 const triggerBackup = () =>
   apiFetch<{ success: boolean; message: string }>("/api/backups/run", { method: "POST" })

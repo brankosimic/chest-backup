@@ -7,9 +7,11 @@ interface PaginatedResult<T> {
 
 interface DestinationUsage {
   type: string
+  name?: string
   path: string
   totalSize: number
   fileCount: number
+  avgDurationMs: number
 }
 
 interface BackupStats {

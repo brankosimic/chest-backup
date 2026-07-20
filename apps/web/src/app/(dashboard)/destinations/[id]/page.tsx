@@ -54,9 +54,14 @@ export default function DestinationEditPage() {
           <div className="space-y-2">
             <Label>Type</Label>
             <Select value={type} onChange={(e) => { setForm({ ...form, type: e.target.value }); }}>
-              <option value="local">Local</option>
+              <option value="local">{t("destinations.local")}</option>
               <option value="sftp">SFTP</option>
             </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>{t("destinations.name")}</Label>
+            <Input value={(form.name as string) ?? ""} onChange={(e) => { setForm({ ...form, name: e.target.value }); }} placeholder="My Server" />
           </div>
 
           <div className="space-y-2">

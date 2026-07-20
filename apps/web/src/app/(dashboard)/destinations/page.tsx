@@ -49,8 +49,8 @@ export default function DestinationsPage() {
               <Card className="hover:shadow-md transition-shadow">
                 <CardHeader>
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-base font-mono">{dest.path}</CardTitle>
-                    <Badge variant={dest.type === "local" ? "default" : "secondary"}>{dest.type}</Badge>
+                    <CardTitle className="text-base">{dest.name ?? dest.path}</CardTitle>
+                    <Badge variant={dest.type === "local" ? "default" : "secondary"}>{dest.type === "local" ? t("destinations.local") : "SFTP"}</Badge>
                   </div>
                 </CardHeader>
                 <CardContent>

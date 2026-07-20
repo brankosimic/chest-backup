@@ -17,6 +17,7 @@ interface Source {
 interface Destination {
   id: string
   type: "local" | "sftp"
+  name?: string
   path: string
   host?: string
   port?: number
