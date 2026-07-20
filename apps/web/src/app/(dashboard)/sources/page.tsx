@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { Header } from "@/components/layout/header"
-import { Plus, Folder, Database, Container, Boxes, Trash2, ChevronRight } from "lucide-react"
+import { Plus, Folder, FolderOpen, Database, Container, Boxes, Trash2, ChevronRight } from "lucide-react"
 import { formatDate } from "@/lib/utils"
 import { useSources, useDeleteSource } from "@/hooks/use-queries"
 import type { Source } from "@chest-backup/shared"
@@ -41,6 +41,24 @@ const sourceTitle = (source: Source): string => {
 
 const TYPE_ORDER = ["path", "postgres", "postgres-container", "docker-compose"] as const
 
+const getParentDir = (p: string): string => {
+  const i = p.lastIndexOf("/")
+  return i > 0 ? p.slice(0, i) : i === 0 ? "/" : ""
+}
+
+const getBaseName = (p: string): string => {
+  const i = p.lastIndexOf("/")
+  return i >= 0 ? p.slice(i + 1) : p
+}
+
+const groupByParent = (items: Source[]): Map<string, Source[]> =>
+  items.reduce((map, s) => {
+    const parent = getParentDir(s.path ?? "")
+    if (!map.has(parent)) map.set(parent, [])
+    map.get(parent)!.push(s)
+    return map
+  }, new Map<string, Source[]>())
+
 interface SourceDetailsProps {
   source: Source
 }
@@ -49,30 +67,55 @@ const SourceDetails = ({ source }: SourceDetailsProps) => {
   const { t } = useTranslation()
   switch (source.type) {
     case "path":
-      return <p className="text-sm text-muted-foreground font-mono break-words">{source.path}</p>
+      return null
     case "postgres":
       return (
         <p className="text-sm text-muted-foreground">
-          {source.host}:{source.port} &middot; {t("sources.database")}: {source.database}
+          Port {source.port} &middot; {t("sources.database")}: {source.database}
         </p>
       )
     case "postgres-container":
       return (
         <p className="text-sm text-muted-foreground">
-          {t("sources.containerName")}: {source.containerName} &middot; {t("sources.database")}: {source.database}
+          {t("sources.database")}: {source.database}
         </p>
       )
-    case "docker-compose":
+    case "docker-compose": {
+      const showExtraPath = source.name && source.path
       return (
         <p className="text-sm text-muted-foreground break-words">
-          {t("sources.path")}: {source.path}
-          {!!source.containers?.length && <> &middot; {source.containers.join(", ")}</>}
+          {showExtraPath && <>{t("sources.path")}: {source.path}</>}
+          {!!source.containers?.length && (
+            showExtraPath ? <> &middot; {source.containers.join(", ")}</> : source.containers.join(", ")
+          )}
         </p>
       )
+    }
     default:
       return null
   }
 }
+
+const sourceRow = (source: Source, handleDelete: (id: string, e: React.MouseEvent) => void, t: (key: string) => string, titleOverride?: string) => (
+  <Link key={source.id} to={`/sources/${source.id}`}
+    className="group flex items-center gap-4 px-4 py-3 transition-colors hover:bg-muted/50"
+  >
+    <div className="min-w-0 flex-1">
+      <p className="font-medium break-words">{titleOverride ?? sourceTitle(source)}</p>
+      {!titleOverride && <SourceDetails source={source} />}
+    </div>
+    <div className="flex shrink-0 items-center gap-2">
+      <span className="text-xs text-muted-foreground whitespace-nowrap">{formatDate(source.createdAt)}</span>
+      <button onClick={(e) => handleDelete(source.id, e)}
+        className="rounded p-1.5 text-muted-foreground opacity-0 transition-all hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
+        title={t("common.delete")}
+      >
+        <Trash2 className="h-4 w-4" />
+      </button>
+      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+    </div>
+  </Link>
+)
 
 export default function SourcesPage() {
   const { t } = useTranslation()
@@ -154,33 +197,23 @@ export default function SourcesPage() {
                 <span className="text-sm text-muted-foreground">({group.items.length})</span>
               </div>
 
-              <div className="divide-y rounded-lg border">
-                {group.items.map((source) => (
-                  <Link
-                    key={source.id}
-                    to={`/sources/${source.id}`}
-                    className="group flex items-center gap-4 px-4 py-3 transition-colors hover:bg-muted/50"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium break-words">{sourceTitle(source)}</p>
-                      <SourceDetails source={source} />
+              {group.type === "path" ? (
+                <div className="space-y-3">
+                  {Array.from(groupByParent(group.items).entries()).map(([parent, items]) => (
+                    <div key={parent} className="rounded-lg border">
+                      <div className="flex items-center gap-2 border-b bg-muted/30 px-4 py-1.5 text-xs font-semibold text-muted-foreground">
+                        <FolderOpen className="h-3.5 w-3.5" />
+                        {parent}/
+                      </div>
+                      {items.map((source) => sourceRow(source, handleDelete, t, getBaseName(source.path ?? "")))}
                     </div>
-                    <div className="flex shrink-0 items-center gap-2">
-                      <span className="text-xs text-muted-foreground whitespace-nowrap">
-                        {formatDate(source.createdAt)}
-                      </span>
-                      <button
-                        onClick={(e) => handleDelete(source.id, e)}
-                        className="rounded p-1.5 text-muted-foreground opacity-0 transition-all hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
-                        title={t("common.delete")}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                    </div>
-                  </Link>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="divide-y rounded-lg border">
+                  {group.items.map((source) => sourceRow(source, handleDelete, t))}
+                </div>
+              )}
             </section>
           ))}
         </div>
