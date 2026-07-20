@@ -73,6 +73,11 @@
     "hostPlaceholder": "localhost",
     "portPlaceholder": "5432",
     "dockerComposePath": "/opt/docker/web",
+    "typePath": "Putanja",
+    "typePostgres": "PostgreSQL",
+    "typePostgresContainer": "PostgreSQL Kontejner",
+    "typeDockerCompose": "Docker Compose",
+    "createdAt": "Kreirano",
     "noSources": "Nema konfigurisanih izvora",
     "noSourcesDesc": "Dodajte prvi izvor za backup da počnete."
   },

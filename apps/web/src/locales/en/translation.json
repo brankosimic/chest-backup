@@ -73,6 +73,11 @@
     "hostPlaceholder": "localhost",
     "portPlaceholder": "5432",
     "dockerComposePath": "/opt/docker/web",
+    "typePath": "File Path",
+    "typePostgres": "PostgreSQL",
+    "typePostgresContainer": "PostgreSQL Container",
+    "typeDockerCompose": "Docker Compose",
+    "createdAt": "Created",
     "noSources": "No sources configured",
     "noSourcesDesc": "Add your first backup source to get started."
   },
