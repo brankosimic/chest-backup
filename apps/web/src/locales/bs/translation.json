@@ -67,6 +67,7 @@
     "containerName": "Naziv kontejnera",
     "name": "Naziv",
     "containers": "Kontejneri",
+    "include": "Uključi",
     "addContainer": "Dodaj kontejner",
     "containersPlaceholder": "db, redis",
     "pathPlaceholder": "/data/dokumenti",

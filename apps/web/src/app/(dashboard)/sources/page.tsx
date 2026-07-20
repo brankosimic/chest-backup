@@ -1,4 +1,5 @@
 import { useState, createContext, useContext } from "react"
+import type { MouseEvent } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { Card, CardContent } from "@/components/ui/card"
@@ -9,14 +10,14 @@ import { Plus, Folder, FolderOpen, File, Database, Container, Boxes, Trash2, Che
 import { formatDate } from "@/lib/utils"
 import { useSources, useDeleteSource } from "@/hooks/use-queries"
 import type { Source } from "@chest-backup/shared"
-
-interface TreeContextValue {
-  expanded: Set<string>
-  onToggle: (id: string) => void
-  onDelete: (id: string, e: React.MouseEvent) => void
-  onNavigate: (path: string) => void
-  t: (key: string) => string
-}
+import type {
+  TreeContextValue,
+  TreeNode,
+  TreeNodeRowProps,
+  SourceRowProps,
+  SourceSection,
+} from "@/types/sources"
+import { sourceIcon, sourceTypeLabelKey, buildPathTree } from "@/lib/sources"
 
 const TreeContext = createContext<TreeContextValue | null>(null)
 
@@ -26,60 +27,7 @@ const useTree = () => {
   return ctx
 }
 
-const sourceIcon = (type: string) => {
-  switch (type) {
-    case "path": return <Folder className="h-5 w-5 text-blue-500 shrink-0" />
-    case "postgres": return <Database className="h-5 w-5 text-purple-500 shrink-0" />
-    case "postgres-container": return <Container className="h-5 w-5 text-amber-500 shrink-0" />
-    case "docker-compose": return <Boxes className="h-5 w-5 text-cyan-500 shrink-0" />
-    default: return <Folder className="h-5 w-5 text-muted-foreground shrink-0" />
-  }
-}
-
-const sourceTypeLabelKey = (type: string): string => {
-  switch (type) {
-    case "path": return "sources.typePath"
-    case "postgres": return "sources.typePostgres"
-    case "postgres-container": return "sources.typePostgresContainer"
-    case "docker-compose": return "sources.typeDockerCompose"
-    default: return type
-  }
-}
-
-const sourceTitle = (source: Source): string => {
-  switch (source.type) {
-    case "path": return source.path ?? ""
-    case "postgres": return source.host ?? ""
-    case "postgres-container": return source.containerName ?? source.host ?? ""
-    case "docker-compose": return source.name ?? source.path ?? ""
-    default: return ""
-  }
-}
-
 const TYPE_ORDER = ["path", "postgres", "postgres-container", "docker-compose"] as const
-
-const getParentDir = (p: string): string => {
-  const i = p.lastIndexOf("/")
-  return i > 0 ? p.slice(0, i) : i === 0 ? "/" : ""
-}
-
-const getBaseName = (p: string): string => {
-  const i = p.lastIndexOf("/")
-  return i >= 0 ? p.slice(i + 1) : p
-}
-
-interface TreeNode {
-  id: string
-  label: string
-  icon: React.ReactNode
-  children?: TreeNode[]
-  source?: Source
-}
-
-interface TreeNodeRowProps {
-  node: TreeNode
-  depth: number
-}
 
 const TreeNodeRow = ({ node, depth }: TreeNodeRowProps) => {
   const ctx = useTree()
@@ -104,7 +52,7 @@ const TreeNodeRow = ({ node, depth }: TreeNodeRowProps) => {
           {hasChildren ? (
             <ChevronRight className={`h-4 w-4 text-muted-foreground transition-transform ${isExpanded ? "rotate-90" : ""}`} />
           ) : (
-            <span className="h-3.5 w-3.5 text-muted-foreground">-</span>
+            <span className="flex h-4 w-4 shrink-0 items-center justify-center text-muted-foreground">&ndash;</span>
           )}
         </span>
         {node.icon}
@@ -132,12 +80,9 @@ const TreeNodeRow = ({ node, depth }: TreeNodeRowProps) => {
   )
 }
 
-interface SourceRowProps {
-  source: Source
-}
-
 const SourceRow = ({ source }: SourceRowProps) => {
   const ctx = useTree()
+  const detailLines = sourceDetailLines(source, ctx.t)
 
   return (
     <div
@@ -145,10 +90,15 @@ const SourceRow = ({ source }: SourceRowProps) => {
       onClick={() => ctx.onNavigate(`/sources/${source.id}`)}
     >
       <span className="flex w-4 shrink-0 items-center justify-center">
-        <span className="h-3.5 w-3.5 text-muted-foreground">-</span>
+        <span className="flex h-4 w-4 shrink-0 items-center justify-center text-muted-foreground">&ndash;</span>
       </span>
       {sourceIcon(source.type)}
-      <span className="min-w-0 flex-1 break-words font-medium">{sourceTitle(source)}</span>
+      <div className="min-w-0 flex-1 space-y-0.5">
+        <p className="break-words font-medium">{sourceTitle(source)}</p>
+        {detailLines.map((line, i) => (
+          <p key={i} className="text-xs text-muted-foreground">{line}</p>
+        ))}
+      </div>
       <div className="flex shrink-0 items-center gap-2">
         <span className="text-xs text-muted-foreground">{formatDate(source.createdAt)}</span>
         <button
@@ -163,13 +113,35 @@ const SourceRow = ({ source }: SourceRowProps) => {
   )
 }
 
-interface SourceSection {
-  type: string
-  label: string
-  icon: React.ReactNode
-  count: number
-  dirTree: TreeNode[]
-  flatItems: Source[]
+const sourceDetailLines = (source: Source, t: (key: string) => string): string[] => {
+  switch (source.type) {
+    case "postgres":
+      return [`Port ${source.port} · ${t("sources.database")}: ${source.database}`]
+    case "postgres-container":
+      return [`${t("sources.database")}: ${source.database}`]
+    case "docker-compose": {
+      const lines: string[] = []
+      if (source.name && source.path)
+        lines.push(`${t("sources.path")}: ${source.path}`)
+      if (source.containers?.length)
+        lines.push(source.containers.join(", "))
+      if (source.include?.length)
+        lines.push(`${t("sources.include")}: ${source.include.join(", ")}`)
+      return lines
+    }
+    default:
+      return []
+  }
+}
+
+const sourceTitle = (source: Source): string => {
+  switch (source.type) {
+    case "path": return source.path ?? ""
+    case "postgres": return source.host ?? ""
+    case "postgres-container": return source.containerName ?? source.host ?? ""
+    case "docker-compose": return source.name ?? source.path ?? ""
+    default: return ""
+  }
 }
 
 const countLeaves = (nodes: TreeNode[]): number =>
@@ -182,26 +154,7 @@ const buildSections = (sources: Source[]): SourceSection[] =>
       if (!items.length) return null
 
       if (type === "path") {
-        const byParent = Array.from(
-          items.reduce<Map<string, Source[]>>((map, s) => {
-            const parent = getParentDir(s.path ?? "")
-            if (!map.has(parent)) map.set(parent, [])
-            map.get(parent)!.push(s)
-            return map
-          }, new Map())
-        )
-
-        const dirTree: TreeNode[] = byParent.map(([parent, children]) => ({
-          id: `dir-${parent}`,
-          label: `${parent}/`,
-          icon: <FolderOpen className="h-4 w-4 text-amber-500 shrink-0" />,
-          children: children.map((s) => ({
-            id: s.id,
-            label: getBaseName(s.path ?? ""),
-            icon: <File className="h-4 w-4 text-muted-foreground shrink-0" />,
-            source: s,
-          })),
-        }))
+        const dirTree = buildPathTree(items)
 
         return {
           type,
@@ -224,7 +177,7 @@ const buildSections = (sources: Source[]): SourceSection[] =>
     })
     .filter(Boolean) as SourceSection[]
 
-export default function SourcesPage() {
+const SourcesPage = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { data: sources, isLoading, isError, refetch } = useSources()
@@ -240,7 +193,7 @@ export default function SourcesPage() {
     })
   }
 
-  const handleDelete = (id: string, e: React.MouseEvent) => {
+  const handleDelete = (id: string, e: MouseEvent) => {
     e.stopPropagation()
     if (window.confirm(t("common.confirmDelete")))
       deleteSource.mutate(id)
@@ -327,3 +280,5 @@ export default function SourcesPage() {
     </div>
   )
 }
+
+export default SourcesPage

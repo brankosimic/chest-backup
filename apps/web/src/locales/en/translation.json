@@ -67,6 +67,7 @@
     "containerName": "Container Name",
     "name": "Name",
     "containers": "Containers",
+    "include": "Include",
     "addContainer": "Add Container",
     "containersPlaceholder": "db, redis",
     "pathPlaceholder": "/data/documents",
