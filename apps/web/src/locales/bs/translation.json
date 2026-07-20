@@ -65,6 +65,7 @@
     "name": "Naziv",
     "containers": "Kontejneri",
     "addContainer": "Dodaj kontejner",
+    "containersPlaceholder": "db, redis",
     "pathPlaceholder": "/data/dokumenti",
     "hostPlaceholder": "localhost",
     "portPlaceholder": "5432",
@@ -89,6 +90,8 @@
     "parallel": "Paralelni upload",
     "timeout": "Timeout (sekunde)",
     "skip": "Preskoči",
+    "newDestination": "Novo odredište",
+    "pathPlaceholder": "/backup",
     "noDestinations": "Nema konfigurisanih odredišta",
     "noDestinationsDesc": "Dodajte prvo odredište za backup da počnete."
   },
@@ -121,6 +124,7 @@
     "webhookUrlPlaceholder": "https://discord.com/api/webhooks/...",
     "enabled": "Omogućeno",
     "testNotification": "Pošalji testnu obavijest",
+    "cardTitle": "Discord obavijesti",
     "testSuccess": "Testna obavijest uspješno poslana",
     "testError": "Neuspješno slanje testne obavijesti"
   },

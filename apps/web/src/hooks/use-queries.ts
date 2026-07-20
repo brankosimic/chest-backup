@@ -22,6 +22,7 @@ import {
   triggerBackup,
   fetchLogs,
   fetchSystem,
+  testNotification,
 } from "@/lib/api-client"
 
 const useSources = () =>
@@ -109,6 +110,11 @@ const useUpdateRetention = () => {
 const useNotifications = () =>
   useQuery({ queryKey: ["notifications"], queryFn: fetchNotifications })
 
+const useTestNotification = () =>
+  useMutation({
+    mutationFn: (webhookUrl: string) => testNotification(webhookUrl),
+  })
+
 const useUpdateNotifications = () => {
   const qc = useQueryClient()
   return useMutation({
@@ -162,4 +168,5 @@ export {
   useTriggerBackup,
   useLogs,
   useSystem,
+  useTestNotification,
 }

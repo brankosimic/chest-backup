@@ -65,6 +65,7 @@
     "name": "Name",
     "containers": "Containers",
     "addContainer": "Add Container",
+    "containersPlaceholder": "db, redis",
     "pathPlaceholder": "/data/documents",
     "hostPlaceholder": "localhost",
     "portPlaceholder": "5432",
@@ -89,6 +90,8 @@
     "parallel": "Parallel Upload",
     "timeout": "Timeout (seconds)",
     "skip": "Skip",
+    "newDestination": "New Destination",
+    "pathPlaceholder": "/backups",
     "noDestinations": "No destinations configured",
     "noDestinationsDesc": "Add your first backup destination to get started."
   },
@@ -121,6 +124,7 @@
     "webhookUrlPlaceholder": "https://discord.com/api/webhooks/...",
     "enabled": "Enabled",
     "testNotification": "Send Test Notification",
+    "cardTitle": "Discord Notifications",
     "testSuccess": "Test notification sent successfully",
     "testError": "Failed to send test notification"
   },

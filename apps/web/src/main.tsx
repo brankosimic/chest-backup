@@ -12,6 +12,7 @@ import SourcesPage from "@/app/(dashboard)/sources/page"
 import NewSourcePage from "@/app/(dashboard)/sources/new/page"
 import SourceDetailPage from "@/app/(dashboard)/sources/[id]/page"
 import DestinationsPage from "@/app/(dashboard)/destinations/page"
+import NewDestinationPage from "@/app/(dashboard)/destinations/new/page"
 import DestinationDetailPage from "@/app/(dashboard)/destinations/[id]/page"
 import SchedulePage from "@/app/(dashboard)/schedule/page"
 import RetentionPage from "@/app/(dashboard)/retention/page"
@@ -33,6 +34,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
               <Route path="/sources/new" element={<NewSourcePage />} />
               <Route path="/sources/:id" element={<SourceDetailPage />} />
               <Route path="/destinations" element={<DestinationsPage />} />
+              <Route path="/destinations/new" element={<NewDestinationPage />} />
               <Route path="/destinations/:id" element={<DestinationDetailPage />} />
               <Route path="/schedule" element={<SchedulePage />} />
               <Route path="/retention" element={<RetentionPage />} />

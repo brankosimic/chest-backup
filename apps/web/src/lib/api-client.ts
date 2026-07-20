@@ -73,6 +73,12 @@ const fetchLogs = (level?: string, search?: string, limit = 100) => {
 const fetchSystem = () =>
   apiFetch<{ status: string; uptime: number; version: string; cpuUsage: number; memoryUsage: number; diskUsage: number }>("/api/system")
 
+const testNotification = (webhookUrl: string) =>
+  apiFetch<{ success: boolean; message: string }>("/api/notifications/test", {
+    method: "POST",
+    body: JSON.stringify({ webhookUrl }),
+  })
+
 export {
   apiFetch,
   fetchSources,
@@ -96,4 +102,5 @@ export {
   triggerBackup,
   fetchLogs,
   fetchSystem,
+  testNotification,
 }

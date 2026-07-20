@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Header } from "@/components/layout/header"
-import { formatDuration, formatDate } from "@/lib/utils"
+import { formatDuration, formatDate, formatSize } from "@/lib/utils"
 import { useBackups } from "@/hooks/use-queries"
 
 export default function HistoryPage() {
@@ -47,7 +47,7 @@ export default function HistoryPage() {
                       </Badge>
                     </td>
                     <td className="px-4 py-3 text-sm">{formatDuration(backup.durationMs)}</td>
-                    <td className="px-4 py-3 text-sm font-mono">{backup.archiveName ?? "-"}</td>
+                    <td className="px-4 py-3 text-sm font-mono">{backup.archiveSize !== undefined ? formatSize(backup.archiveSize) : "-"}</td>
                     <td className="px-4 py-3 text-sm text-destructive">{backup.errors?.join(", ")}</td>
                   </tr>
                 ))}

@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
 import { Header } from "@/components/layout/header"
-import { useNotifications, useUpdateNotifications } from "@/hooks/use-queries"
+import { useNotifications, useUpdateNotifications, useTestNotification } from "@/hooks/use-queries"
 
 export default function NotificationsPage() {
   const { t } = useTranslation()
@@ -18,6 +18,7 @@ export default function NotificationsPage() {
   const [webhookUrl, setWebhookUrl] = useState("")
   const [enabled, setEnabled] = useState(false)
   const [testSent, setTestSent] = useState(false)
+  const testMutation = useTestNotification()
 
   useEffect(() => {
     if (data?.discord) {
@@ -31,7 +32,10 @@ export default function NotificationsPage() {
   }
 
   const handleTest = () => {
-    setTestSent(true)
+    testMutation.mutate(webhookUrl, {
+      onSuccess: () => setTestSent(true),
+      onError: () => setTestSent(false),
+    })
   }
 
   if (isLoading) {
@@ -47,7 +51,7 @@ export default function NotificationsPage() {
       <Header title={t("notifications.title")} subtitle={t("notifications.subtitle")} />
 
       <Card>
-        <CardHeader><CardTitle>Discord Notifications</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t("notifications.cardTitle")}</CardTitle></CardHeader>
         <CardContent className="space-y-6">
           <div className="flex items-center justify-between rounded-lg border p-3">
             <span className="text-sm font-medium">{t("notifications.enabled")}</span>
@@ -63,8 +67,8 @@ export default function NotificationsPage() {
             />
           </div>
 
-          <Button variant="outline" onClick={handleTest}>
-            {t("notifications.testNotification")}
+          <Button variant="outline" onClick={handleTest} disabled={testMutation.isPending}>
+            {testMutation.isPending ? t("common.loading") : t("notifications.testNotification")}
           </Button>
 
           {testSent && <Badge variant="success">{t("notifications.testSuccess")}</Badge>}
