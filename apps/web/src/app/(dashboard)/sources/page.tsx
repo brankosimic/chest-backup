@@ -1,21 +1,21 @@
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { Header } from "@/components/layout/header"
-import { Plus, Folder, Database, Container, Boxes, Trash2 } from "lucide-react"
+import { Plus, Folder, Database, Container, Boxes, Trash2, ChevronRight } from "lucide-react"
 import { formatDate } from "@/lib/utils"
 import { useSources, useDeleteSource } from "@/hooks/use-queries"
 import type { Source } from "@chest-backup/shared"
 
 const sourceIcon = (type: string) => {
   switch (type) {
-    case "path": return <Folder className="h-5 w-5 text-blue-500" />
-    case "postgres": return <Database className="h-5 w-5 text-purple-500" />
-    case "postgres-container": return <Container className="h-5 w-5 text-amber-500" />
-    case "docker-compose": return <Boxes className="h-5 w-5 text-cyan-500" />
-    default: return <Folder className="h-5 w-5 text-muted-foreground" />
+    case "path": return <Folder className="h-5 w-5 text-blue-500 shrink-0" />
+    case "postgres": return <Database className="h-5 w-5 text-purple-500 shrink-0" />
+    case "postgres-container": return <Container className="h-5 w-5 text-amber-500 shrink-0" />
+    case "docker-compose": return <Boxes className="h-5 w-5 text-cyan-500 shrink-0" />
+    default: return <Folder className="h-5 w-5 text-muted-foreground shrink-0" />
   }
 }
 
@@ -36,6 +36,41 @@ const sourceTitle = (source: Source): string => {
     case "postgres-container": return source.containerName ?? source.host ?? ""
     case "docker-compose": return source.name ?? source.path ?? ""
     default: return ""
+  }
+}
+
+const TYPE_ORDER = ["path", "postgres", "postgres-container", "docker-compose"] as const
+
+interface SourceDetailsProps {
+  source: Source
+}
+
+const SourceDetails = ({ source }: SourceDetailsProps) => {
+  const { t } = useTranslation()
+  switch (source.type) {
+    case "path":
+      return <p className="text-sm text-muted-foreground font-mono break-words">{source.path}</p>
+    case "postgres":
+      return (
+        <p className="text-sm text-muted-foreground">
+          {source.host}:{source.port} &middot; {t("sources.database")}: {source.database}
+        </p>
+      )
+    case "postgres-container":
+      return (
+        <p className="text-sm text-muted-foreground">
+          {t("sources.containerName")}: {source.containerName} &middot; {t("sources.database")}: {source.database}
+        </p>
+      )
+    case "docker-compose":
+      return (
+        <p className="text-sm text-muted-foreground break-words">
+          {t("sources.path")}: {source.path}
+          {!!source.containers?.length && <> &middot; {source.containers.join(", ")}</>}
+        </p>
+      )
+    default:
+      return null
   }
 }
 
@@ -78,8 +113,17 @@ export default function SourcesPage() {
       </div>
     )
 
+  const grouped = TYPE_ORDER
+    .map((type) => ({
+      type,
+      label: sourceTypeLabelKey(type),
+      icon: sourceIcon(type),
+      items: sources?.filter((s) => s.type === type) ?? [],
+    }))
+    .filter((g) => g.items.length > 0)
+
   return (
-    <div className="mx-auto max-w-7xl">
+    <div className="mx-auto max-w-5xl">
       <Header
         title={t("sources.title")}
         subtitle={t("sources.subtitle")}
@@ -93,7 +137,7 @@ export default function SourcesPage() {
         }
       />
 
-      {!sources?.length ? (
+      {!grouped.length ? (
         <Card>
           <CardContent className="pt-6">
             <p className="text-center text-muted-foreground">{t("sources.noSources")}</p>
@@ -101,66 +145,43 @@ export default function SourcesPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {sources.map((source: Source) => (
-            <Link key={source.id} to={`/sources/${source.id}`} className="group">
-              <Card className="relative hover:shadow-md transition-shadow">
-                <CardHeader>
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-start gap-3 min-w-0">
-                      {sourceIcon(source.type)}
-                      <div className="min-w-0">
-                        <CardTitle className="text-base truncate">
-                          {sourceTitle(source)}
-                        </CardTitle>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          {t(sourceTypeLabelKey(source.type))}
-                        </p>
-                      </div>
+        <div className="space-y-8">
+          {grouped.map((group) => (
+            <section key={group.type}>
+              <div className="mb-3 flex items-center gap-2 border-b pb-2">
+                {group.icon}
+                <h2 className="text-lg font-semibold">{t(group.label)}</h2>
+                <span className="text-sm text-muted-foreground">({group.items.length})</span>
+              </div>
+
+              <div className="divide-y rounded-lg border">
+                {group.items.map((source) => (
+                  <Link
+                    key={source.id}
+                    to={`/sources/${source.id}`}
+                    className="group flex items-center gap-4 px-4 py-3 transition-colors hover:bg-muted/50"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium break-words">{sourceTitle(source)}</p>
+                      <SourceDetails source={source} />
                     </div>
-                    <div className="flex items-center gap-1 shrink-0">
+                    <div className="flex shrink-0 items-center gap-2">
+                      <span className="text-xs text-muted-foreground whitespace-nowrap">
+                        {formatDate(source.createdAt)}
+                      </span>
                       <button
                         onClick={(e) => handleDelete(source.id, e)}
-                        className="rounded p-1 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-destructive transition-opacity"
+                        className="rounded p-1.5 text-muted-foreground opacity-0 transition-all hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
                         title={t("common.delete")}
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  {source.type === "path" && (
-                    <p className="text-sm text-muted-foreground font-mono truncate">{source.path}</p>
-                  )}
-                  {source.type === "postgres" && (
-                    <div className="space-y-1 text-sm">
-                      <p className="text-muted-foreground truncate">{source.host}:{source.port}</p>
-                      <p className="text-muted-foreground truncate">{t("sources.database")}: {source.database}</p>
-                    </div>
-                  )}
-                  {source.type === "postgres-container" && (
-                    <div className="space-y-1 text-sm">
-                      <p className="text-muted-foreground truncate">{t("sources.containerName")}: {source.containerName}</p>
-                      <p className="text-muted-foreground truncate">{t("sources.database")}: {source.database}</p>
-                    </div>
-                  )}
-                  {source.type === "docker-compose" && (
-                    <div className="space-y-1 text-sm">
-                      <p className="text-muted-foreground truncate">{t("sources.path")}: {source.path}</p>
-                      {!!source.containers?.length && (
-                        <p className="text-muted-foreground truncate">{t("sources.containers")}: {source.containers.join(", ")}</p>
-                      )}
-                    </div>
-                  )}
-                  {source.createdAt && (
-                    <p className="mt-3 text-xs text-muted-foreground border-t pt-2">
-                      {t("sources.createdAt")}: {formatDate(source.createdAt)}
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            </Link>
+                  </Link>
+                ))}
+              </div>
+            </section>
           ))}
         </div>
       )}
