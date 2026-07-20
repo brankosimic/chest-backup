@@ -5,12 +5,20 @@ interface PaginatedResult<T> {
   limit: number
 }
 
+interface DestinationUsage {
+  type: string
+  path: string
+  totalSize: number
+  fileCount: number
+}
+
 interface BackupStats {
   total: number
   success: number
   failed: number
   avgDuration: number
   totalSize: number
+  destinations: DestinationUsage[]
 }
 
-export type { PaginatedResult, BackupStats }
+export type { PaginatedResult, BackupStats, DestinationUsage }

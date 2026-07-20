@@ -79,13 +79,18 @@ interface LogEntry {
   metadata?: Record<string, unknown>
 }
 
+interface ResourceUsage {
+  used: number
+  total: number
+}
+
 interface SystemInfo {
   version: string
   uptime: number
   status: "running" | "idle" | "error"
   cpuUsage: number
-  memoryUsage: number
-  diskUsage: number
+  memoryUsage: ResourceUsage
+  diskUsage: ResourceUsage
 }
 
 interface ApiResponse<T> {
@@ -109,6 +114,7 @@ export type {
   BackupRecord,
   StoreResult,
   LogEntry,
+  ResourceUsage,
   SystemInfo,
   ApiResponse,
   WebSource,

@@ -123,21 +123,35 @@ export default function DashboardPage() {
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-muted-foreground">{t("dashboard.memoryUsage")}</span>
-                      <span className="text-sm">{system.memoryUsage ?? 0}%</span>
+                      <span className="text-sm">{formatSize(system.memoryUsage.used)} / {formatSize(system.memoryUsage.total)}</span>
                     </div>
                     <div className="h-2 overflow-hidden rounded-full bg-muted">
-                      <div className="h-full rounded-full bg-green-500 transition-all" style={{ width: `${system.memoryUsage ?? 0}%` }} />
+                      <div className="h-full rounded-full bg-green-500 transition-all" style={{ width: `${system.memoryUsage.total > 0 ? (system.memoryUsage.used / system.memoryUsage.total) * 100 : 0}%` }} />
                     </div>
                   </div>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-muted-foreground">{t("dashboard.diskUsage")}</span>
-                      <span className="text-sm">{system.diskUsage ?? 0}%</span>
+                      <span className="text-sm">{formatSize(system.diskUsage.used)} / {formatSize(system.diskUsage.total)}</span>
                     </div>
                     <div className="h-2 overflow-hidden rounded-full bg-muted">
-                      <div className="h-full rounded-full bg-amber-500 transition-all" style={{ width: `${system.diskUsage ?? 0}%` }} />
+                      <div className="h-full rounded-full bg-amber-500 transition-all" style={{ width: `${system.diskUsage.total > 0 ? (system.diskUsage.used / system.diskUsage.total) * 100 : 0}%` }} />
                     </div>
                   </div>
+                  {stats?.destinations && stats.destinations.length > 0 && (
+                    <div className="space-y-1.5 border-t pt-3">
+                      <span className="text-xs font-medium text-muted-foreground">{t("dashboard.storageByDestination")}</span>
+                      {stats.destinations.map((d, i) => (
+                        <div key={i} className="flex items-center justify-between">
+                          <span className="truncate max-w-[200px] text-xs">
+                            <span className="font-medium text-foreground">{d.type === "sftp" ? "SFTP" : "Local"}</span>
+                            <span className="text-muted-foreground"> — {d.path}</span>
+                          </span>
+                          <span className="text-xs font-medium">{formatSize(d.totalSize)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </>
               )}
             </div>

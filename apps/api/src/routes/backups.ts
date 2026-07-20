@@ -12,8 +12,8 @@ backups.get("/", (c) => {
   return c.json({ success: true, data })
 })
 
-backups.get("/stats", (c) => {
-  const data = getBackupStats()
+backups.get("/stats", async (c) => {
+  const data = await getBackupStats()
   return c.json({ success: true, data })
 })
 

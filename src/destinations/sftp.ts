@@ -155,4 +155,28 @@ const enforceRetentionSftp = async (dest: Destination, archivePrefix: string, gl
   }
 }
 
-export { connectClient, getLatestChecksumSftp, storeSftp, enforceRetentionSftp }
+interface SftpUsage {
+  totalSize: number
+  fileCount: number
+}
+
+const scanSftpUsage = async (dest: Destination): Promise<SftpUsage | null> => {
+  const sftp = new SFTPClient()
+
+  try {
+    await connectClient(sftp, dest)
+
+    const files = (await sftp.list(dest.path))
+      .filter((f) => f.name.endsWith(".tar.gz") && ARCHIVE_PATTERN.test(f.name))
+
+    return { totalSize: files.reduce((acc, f) => acc + f.size, 0), fileCount: files.length }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    logger.warn({ host: dest.host, path: dest.path, error: msg }, "failed to scan SFTP destination")
+    return null
+  } finally {
+    await sftp.end().catch(() => {})
+  }
+}
+
+export { connectClient, getLatestChecksumSftp, storeSftp, enforceRetentionSftp, scanSftpUsage }

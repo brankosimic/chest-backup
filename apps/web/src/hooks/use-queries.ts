@@ -127,7 +127,7 @@ const useBackups = (page = 1, limit = 50) =>
   useQuery({ queryKey: ["backups", page, limit], queryFn: () => fetchBackups(page, limit) })
 
 const useBackupStats = () =>
-  useQuery({ queryKey: ["backup-stats"], queryFn: fetchBackupStats, refetchInterval: 10_000 })
+  useQuery({ queryKey: ["backup-stats"], queryFn: fetchBackupStats })
 
 const useTriggerBackup = () => {
   const qc = useQueryClient()
@@ -144,7 +144,7 @@ const useLogs = (level?: string, search?: string) =>
   useQuery({ queryKey: ["logs", level, search], queryFn: () => fetchLogs(level, search) })
 
 const useSystem = () =>
-  useQuery({ queryKey: ["system"], queryFn: fetchSystem, refetchInterval: 10_000 })
+  useQuery({ queryKey: ["system"], queryFn: fetchSystem })
 
 export {
   useSources,

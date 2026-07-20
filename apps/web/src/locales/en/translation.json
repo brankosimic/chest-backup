@@ -47,7 +47,8 @@
     "version": "Version",
     "backupChart": "Backup History",
     "quickActions": "Quick Actions",
-    "runBackup": "Run Backup Now"
+    "runBackup": "Run Backup Now",
+    "storageByDestination": "By Destination"
   },
   "sources": {
     "title": "Sources",

@@ -47,7 +47,8 @@
     "version": "Verzija",
     "backupChart": "Historija backup-ova",
     "quickActions": "Brze akcije",
-    "runBackup": "Pokreni backup odmah"
+    "runBackup": "Pokreni backup odmah",
+    "storageByDestination": "Po odredištu"
   },
   "sources": {
     "title": "Izvori",

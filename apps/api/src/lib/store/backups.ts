@@ -2,7 +2,9 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync, statSy
 import { resolve } from "node:path"
 import type { BackupRecord } from "@chest-backup/shared"
 import { getConfig, stableId, DATA_DIR, BACKUP_HISTORY_PATH } from "./config"
-import type { PaginatedResult, BackupStats } from "../../types/api"
+import type { PaginatedResult, BackupStats, DestinationUsage } from "../../types/api"
+import { scanSftpUsage } from "@core/destinations/sftp"
+import type { Destination } from "@core/types/config"
 
 let backupCache: BackupRecord[] | null = null
 
@@ -80,14 +82,38 @@ const getBackups = (page = 1, limit = 20): PaginatedResult<BackupRecord> => {
 const getBackupById = (id: string): BackupRecord | undefined =>
   readBackupHistory().find((b) => b.id === id)
 
-const getBackupStats = (): BackupStats => {
+const getBackupStats = async (): Promise<BackupStats> => {
   const records = readBackupHistory()
   const total = records.length
   const success = records.filter((b) => b.success).length
   const failed = total - success
   const avgDuration = total > 0 ? records.reduce((acc, b) => acc + b.durationMs, 0) / total : 0
-  const totalSize = records.reduce((acc, b) => acc + (b.archiveSize ?? 0), 0)
-  return { total, success, failed, avgDuration, totalSize }
+
+  const { config } = getConfig()
+  const destinations: DestinationUsage[] = []
+
+  for (const dest of config.destinations) {
+    if (dest.type === "local") {
+      try {
+        const dir = dest.path
+        if (!existsSync(dir)) continue
+
+        const files = readdirSync(dir).filter((f) => f.endsWith(".tar.gz") && !f.endsWith(".sha256"))
+        const totalSize = files.reduce((acc, f) => acc + statSync(resolve(dir, f)).size, 0)
+
+        destinations.push({ type: "local", path: dir, totalSize, fileCount: files.length })
+      } catch {
+        console.warn("failed to scan local destination", dest.path)
+      }
+    } else if (dest.type === "sftp") {
+      const usage = await scanSftpUsage(dest as unknown as Destination)
+      destinations.push({ type: "sftp", path: dest.path, totalSize: usage?.totalSize ?? 0, fileCount: usage?.fileCount ?? 0 })
+    }
+  }
+
+  const totalSize = destinations.reduce((acc, d) => acc + d.totalSize, 0)
+
+  return { total, success, failed, avgDuration, totalSize, destinations }
 }
 
 const addBackupRecord = (record: BackupRecord): void => {
