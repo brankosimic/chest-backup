@@ -71,13 +71,35 @@ const NotificationsSchema = z.object({
     .optional(),
 })
 
+const PostgresTestSchema = z.object({
+  type: z.enum(["postgres", "postgres-container"]),
+  host: z.string().optional(),
+  port: z.number().optional(),
+  user: z.string(),
+  password: z.string(),
+  containerName: z.string().optional(),
+  database: z.string().optional(),
+})
+
+const PostgresDatabasesSchema = z.object({
+  type: z.enum(["postgres", "postgres-container"]),
+  host: z.string().optional(),
+  port: z.number().optional(),
+  user: z.string(),
+  password: z.string(),
+  containerName: z.string().optional(),
+  database: z.string().optional(),
+})
+
 export {
   DestinationSchema,
   DockerComposeSourceSchema,
   NotificationsSchema,
   PathSourceSchema,
   PostgresContainerSourceSchema,
+  PostgresDatabasesSchema,
   PostgresSourceSchema,
+  PostgresTestSchema,
   RetentionSchema,
   ScheduleSchema,
   SourceSchema,

@@ -10,8 +10,8 @@ retention.get("/", (c) => {
   return c.json({ success: true, data })
 })
 
-retention.put("/", (c) => {
-  const result = validateBody(RetentionSchema, c)
+retention.put("/", async (c) => {
+  const result = await validateBody(RetentionSchema, c)
   if (!result.ok) return result.error
   const updated = updateRetention(result.data)
   return c.json({ success: true, data: updated })

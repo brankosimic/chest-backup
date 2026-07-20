@@ -80,7 +80,11 @@
     "typeDockerCompose": "Docker Compose",
     "createdAt": "Created",
     "noSources": "No sources configured",
-    "noSourcesDesc": "Add your first backup source to get started."
+    "noSourcesDesc": "Add your first backup source to get started.",
+    "testConnection": "Test Connection",
+    "selectDatabase": "Select a database",
+    "noDatabases": "No databases available",
+    "fetchingDatabases": "Fetching databases..."
   },
   "destinations": {
     "title": "Destinations",

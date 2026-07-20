@@ -10,8 +10,8 @@ schedule.get("/", (c) => {
   return c.json({ success: true, data })
 })
 
-schedule.put("/", (c) => {
-  const result = validateBody(ScheduleSchema, c)
+schedule.put("/", async (c) => {
+  const result = await validateBody(ScheduleSchema, c)
   if (!result.ok) return result.error
   const updated = updateSchedule(result.data)
   return c.json({ success: true, data: updated })

@@ -10,8 +10,8 @@ notifications.get("/", (c) => {
   return c.json({ success: true, data })
 })
 
-notifications.put("/", (c) => {
-  const result = validateBody(NotificationsSchema, c)
+notifications.put("/", async (c) => {
+  const result = await validateBody(NotificationsSchema, c)
   if (!result.ok) return result.error
   const updated = updateNotifications(result.data)
   return c.json({ success: true, data: updated })

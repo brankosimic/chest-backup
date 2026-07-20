@@ -2,9 +2,15 @@ import type { Source, Destination, BackupRecord, ApiResponse } from "@chest-back
 
 const BASE_URL = ""
 
+const getAuthHeader = (): string | undefined => {
+  const stored = localStorage.getItem("auth")
+  return stored ? `Basic ${stored}` : undefined
+}
+
 const apiFetch = async <T>(path: string, init?: RequestInit): Promise<T> => {
+  const auth = getAuthHeader()
   const response = await fetch(`${BASE_URL}${path}`, {
-    headers: { "Content-Type": "application/json", ...init?.headers },
+    headers: { "Content-Type": "application/json", ...(auth ? { Authorization: auth } : {}), ...init?.headers },
     ...init,
   })
 
@@ -79,6 +85,18 @@ const testNotification = (webhookUrl: string) =>
     body: JSON.stringify({ webhookUrl }),
   })
 
+const testPostgresSource = (data: { type: "postgres" | "postgres-container"; host?: string; port?: number; user: string; password: string; containerName?: string }) =>
+  apiFetch<{ success: boolean; message?: string }>("/api/sources/test", {
+    method: "POST",
+    body: JSON.stringify(data),
+  })
+
+const fetchPostgresDatabases = (data: { type: "postgres" | "postgres-container"; host?: string; port?: number; user: string; password: string; containerName?: string; database?: string }) =>
+  apiFetch<string[]>("/api/sources/databases", {
+    method: "POST",
+    body: JSON.stringify(data),
+  })
+
 export {
   apiFetch,
   fetchSources,
@@ -103,4 +121,6 @@ export {
   fetchLogs,
   fetchSystem,
   testNotification,
+  testPostgresSource,
+  fetchPostgresDatabases,
 }

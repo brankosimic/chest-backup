@@ -23,6 +23,8 @@ import {
   fetchLogs,
   fetchSystem,
   testNotification,
+  testPostgresSource,
+  fetchPostgresDatabases,
 } from "@/lib/api-client"
 
 const useSources = () =>
@@ -146,6 +148,16 @@ const useLogs = (level?: string, search?: string) =>
 const useSystem = () =>
   useQuery({ queryKey: ["system"], queryFn: fetchSystem })
 
+const useTestPostgresSource = () =>
+  useMutation({ mutationFn: testPostgresSource })
+
+const useFetchPostgresDatabases = (params: { type: "postgres" | "postgres-container"; host?: string; port?: number; user: string; password: string; containerName?: string; database?: string }) =>
+  useQuery({
+    queryKey: ["postgres-databases", params.type, params.host, params.port, params.user, params.database ?? ""],
+    queryFn: () => fetchPostgresDatabases(params),
+    enabled: !!(params.user && params.password),
+  })
+
 export {
   useSources,
   useSource,
@@ -169,4 +181,6 @@ export {
   useLogs,
   useSystem,
   useTestNotification,
+  useTestPostgresSource,
+  useFetchPostgresDatabases,
 }

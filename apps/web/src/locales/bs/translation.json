@@ -80,7 +80,11 @@
     "typeDockerCompose": "Docker Compose",
     "createdAt": "Kreirano",
     "noSources": "Nema konfigurisanih izvora",
-    "noSourcesDesc": "Dodajte prvi izvor za backup da počnete."
+    "noSourcesDesc": "Dodajte prvi izvor za backup da počnete.",
+    "testConnection": "Testiraj vezu",
+    "selectDatabase": "Odaberite bazu podataka",
+    "noDatabases": "Nema dostupnih baza",
+    "fetchingDatabases": "Dohvaćanje baza..."
   },
   "destinations": {
     "title": "Odredišta",

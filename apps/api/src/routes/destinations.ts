@@ -10,16 +10,16 @@ destinations.get("/", (c) => {
   return c.json({ success: true, data })
 })
 
-destinations.post("/", (c) => {
-  const result = validateBody(DestinationSchema, c)
+destinations.post("/", async (c) => {
+  const result = await validateBody(DestinationSchema, c)
   if (!result.ok) return result.error
   const destination = createDestination(result.data)
   return c.json({ success: true, data: destination }, 201)
 })
 
-destinations.put("/:id", (c) => {
+destinations.put("/:id", async (c) => {
   const id = c.req.param("id")
-  const result = validateBody(DestinationSchema, c)
+  const result = await validateBody(DestinationSchema, c)
   if (!result.ok) return result.error
   const updated = updateDestination(id, result.data)
   if (!updated) return notFound(c, "Destination")
