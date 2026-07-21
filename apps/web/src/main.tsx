@@ -1,6 +1,6 @@
 import React from "react"
 import ReactDOM from "react-dom/client"
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
+import { createBrowserRouter, RouterProvider } from "react-router-dom"
 import { QueryProvider } from "@/components/QueryProvider"
 import { I18nProvider } from "@/components/I18nProvider"
 import "@/app/globals.css"
@@ -21,31 +21,35 @@ import HistoryPage from "@/app/(dashboard)/history/page"
 import LogsPage from "@/app/(dashboard)/logs/page"
 import SettingsPage from "@/app/(dashboard)/settings/page"
 
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <DashboardLayout />,
+    children: [
+      { index: true, element: <DashboardPage /> },
+      { path: "dashboard", element: <DashboardPage /> },
+      { path: "sources", element: <SourcesPage /> },
+      { path: "sources/new", element: <NewSourcePage /> },
+      { path: "sources/:id", element: <SourceDetailPage /> },
+      { path: "destinations", element: <DestinationsPage /> },
+      { path: "destinations/new", element: <NewDestinationPage /> },
+      { path: "destinations/:id", element: <DestinationDetailPage /> },
+      { path: "schedule", element: <SchedulePage /> },
+      { path: "retention", element: <RetentionPage /> },
+      { path: "notifications", element: <NotificationsPage /> },
+      { path: "history", element: <HistoryPage /> },
+      { path: "logs", element: <LogsPage /> },
+      { path: "settings", element: <SettingsPage /> },
+    ],
+  },
+])
+
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <QueryProvider>
-        <I18nProvider>
-          <Routes>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route element={<DashboardLayout />}>
-              <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/sources" element={<SourcesPage />} />
-              <Route path="/sources/new" element={<NewSourcePage />} />
-              <Route path="/sources/:id" element={<SourceDetailPage />} />
-              <Route path="/destinations" element={<DestinationsPage />} />
-              <Route path="/destinations/new" element={<NewDestinationPage />} />
-              <Route path="/destinations/:id" element={<DestinationDetailPage />} />
-              <Route path="/schedule" element={<SchedulePage />} />
-              <Route path="/retention" element={<RetentionPage />} />
-              <Route path="/notifications" element={<NotificationsPage />} />
-              <Route path="/history" element={<HistoryPage />} />
-              <Route path="/logs" element={<LogsPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
-            </Route>
-          </Routes>
-        </I18nProvider>
-      </QueryProvider>
-    </BrowserRouter>
+    <QueryProvider>
+      <I18nProvider>
+        <RouterProvider router={router} />
+      </I18nProvider>
+    </QueryProvider>
   </React.StrictMode>,
 )

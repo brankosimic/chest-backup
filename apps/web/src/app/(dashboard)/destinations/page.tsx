@@ -43,10 +43,10 @@ export default function DestinationsPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="flex flex-wrap gap-4">
           {destinations.map((dest: Destination) => (
-            <Link key={dest.id} to={`/destinations/${dest.id}`}>
-              <Card className="hover:shadow-md transition-shadow">
+            <Link key={dest.id} to={`/destinations/${dest.id}`} className="flex w-full flex-col sm:w-1/2 lg:w-1/3">
+              <Card className="h-full hover:shadow-md transition-shadow">
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-base">{dest.name ?? dest.path}</CardTitle>
