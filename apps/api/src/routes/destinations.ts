@@ -30,7 +30,7 @@ destinations.delete("/:id", (c) => {
   const id = c.req.param("id")
   const deleted = deleteDestination(id)
   if (!deleted) return notFound(c, "Destination")
-  return c.json({ success: true, message: "Destination deleted" })
+  return c.json({ success: true, data: null })
 })
 
 export { destinations }

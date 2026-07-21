@@ -81,10 +81,14 @@
     "createdAt": "Created",
     "noSources": "No sources configured",
     "noSourcesDesc": "Add your first backup source to get started.",
+    "selectContainer": "Select a container",
+    "containerFetchError": "Failed to list containers",
     "testConnection": "Test Connection",
     "selectDatabase": "Select a database",
     "noDatabases": "No databases available",
-    "fetchingDatabases": "Fetching databases..."
+    "fetchingDatabases": "Fetching databases...",
+    "fetchDatabasesError": "Failed to fetch databases",
+    "createError": "Failed to create source"
   },
   "destinations": {
     "title": "Destinations",

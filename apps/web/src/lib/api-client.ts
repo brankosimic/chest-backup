@@ -85,11 +85,8 @@ const testNotification = (webhookUrl: string) =>
     body: JSON.stringify({ webhookUrl }),
   })
 
-const testPostgresSource = (data: { type: "postgres" | "postgres-container"; host?: string; port?: number; user: string; password: string; containerName?: string }) =>
-  apiFetch<{ success: boolean; message?: string }>("/api/sources/test", {
-    method: "POST",
-    body: JSON.stringify(data),
-  })
+const fetchDockerContainers = () =>
+  apiFetch<string[]>("/api/sources/containers")
 
 const fetchPostgresDatabases = (data: { type: "postgres" | "postgres-container"; host?: string; port?: number; user: string; password: string; containerName?: string; database?: string }) =>
   apiFetch<string[]>("/api/sources/databases", {
@@ -121,6 +118,6 @@ export {
   fetchLogs,
   fetchSystem,
   testNotification,
-  testPostgresSource,
+  fetchDockerContainers,
   fetchPostgresDatabases,
 }

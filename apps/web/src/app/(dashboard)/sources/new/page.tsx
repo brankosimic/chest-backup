@@ -8,10 +8,9 @@ import { Label } from "@/components/ui/label"
 import { Select } from "@/components/ui/select"
 import { Header } from "@/components/layout/header"
 import { useCreateSource } from "@/hooks/use-queries"
-import { testPostgresSource, fetchPostgresDatabases } from "@/lib/api-client"
+import { fetchDockerContainers, fetchPostgresDatabases } from "@/lib/api-client"
 import type { SubmitEvent } from "react"
 
-type TestResult = "idle" | "pending" | "success" | "error" | "passed"
 type PgType = "postgres" | "postgres-container"
 
 export default function NewSourcePage() {
@@ -20,7 +19,7 @@ export default function NewSourcePage() {
   const createMutation = useCreateSource()
   const [type, setType] = useState("path")
   const [path, setPath] = useState("")
-  const [host, setHost] = useState("")
+  const [host, setHost] = useState("localhost")
   const [port, setPort] = useState(5432)
   const [user, setUser] = useState("")
   const [password, setPassword] = useState("")
@@ -29,16 +28,22 @@ export default function NewSourcePage() {
   const [name, setName] = useState("")
   const [containers, setContainers] = useState("")
 
-  const [testResult, setTestResult] = useState<TestResult>("idle")
-  const [testMessage, setTestMessage] = useState("")
+  const [dockerContainers, setDockerContainers] = useState<string[]>([])
+  const [dockerContainersLoading, setDockerContainersLoading] = useState(false)
+  const [dockerContainersError, setDockerContainersError] = useState("")
+
   const [databases, setDatabases] = useState<string[]>([])
   const [databasesLoading, setDatabasesLoading] = useState(false)
   const [databasesError, setDatabasesError] = useState("")
 
-  const isPostgres = type === "postgres" || type === "postgres-container"
-  const canCreate = isPostgres
-    ? testResult === "passed"
-    : true
+  const isPostgres = ["postgres", "postgres-container"].includes(type)
+
+  const isContainer = type === "postgres-container"
+  const fieldsReady = isContainer
+    ? user && password && containerName
+    : user && password && host
+
+  const canCreate = isPostgres ? !!(fieldsReady && database) : !!path
 
   const fetchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -55,14 +60,13 @@ export default function NewSourcePage() {
         password,
         containerName: type === "postgres-container" ? containerName : undefined,
       })
-      if (res.length > 0) {
-        setDatabases(res)
-      } else {
+      if (res.length) setDatabases(res)
+      else {
         setDatabases([])
-        setDatabasesError("No databases found")
+        setDatabasesError(t("sources.noDatabases"))
       }
     } catch {
-      setDatabasesError("Failed to fetch databases")
+      setDatabasesError(t("sources.fetchDatabasesError"))
     } finally {
       setDatabasesLoading(false)
     }
@@ -70,45 +74,33 @@ export default function NewSourcePage() {
 
   useEffect(() => {
     if (fetchTimerRef.current) clearTimeout(fetchTimerRef.current)
-    if (!isPostgres || !user || !password) return
+    if (!isPostgres || !fieldsReady) return
     fetchTimerRef.current = setTimeout(fetchDbList, 600)
     return () => {
       if (fetchTimerRef.current) clearTimeout(fetchTimerRef.current)
     }
-  }, [fetchDbList, isPostgres, user, password])
+  }, [fetchDbList, isPostgres, fieldsReady])
+
+  const fetchContainers = useCallback(async () => {
+    setDockerContainersLoading(true)
+    setDockerContainersError("")
+    try {
+      const res = await fetchDockerContainers()
+      setDockerContainers(res)
+    } catch {
+      setDockerContainersError("Failed to list containers")
+    } finally {
+      setDockerContainersLoading(false)
+    }
+  }, [])
 
   useEffect(() => {
     setDatabase("")
     setDatabases([])
     setDatabasesError("")
-    setTestResult("idle")
-    setTestMessage("")
-  }, [type])
-
-  const handleTest = async () => {
-    setTestResult("pending")
-    setTestMessage("")
-    try {
-      const res = await testPostgresSource({
-        type: type as PgType,
-        host: type === "postgres" ? host : undefined,
-        port: type === "postgres" ? port : undefined,
-        user,
-        password,
-        containerName: type === "postgres-container" ? containerName : undefined,
-      })
-      if (res.success) {
-        setTestResult("passed")
-        setTestMessage(res.message ?? "Connection successful")
-      } else {
-        setTestResult("error")
-        setTestMessage(res.message ?? "Connection failed")
-      }
-    } catch {
-      setTestResult("error")
-      setTestMessage("Test request failed")
-    }
-  }
+    setContainerName("")
+    if (type === "postgres-container") void fetchContainers()
+  }, [type, fetchContainers])
 
   const handleCreate = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -137,17 +129,32 @@ export default function NewSourcePage() {
       await createMutation.mutateAsync(body)
       navigate("/sources")
     } catch {
-      alert("Failed to create source")
+      alert(t("sources.createError"))
     }
   }
 
   const renderPostgresFields = () => {
-    const isContainer = type === "postgres-container"
-
     return (
       <>
         {isContainer ? (
-          <div className="space-y-2"><Label htmlFor="containerName">{t("sources.containerName")}</Label><Input id="containerName" value={containerName} onChange={(e) => { setContainerName(e.target.value); }} /></div>
+          <div className="space-y-2">
+            <Label htmlFor="containerName">{t("sources.containerName")}</Label>
+            <Select
+              value={containerName}
+              onChange={(e) => { setContainerName(e.target.value); }}
+              disabled={dockerContainersLoading || !!dockerContainersError}
+            >
+              <option value="" disabled>{dockerContainersLoading ? t("common.loading") : dockerContainersError ? t("sources.containerFetchError") : t("sources.selectContainer")}</option>
+              {dockerContainers.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+              {containerName && !dockerContainers.includes(containerName) && (
+                <option value={containerName}>{containerName}</option>
+              )}
+            </Select>
+            {dockerContainersLoading && <p className="text-xs text-muted-foreground">{t("common.loading")}</p>}
+            {dockerContainersError && <p className="text-xs text-muted-foreground">{dockerContainersError}</p>}
+          </div>
         ) : (
           <>
             <div className="space-y-2"><Label htmlFor="host">{t("sources.host")}</Label><Input id="host" value={host} onChange={(e) => { setHost(e.target.value); }} placeholder={t("sources.hostPlaceholder")} /></div>
@@ -159,27 +166,12 @@ export default function NewSourcePage() {
         <div className="space-y-2"><Label htmlFor="password">{t("sources.password")}</Label><Input id="password" type="password" value={password} onChange={(e) => { setPassword(e.target.value); }} /></div>
 
         <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="database">{t("sources.database")}</Label>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => void handleTest()}
-              disabled={testResult === "pending" || !user || !password || (isContainer ? !containerName : !host)}
-            >
-              {testResult === "pending" ? t("common.loading") : t("sources.testConnection")}
-            </Button>
-          </div>
-
-          {testResult === "pending" && <p className="text-sm text-muted-foreground">{t("common.loading")}</p>}
-          {testResult === "success" && <p className="text-sm text-green-600">{testMessage}</p>}
-          {testResult === "error" && <p className="text-sm text-red-600">{testMessage}</p>}
+          <Label htmlFor="database">{t("sources.database")}</Label>
 
           <Select
             value={database}
             onChange={(e) => { setDatabase(e.target.value); }}
-            disabled={databasesLoading || databasesError !== ""}
+            disabled={!fieldsReady || databasesLoading || databasesError !== ""}
           >
             <option value="" disabled>{databasesLoading ? t("common.loading") : databasesError ? t("sources.noDatabases") : t("sources.selectDatabase")}</option>
             {databases.map((db) => (
