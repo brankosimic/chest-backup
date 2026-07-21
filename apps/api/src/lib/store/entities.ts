@@ -1,14 +1,32 @@
+import { existsSync, statSync } from "node:fs"
 import type { Source, Destination } from "@chest-backup/shared"
 import type { ConfigFile } from "../../types/store"
 import { getConfig, writeConfig, stableId, now } from "./config"
 
-const sourceFromConfigItem = (item: Record<string, unknown>): Source => ({
-  id: stableId(item),
-  type: item.type as Source["type"],
-  ...item,
-  createdAt: now(),
-  updatedAt: now(),
-}) as Source
+const detectPathType = (path: string): boolean => {
+  if (!existsSync(path)) return false
+  try {
+    return statSync(path).isFile()
+  } catch {
+    return false
+  }
+}
+
+const sourceFromConfigItem = (item: Record<string, unknown>): Source => {
+  const source = {
+    id: stableId(item),
+    type: item.type as Source["type"],
+    ...item,
+    createdAt: now(),
+    updatedAt: now(),
+  } as Source
+
+  if (source.type === "path" && !("isFile" in source) && "path" in source) {
+    (source as { isFile?: boolean }).isFile = detectPathType((source.path as string) ?? "")
+  }
+
+  return source
+}
 
 const getSources = (): Source[] => {
   const { config } = getConfig()

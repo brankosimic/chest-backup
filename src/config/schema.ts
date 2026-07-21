@@ -3,6 +3,7 @@ import { z } from "zod"
 const PathSourceSchema = z.object({
   type: z.literal("path"),
   path: z.string().min(1),
+  isFile: z.boolean().optional(),
 })
 
 const PostgresSourceSchema = z.object({

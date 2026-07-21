@@ -1,6 +1,7 @@
 type PathSource = {
   type: "path"
   path: string
+  isFile?: boolean
 }
 
 type ParsedConnString = {
