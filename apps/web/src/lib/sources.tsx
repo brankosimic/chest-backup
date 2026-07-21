@@ -1,6 +1,14 @@
-import { Folder, Database, Container, File, FolderOpen, HardDrive } from "lucide-react"
 import type { Source } from "@chest-backup/shared"
 import type { TreeNode, PathTrieNode } from "@/types/sources"
+import { Folder, Database, Container, File, FolderOpen, HardDrive } from "lucide-react"
+
+const isFile = (path: string): boolean => {
+  const basename = path.split("/").pop() ?? ""
+  const dotIndex = basename.lastIndexOf(".")
+  if (dotIndex <= 0) return false
+  const ext = basename.slice(dotIndex + 1)
+  return !["db", "sqlite", "sqlite3", "shm", "wal"].includes(ext)
+}
 
 const sourceIcon = (type: string) => {
   switch (type) {
@@ -64,7 +72,9 @@ const processNode = (
   return {
     id: child.source?.id ?? `path-${fullPath}`,
     label: seg,
-    icon: <File className="h-4 w-4 text-muted-foreground shrink-0" />,
+    icon: child.source && isFile(child.source.path ?? "")
+      ? <File className="h-4 w-4 text-muted-foreground shrink-0" />
+      : <Folder className="h-4 w-4 text-muted-foreground shrink-0" />,
     source: child.source,
   }
 }
