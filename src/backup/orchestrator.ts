@@ -1,5 +1,5 @@
 import { mkdirSync, unlinkSync, statSync } from "node:fs"
-import type { Config, DockerComposeSource } from "../types/config"
+import type { Config } from "../types/config"
 import type { BackupResult, VerifyResult } from "../types/index"
 import { formatTimestamp, createArchive } from "./archiver"
 import { verifyArchive } from "./verify"
@@ -15,8 +15,10 @@ const executeBackup = async (
   errors: string[],
   tempFiles: string[],
 ): Promise<BackupResult> => {
-  const dockerSources = config.sources.filter((s): s is DockerComposeSource => s.type === "docker-compose")
-  const containers = dockerSources.flatMap((s) => s.containers)
+  const containers = config.sources.flatMap((s) => {
+    if (s.type === "container-volume") return [s.containerName]
+    return []
+  })
 
   await stopBackupContainers(containers, errors)
 

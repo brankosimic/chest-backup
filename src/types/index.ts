@@ -1,4 +1,4 @@
-import type { Config, Source, Destination, DockerComposeSource, PostgresSource, PathSource, DiscordConfig, NotificationsConfig } from "./config"
+import type { Config, Source, Destination, ContainerVolumeSource, PostgresSource, PathSource, DiscordConfig, NotificationsConfig } from "./config"
 import type { DestinationHandler, StoreResult } from "./destination"
 
 interface CollectedSources {
@@ -28,7 +28,7 @@ export type {
   Source,
   PathSource,
   PostgresSource,
-  DockerComposeSource,
+  ContainerVolumeSource,
   Destination,
   DiscordConfig,
   NotificationsConfig,

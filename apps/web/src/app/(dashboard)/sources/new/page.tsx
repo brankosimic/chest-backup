@@ -8,8 +8,9 @@ import { Label } from "@/components/ui/label"
 import { Select } from "@/components/ui/select"
 import { Header } from "@/components/layout/header"
 import { useCreateSource } from "@/hooks/use-queries"
-import { fetchDockerContainers, fetchPostgresDatabases } from "@/lib/api-client"
+import { fetchDockerContainers, fetchContainerVolumes, fetchPostgresDatabases } from "@/lib/api-client"
 import type { SubmitEvent } from "react"
+import type { ContainerVolume } from "@/lib/api-client"
 
 type PgType = "postgres" | "postgres-container"
 
@@ -25,8 +26,12 @@ export default function NewSourcePage() {
   const [password, setPassword] = useState("")
   const [database, setDatabase] = useState("")
   const [containerName, setContainerName] = useState("")
-  const [name, setName] = useState("")
-  const [containers, setContainers] = useState("")
+
+  const [cvContainerName, setCvContainerName] = useState("")
+  const [cvVolumes, setCvVolumes] = useState<ContainerVolume[]>([])
+  const [cvVolumesError, setCvVolumesError] = useState("")
+  const [volumePath, setVolumePath] = useState("")
+  const [include, setInclude] = useState("")
 
   const [dockerContainers, setDockerContainers] = useState<string[]>([])
   const [dockerContainersLoading, setDockerContainersLoading] = useState(false)
@@ -43,9 +48,14 @@ export default function NewSourcePage() {
     ? user && password && containerName
     : user && password && host
 
-  const canCreate = isPostgres ? !!(fieldsReady && database) : !!path
+  const canCreate = isPostgres
+    ? !!(fieldsReady && database)
+    : type === "container-volume"
+      ? !!(cvContainerName && volumePath)
+      : !!path
 
   const fetchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const cvFetchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const fetchDbList = useCallback(async () => {
     if (!user || !password) return
@@ -81,17 +91,13 @@ export default function NewSourcePage() {
     }
   }, [fetchDbList, isPostgres, fieldsReady])
 
-  const fetchContainers = useCallback(async () => {
+  useEffect(() => {
     setDockerContainersLoading(true)
     setDockerContainersError("")
-    try {
-      const res = await fetchDockerContainers()
-      setDockerContainers(res)
-    } catch {
-      setDockerContainersError("Failed to list containers")
-    } finally {
-      setDockerContainersLoading(false)
-    }
+    fetchDockerContainers()
+      .then(setDockerContainers)
+      .catch(() => setDockerContainersError("Failed to list containers"))
+      .finally(() => setDockerContainersLoading(false))
   }, [])
 
   useEffect(() => {
@@ -99,8 +105,36 @@ export default function NewSourcePage() {
     setDatabases([])
     setDatabasesError("")
     setContainerName("")
-    if (type === "postgres-container") void fetchContainers()
-  }, [type, fetchContainers])
+  }, [type])
+
+  useEffect(() => {
+    setCvContainerName("")
+    setCvVolumes([])
+    setCvVolumesError("")
+    setVolumePath("")
+    setInclude("")
+  }, [type])
+
+  const fetchVolumes = useCallback(async () => {
+    if (!cvContainerName) return
+    setCvVolumesError("")
+    try {
+      const res = await fetchContainerVolumes(cvContainerName)
+      setCvVolumes(res)
+      if (!res.length) setCvVolumesError(t("sources.noVolumes"))
+    } catch {
+      setCvVolumesError(t("sources.fetchVolumesError"))
+    }
+  }, [cvContainerName])
+
+  useEffect(() => {
+    if (cvFetchTimerRef.current) clearTimeout(cvFetchTimerRef.current)
+    if (type !== "container-volume" || !cvContainerName) return
+    cvFetchTimerRef.current = setTimeout(fetchVolumes, 300)
+    return () => {
+      if (cvFetchTimerRef.current) clearTimeout(cvFetchTimerRef.current)
+    }
+  }, [fetchVolumes, type, cvContainerName])
 
   const handleCreate = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -119,10 +153,11 @@ export default function NewSourcePage() {
       body.user = user
       body.password = password
       body.database = database
-    } else if (type === "docker-compose") {
-      body.name = name
-      body.path = path
-      body.containers = containers.split(",").map((c) => c.trim())
+    } else if (type === "container-volume") {
+      body.containerName = cvContainerName
+      body.volumePath = volumePath
+      const patterns = include.split("\n").map((s) => s.trim()).filter(Boolean)
+      if (patterns.length) body.include = patterns
     }
 
     try {
@@ -189,6 +224,59 @@ export default function NewSourcePage() {
     )
   }
 
+  const renderContainerVolumeFields = () => (
+    <>
+      <div className="space-y-2">
+        <Label htmlFor="cvContainerName">{t("sources.containerName")}</Label>
+        <Select
+          value={cvContainerName}
+          onChange={(e) => { setCvContainerName(e.target.value); }}
+          disabled={dockerContainersLoading || !!dockerContainersError}
+        >
+          <option value="" disabled>{dockerContainersLoading ? t("common.loading") : dockerContainersError ? t("sources.containerFetchError") : t("sources.selectContainer")}</option>
+          {dockerContainers.map((c) => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </Select>
+        {dockerContainersLoading && <p className="text-xs text-muted-foreground">{t("common.loading")}</p>}
+        {dockerContainersError && <p className="text-xs text-muted-foreground">{dockerContainersError}</p>}
+      </div>
+
+      {cvContainerName && (
+        <div className="space-y-2">
+          <Label htmlFor="volumePath">{t("sources.volumePath")}</Label>
+          <Select
+            value={volumePath}
+            onChange={(e) => { setVolumePath(e.target.value); }}
+            disabled={!!cvVolumesError}
+          >
+            <option value="" disabled>{cvVolumesError ? t("sources.noVolumes") : t("sources.selectVolumePath")}</option>
+            {cvVolumes.map((v, i) => (
+              <option key={`${v.source}-${i}`} value={v.source}>
+                {v.destination} → {v.source}{v.name ? ` (${v.name})` : ""}
+              </option>
+            ))}
+          </Select>
+          {cvVolumesError && <p className="text-xs text-muted-foreground">{cvVolumesError}</p>}
+        </div>
+      )}
+
+      {volumePath && (
+        <div className="space-y-2">
+          <Label htmlFor="include">{t("sources.includePatterns")}</Label>
+          <textarea
+            id="include"
+            className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+            value={include}
+            onChange={(e) => { setInclude(e.target.value); }}
+            placeholder={t("sources.includePatternsPlaceholder")}
+          />
+          <p className="text-xs text-muted-foreground">{t("sources.includePatternsHint")}</p>
+        </div>
+      )}
+    </>
+  )
+
   return (
     <div className="mx-auto max-w-2xl">
       <Header title={t("sources.addSource")} />
@@ -205,7 +293,7 @@ export default function NewSourcePage() {
                 <option value="path">Path</option>
                 <option value="postgres">PostgreSQL</option>
                 <option value="postgres-container">PostgreSQL Container</option>
-                <option value="docker-compose">Docker Compose</option>
+                <option value="container-volume">Container Volume</option>
               </Select>
             </div>
 
@@ -218,13 +306,7 @@ export default function NewSourcePage() {
 
             {isPostgres && renderPostgresFields()}
 
-            {type === "docker-compose" && (
-              <>
-                <div className="space-y-2"><Label htmlFor="name">{t("sources.name")}</Label><Input id="name" value={name} onChange={(e) => { setName(e.target.value); }} /></div>
-                <div className="space-y-2"><Label htmlFor="path">{t("sources.path")}</Label><Input id="path" value={path} onChange={(e) => { setPath(e.target.value); }} placeholder={t("sources.dockerComposePath")} /></div>
-                <div className="space-y-2"><Label htmlFor="containers">{t("sources.containers")}</Label><Input id="containers" value={containers} onChange={(e) => { setContainers(e.target.value); }} placeholder={t("sources.containersPlaceholder")} /></div>
-              </>
-            )}
+            {type === "container-volume" && renderContainerVolumeFields()}
 
             <div className="flex gap-2 pt-4">
               <Button type="submit" disabled={createMutation.isPending || !canCreate}>

@@ -1,4 +1,4 @@
-import { Folder, Database, Container, Boxes, File, FolderOpen } from "lucide-react"
+import { Folder, Database, Container, File, FolderOpen, HardDrive } from "lucide-react"
 import type { Source } from "@chest-backup/shared"
 import type { TreeNode, PathTrieNode } from "@/types/sources"
 
@@ -7,7 +7,7 @@ const sourceIcon = (type: string) => {
     case "path": return <Folder className="h-5 w-5 text-blue-500 shrink-0" />
     case "postgres": return <Database className="h-5 w-5 text-purple-500 shrink-0" />
     case "postgres-container": return <Container className="h-5 w-5 text-amber-500 shrink-0" />
-    case "docker-compose": return <Boxes className="h-5 w-5 text-cyan-500 shrink-0" />
+    case "container-volume": return <HardDrive className="h-5 w-5 text-green-500 shrink-0" />
     default: return <Folder className="h-5 w-5 text-muted-foreground shrink-0" />
   }
 }
@@ -90,7 +90,7 @@ const sourceTypeLabelKey = (type: string): string => {
     case "path": return "sources.typePath"
     case "postgres": return "sources.typePostgres"
     case "postgres-container": return "sources.typePostgresContainer"
-    case "docker-compose": return "sources.typeDockerCompose"
+    case "container-volume": return "sources.typeContainerVolume"
     default: return type
   }
 }

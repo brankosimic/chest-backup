@@ -31,16 +31,27 @@ const fetchPostgresDatabases = async (data: { type: "postgres" | "postgres-conta
   }
 }
 
+interface ContainerVolume {
+  type: string
+  source: string
+  destination: string
+  name?: string
+  rw: boolean
+}
+
+interface DockerMount {
+  Type: string
+  Source: string
+  Destination: string
+  Name?: string
+  RW: boolean
+}
+
+// Static routes must be registered before parameterized ones
+
 sources.get("/", (c) => {
   const data = getSources()
   return c.json({ success: true, data })
-})
-
-sources.get("/:id", (c) => {
-  const id = c.req.param("id")
-  const source = findSourceById(id)
-  if (!source) return notFound(c, "Source")
-  return c.json({ success: true, data: source })
 })
 
 sources.post("/", async (c) => {
@@ -60,11 +71,36 @@ sources.get("/containers", async (c) => {
   }
 })
 
+sources.get("/containers/:name/volumes", async (c) => {
+  const name = c.req.param("name")
+  try {
+    const result = await $`docker inspect ${name} --format '{{json .Mounts}}'`.quiet().text()
+    const mounts: DockerMount[] = JSON.parse(result.trim())
+    const volumes: ContainerVolume[] = mounts.map((m) => ({
+      type: m.Type,
+      source: m.Source,
+      destination: m.Destination,
+      name: m.Name,
+      rw: m.RW,
+    }))
+    return c.json({ success: true, data: volumes })
+  } catch {
+    return c.json({ success: true, data: [] })
+  }
+})
+
 sources.post("/databases", async (c) => {
   const result = await validateBody(PostgresDatabasesSchema, c)
   if (!result.ok) return result.error
   const res = await fetchPostgresDatabases(result.data)
   return c.json({ success: res.success, data: res.databases })
+})
+
+sources.get("/:id", (c) => {
+  const id = c.req.param("id")
+  const source = findSourceById(id)
+  if (!source) return notFound(c, "Source")
+  return c.json({ success: true, data: source })
 })
 
 sources.put("/:id", async (c) => {

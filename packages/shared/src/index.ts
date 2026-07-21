@@ -1,6 +1,6 @@
 interface Source {
   id: string
-  type: "path" | "postgres" | "postgres-container" | "docker-compose"
+  type: "path" | "postgres" | "postgres-container" | "container-volume"
   path?: string
   host?: string
   port?: number
@@ -10,6 +10,7 @@ interface Source {
   containerName?: string
   name?: string
   containers?: string[]
+  volumePath?: string
   include?: string[]
   createdAt: string
   updatedAt: string

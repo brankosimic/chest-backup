@@ -22,11 +22,10 @@ const PostgresContainerSourceSchema = z.object({
   database: z.string().min(1, "Database is required"),
 })
 
-const DockerComposeSourceSchema = z.object({
-  type: z.literal("docker-compose"),
-  name: z.string().min(1, "Name is required"),
-  path: z.string().min(1, "Path is required"),
-  containers: z.array(z.string().min(1, "Container name is required")),
+const ContainerVolumeSourceSchema = z.object({
+  type: z.literal("container-volume"),
+  containerName: z.string().min(1, "Container name is required"),
+  volumePath: z.string().min(1, "Volume path is required"),
   include: z.array(z.string().min(1)).optional(),
 })
 
@@ -34,7 +33,7 @@ const SourceSchema = z.discriminatedUnion("type", [
   PathSourceSchema,
   PostgresSourceSchema,
   PostgresContainerSourceSchema,
-  DockerComposeSourceSchema,
+  ContainerVolumeSourceSchema,
 ])
 
 const DestinationSchema = z.object({
@@ -82,8 +81,8 @@ const PostgresDatabasesSchema = z.object({
 })
 
 export {
+  ContainerVolumeSourceSchema,
   DestinationSchema,
-  DockerComposeSourceSchema,
   NotificationsSchema,
   PathSourceSchema,
   PostgresContainerSourceSchema,

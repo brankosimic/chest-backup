@@ -85,8 +85,19 @@ const testNotification = (webhookUrl: string) =>
     body: JSON.stringify({ webhookUrl }),
   })
 
+interface ContainerVolume {
+  type: string
+  source: string
+  destination: string
+  name?: string
+  rw: boolean
+}
+
 const fetchDockerContainers = () =>
   apiFetch<string[]>("/api/sources/containers")
+
+const fetchContainerVolumes = (containerName: string) =>
+  apiFetch<ContainerVolume[]>(`/api/sources/containers/${encodeURIComponent(containerName)}/volumes`)
 
 const fetchPostgresDatabases = (data: { type: "postgres" | "postgres-container"; host?: string; port?: number; user: string; password: string; containerName?: string; database?: string }) =>
   apiFetch<string[]>("/api/sources/databases", {
@@ -119,5 +130,8 @@ export {
   fetchSystem,
   testNotification,
   fetchDockerContainers,
+  fetchContainerVolumes,
   fetchPostgresDatabases,
 }
+
+export type { ContainerVolume }

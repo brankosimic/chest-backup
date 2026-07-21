@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { Header } from "@/components/layout/header"
-import { Plus, Folder, FolderOpen, File, Database, Container, Boxes, Trash2, ChevronRight } from "lucide-react"
+import { Plus, Folder, FolderOpen, File, Database, Container, Trash2, ChevronRight } from "lucide-react"
 import { formatDate } from "@/lib/utils"
 import { useSources, useDeleteSource } from "@/hooks/use-queries"
 import type { Source } from "@chest-backup/shared"
@@ -27,7 +27,7 @@ const useTree = () => {
   return ctx
 }
 
-const TYPE_ORDER = ["path", "postgres", "postgres-container", "docker-compose"] as const
+const TYPE_ORDER = ["path", "postgres", "postgres-container", "container-volume"] as const
 
 const TreeNodeRow = ({ node, depth }: TreeNodeRowProps) => {
   const ctx = useTree()
@@ -119,12 +119,12 @@ const sourceDetailLines = (source: Source, t: (key: string) => string): string[]
       return [`Port ${source.port} · ${t("sources.database")}: ${source.database}`]
     case "postgres-container":
       return [`${t("sources.database")}: ${source.database}`]
-    case "docker-compose": {
+    case "container-volume": {
       const lines: string[] = []
-      if (source.name && source.path)
-        lines.push(`${t("sources.path")}: ${source.path}`)
-      if (source.containers?.length)
-        lines.push(source.containers.join(", "))
+      if (source.containerName)
+        lines.push(`${t("sources.container")}: ${source.containerName}`)
+      if (source.volumePath)
+        lines.push(`${t("sources.volumePath")}: ${source.volumePath}`)
       if (source.include?.length)
         lines.push(`${t("sources.include")}: ${source.include.join(", ")}`)
       return lines
@@ -139,7 +139,7 @@ const sourceTitle = (source: Source): string => {
     case "path": return source.path ?? ""
     case "postgres": return source.host ?? ""
     case "postgres-container": return source.containerName ?? source.host ?? ""
-    case "docker-compose": return source.name ?? source.path ?? ""
+    case "container-volume": return source.containerName ?? source.volumePath ?? ""
     default: return ""
   }
 }

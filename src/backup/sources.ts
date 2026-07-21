@@ -10,8 +10,24 @@ const isDbSource = (s: Source): s is PostgresSource | PostgresContainerSource =>
 const resolveSourcePaths = (source: Source): string[] => {
   if (isDbSource(source)) return []
 
-  if (source.type === "docker-compose" && source.include?.length)
-    return [...new Set(source.include.flatMap(pattern => [...new Glob(`${source.path}/${pattern}`).scanSync({ absolute: true })].filter(existsSync)))]
+  if (source.type === "container-volume") {
+    const basePath = source.volumePath
+    if (source.include?.length)
+      return [...new Set(source.include.flatMap(pattern => [...new Glob(`${basePath}/${pattern}`).scanSync({ absolute: true })].filter(existsSync)))]
+
+    if (!existsSync(basePath)) {
+      logger.warn({ path: basePath }, "container volume path does not exist")
+      return []
+    }
+
+    const stat = statSync(basePath)
+    if (stat.isDirectory()) {
+      const dirGlobber = new Glob(`${basePath}/**/*`)
+      return Array.from(dirGlobber.scanSync({ absolute: true })).filter(existsSync)
+    }
+
+    return [basePath]
+  }
 
   const globber = new Glob(source.path)
   const matches = Array.from(globber.scanSync({ absolute: true })).filter(existsSync)
@@ -38,7 +54,10 @@ const resolvePaths = (sources: Source[]): string[] => [
 ]
 
 const resolveContainers = (sources: Source[]): string[] =>
-  sources.flatMap((s) => (s.type === "docker-compose" ? s.containers : []))
+  sources.flatMap((s) => {
+    if (s.type === "container-volume") return [s.containerName]
+    return []
+  })
 
 const resolveSources = async (
   config: Config,

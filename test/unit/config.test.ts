@@ -22,7 +22,7 @@ describe("ConfigSchema", () => {
         { type: "path", path: "/data/docs" },
         { type: "path", path: "/data/config.yaml" },
         { type: "postgres", host: "localhost", port: 5432, user: "user", password: "pass", database: "testdb" },
-        { type: "docker-compose", name: "my-app", path: "/data/volumes", containers: ["app_db", "app_web"] },
+        { type: "container-volume", containerName: "my-app", volumePath: "/data/volumes" },
         { type: "postgres-container", containerName: "my_db", user: "postgres", password: "secret", database: "myapp" },
       ],
       destinations: [
