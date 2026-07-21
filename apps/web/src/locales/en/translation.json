@@ -109,7 +109,7 @@
     "sftpUser": "SFTP User",
     "sftpPassword": "SFTP Password",
     "privateKey": "Private Key",
-    "retention": "Retention (days)",
+    "retention": "Retention (backups)",
     "parallel": "Parallel Upload",
     "timeout": "Timeout (seconds)",
     "skip": "Skip",
@@ -135,7 +135,7 @@
   "retention": {
     "title": "Retention Policy",
     "subtitle": "Manage backup retention",
-    "globalRetention": "Global Retention (days)",
+    "globalRetention": "Global Retention (backups)",
     "destinationRetention": "Destination Retention",
     "save": "Save Retention Settings"
   },
@@ -195,8 +195,8 @@
     "nextRun": "Next Run",
     "presets": "Presets",
     "retention": "Retention",
-    "globalRetention": "Global Retention (days)",
-    "retentionDays": "Number of days to keep backups"
+    "globalRetention": "Global Retention (backups)",
+    "retentionDays": "Number of backups to keep"
   },
   "status": {
     "running": "Running",

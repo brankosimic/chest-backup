@@ -109,7 +109,7 @@
     "sftpUser": "SFTP Korisnik",
     "sftpPassword": "SFTP Lozinka",
     "privateKey": "Privatni ključ",
-    "retention": "Zadržavanje (dni)",
+    "retention": "Zadržavanje (backups)",
     "parallel": "Paralelni upload",
     "timeout": "Timeout (sekunde)",
     "skip": "Preskoči",
@@ -135,7 +135,7 @@
   "retention": {
     "title": "Politika zadržavanja",
     "subtitle": "Upravljajte zadržavanjem backup-ova",
-    "globalRetention": "Globalno zadržavanje (dni)",
+    "globalRetention": "Globalno zadržavanje (backups)",
     "destinationRetention": "Zadržavanje odredišta",
     "save": "Sačuvaj postavke zadržavanja"
   },
@@ -195,8 +195,8 @@
     "nextRun": "Sljedeće pokretanje",
     "presets": "Predlošci",
     "retention": "Zadržavanje",
-    "globalRetention": "Globalno zadržavanje (dni)",
-    "retentionDays": "Broj dana za zadržavanje backup-ova"
+    "globalRetention": "Globalno zadržavanje (backups)",
+    "retentionDays": "Broj backup-ova za zadržavanje"
   },
   "status": {
     "running": "U toku",

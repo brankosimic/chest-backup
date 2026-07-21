@@ -80,7 +80,7 @@ export default function DestinationEditPage() {
           )}
 
           <div className="space-y-2">
-            <Label>Retention (days)</Label>
+            <Label>Retention (backups)</Label>
             <Input type="number" value={(form.retention as number) ?? ""} onChange={(e) => { setForm({ ...form, retention: Number(e.target.value) }); }} />
           </div>
 
