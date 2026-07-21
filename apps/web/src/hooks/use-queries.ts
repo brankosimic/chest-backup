@@ -103,7 +103,7 @@ const useRetention = () =>
 const useUpdateRetention = () => {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (data: { globalRetention: number; destinations: { id: string; retention: number }[] }) => updateRetention(data),
+    mutationFn: (data: { globalRetention: number }) => updateRetention(data),
     onSuccess: () => { void qc.invalidateQueries({ queryKey: ["retention"] }) },
   })
 }

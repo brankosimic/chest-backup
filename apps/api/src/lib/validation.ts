@@ -70,7 +70,6 @@ const ScheduleSchema = z.object({
 
 const RetentionSchema = z.object({
   globalRetention: z.number().int().positive("Global retention must be positive"),
-  destinations: z.array(z.object({ id: z.string(), retention: z.number().int().positive() })),
 })
 
 const NotificationsSchema = z.object({

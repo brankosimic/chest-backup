@@ -1,6 +1,5 @@
-import type { Schedule, RetentionConfig, NotificationConfig } from "@chest-backup/shared"
+import type { Schedule, NotificationConfig } from "@chest-backup/shared"
 import { getConfig, writeConfig } from "./config"
-import { getDestinations } from "./entities"
 
 const getSchedule = (): Schedule => {
   const { config } = getConfig()
@@ -14,21 +13,14 @@ const updateSchedule = (data: Partial<Schedule>): Schedule => {
   return getSchedule()
 }
 
-const getRetention = (): RetentionConfig => {
+const getRetention = (): { globalRetention: number } => {
   const { config } = getConfig()
-  const destinations = getDestinations()
-  return {
-    globalRetention: config.retention ?? 7,
-    destinations: destinations.map((d) => ({
-      id: d.id,
-      retention: (d.retention as number) ?? config.retention ?? 7,
-    })),
-  }
+  return { globalRetention: config.retention ?? 7 }
 }
 
-const updateRetention = (data: Partial<RetentionConfig>): RetentionConfig => {
+const updateRetention = (data: { globalRetention: number }): { globalRetention: number } => {
   const { config } = getConfig()
-  if (data.globalRetention !== undefined) config.retention = data.globalRetention
+  config.retention = data.globalRetention
   writeConfig(config)
   return getRetention()
 }

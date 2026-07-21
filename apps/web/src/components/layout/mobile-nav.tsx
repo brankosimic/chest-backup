@@ -13,8 +13,6 @@ const navItems: NavItem[] = [
   { href: "/dashboard", label: "nav.dashboard" },
   { href: "/sources", label: "nav.sources" },
   { href: "/destinations", label: "nav.destinations" },
-  { href: "/schedule", label: "nav.schedule" },
-  { href: "/retention", label: "nav.retention" },
   { href: "/notifications", label: "nav.notifications" },
   { href: "/history", label: "nav.history" },
   { href: "/logs", label: "nav.logs" },

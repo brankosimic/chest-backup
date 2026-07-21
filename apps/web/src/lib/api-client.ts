@@ -50,9 +50,9 @@ const updateSchedule = (data: { schedule: string; enabled: boolean }) =>
   apiFetch<{ schedule: string; enabled: boolean }>("/api/schedule", { method: "PUT", body: JSON.stringify(data) })
 
 const fetchRetention = () =>
-  apiFetch<{ globalRetention: number; destinations: { id: string; retention: number }[] }>("/api/retention")
-const updateRetention = (data: { globalRetention: number; destinations: { id: string; retention: number }[] }) =>
-  apiFetch<{ globalRetention: number; destinations: { id: string; retention: number }[] }>("/api/retention", { method: "PUT", body: JSON.stringify(data) })
+  apiFetch<{ globalRetention: number }>("/api/retention")
+const updateRetention = (data: { globalRetention: number }) =>
+  apiFetch<{ globalRetention: number }>("/api/retention", { method: "PUT", body: JSON.stringify(data) })
 
 const fetchNotifications = () =>
   apiFetch<{ discord?: { webhookUrl: string; enabled: boolean } }>("/api/notifications")
