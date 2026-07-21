@@ -1,5 +1,5 @@
 import type { PaginatedResult, BackupStats } from "../../types/api"
-import { seedLogsFromHistory, parseTimestamp, addLogEntry, getLogs } from "./logs"
+import { seedLogsFromHistory, parseTimestamp, addLogEntry, getLogs, pushLog } from "./logs"
 import { getSystem } from "./system"
 import { getSources, findSourceById, createSource, updateSource, deleteSource } from "./entities"
 import { getDestinations, findDestinationById, createDestination, updateDestination, deleteDestination } from "./entities"
@@ -32,6 +32,7 @@ export {
   invalidateBackupCache,
   parseTimestamp,
   persistBackupResult,
+  pushLog,
   updateDestination,
   updateNotifications,
   updateRetention,

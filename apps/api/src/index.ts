@@ -12,7 +12,7 @@ import { sources } from "./routes/sources"
 import { system } from "./routes/system"
 
 import { loadAndStartDaemon } from "./lib/api-config"
-import { seedLogsFromHistory } from "./lib/store"
+import { seedLogsFromHistory, pushLog } from "./lib/store"
 
 const app = new Hono()
 
@@ -36,8 +36,15 @@ const start = async (): Promise<void> => {
     port: PORT,
   })
   console.log(`Chest-Backup API running on http://localhost:${PORT}`)
-  await loadAndStartDaemon()
   seedLogsFromHistory()
+  pushLog({
+    id: `log-start-${Date.now()}`,
+    timestamp: new Date().toISOString(),
+    level: "info",
+    message: "Chest-Backup API started",
+    metadata: {},
+  })
+  await loadAndStartDaemon()
 }
 
 await start()
