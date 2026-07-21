@@ -32,6 +32,13 @@ const getTypeDefault = (type: string, source: Record<string, unknown>): Record<s
       volumePath: source.volumePath ?? "",
       include: (source.include as string[] | undefined)?.join("\n") ?? "",
     }
+    case "sqlite": return {
+      path: source.path ?? "",
+    }
+    case "sqlite-container": return {
+      containerName: source.containerName ?? "",
+      dbPath: source.dbPath ?? "",
+    }
     default: return {}
   }
 }
@@ -121,6 +128,13 @@ export default function SourceEditPage() {
         if (patterns.length) body.include = patterns
         break
       }
+      case "sqlite":
+        body.path = form.path
+        break
+      case "sqlite-container":
+        body.containerName = form.containerName
+        body.dbPath = form.dbPath
+        break
     }
 
     try {
@@ -157,6 +171,8 @@ export default function SourceEditPage() {
               <option value="postgres">PostgreSQL</option>
               <option value="postgres-container">PostgreSQL Container</option>
               <option value="container-volume">Container Volume</option>
+              <option value="sqlite">SQLite</option>
+              <option value="sqlite-container">SQLite Container</option>
             </Select>
           </div>
 
@@ -238,6 +254,40 @@ export default function SourceEditPage() {
                   <p className="text-xs text-muted-foreground">{t("sources.includePatternsHint")}</p>
                 </div>
               )}
+            </>
+          )}
+
+          {type === "sqlite" && (
+            <div className="space-y-2">
+              <Label>{t("sources.path")}</Label>
+              <Input value={(form.path as string) ?? ""} onChange={(e) => { update("path", e.target.value); }} placeholder="/data/app/data.db" />
+            </div>
+          )}
+
+          {type === "sqlite-container" && (
+            <>
+              <div className="space-y-2">
+                <Label>{t("sources.containerName")}</Label>
+                <Select
+                  value={(form.containerName as string) ?? ""}
+                  onChange={(e) => { update("containerName", e.target.value); }}
+                  disabled={dockerContainersLoading || !!dockerContainersError}
+                >
+                  <option value="" disabled>{dockerContainersLoading ? t("common.loading") : dockerContainersError ? t("sources.containerFetchError") : t("sources.selectContainer")}</option>
+                  {dockerContainers.map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                  {(form.containerName as string) && !dockerContainers.includes(form.containerName as string) && (
+                    <option value={form.containerName as string}>{form.containerName as string}</option>
+                  )}
+                </Select>
+                {dockerContainersLoading && <p className="text-xs text-muted-foreground">{t("common.loading")}</p>}
+                {dockerContainersError && <p className="text-xs text-muted-foreground">{dockerContainersError}</p>}
+              </div>
+              <div className="space-y-2">
+                <Label>Database Path</Label>
+                <Input value={(form.dbPath as string) ?? ""} onChange={(e) => { update("dbPath", e.target.value); }} placeholder="/config/app.db" />
+              </div>
             </>
           )}
 

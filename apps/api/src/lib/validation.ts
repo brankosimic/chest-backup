@@ -29,11 +29,24 @@ const ContainerVolumeSourceSchema = z.object({
   include: z.array(z.string().min(1)).optional(),
 })
 
+const SqliteSourceSchema = z.object({
+  type: z.literal("sqlite"),
+  path: z.string().min(1, "Path is required"),
+})
+
+const SqliteContainerSourceSchema = z.object({
+  type: z.literal("sqlite-container"),
+  containerName: z.string().min(1, "Container name is required"),
+  dbPath: z.string().min(1, "Database path is required"),
+})
+
 const SourceSchema = z.discriminatedUnion("type", [
   PathSourceSchema,
   PostgresSourceSchema,
   PostgresContainerSourceSchema,
   ContainerVolumeSourceSchema,
+  SqliteSourceSchema,
+  SqliteContainerSourceSchema,
 ])
 
 const DestinationSchema = z.object({
@@ -90,5 +103,7 @@ export {
   PostgresSourceSchema,
   RetentionSchema,
   ScheduleSchema,
+  SqliteSourceSchema,
+  SqliteContainerSourceSchema,
   SourceSchema,
 }

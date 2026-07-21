@@ -34,7 +34,18 @@ type ContainerVolumeSource = {
   include?: string[]
 }
 
-type Source = PathSource | PostgresSource | PostgresContainerSource | ContainerVolumeSource
+type SqliteSource = {
+  type: "sqlite"
+  path: string
+}
+
+type SqliteContainerSource = {
+  type: "sqlite-container"
+  containerName: string
+  dbPath: string
+}
+
+type Source = PathSource | PostgresSource | PostgresContainerSource | ContainerVolumeSource | SqliteSource | SqliteContainerSource
 
 interface Destination {
   type: "local" | "sftp"
@@ -68,4 +79,4 @@ interface Config {
   notifications?: NotificationsConfig
 }
 
-export type { Config, Source, PathSource, PostgresSource, PostgresContainerSource, ContainerVolumeSource, Destination, ParsedConnString, DiscordConfig, NotificationsConfig }
+export type { Config, Source, PathSource, PostgresSource, PostgresContainerSource, ContainerVolumeSource, SqliteSource, SqliteContainerSource, Destination, ParsedConnString, DiscordConfig, NotificationsConfig }

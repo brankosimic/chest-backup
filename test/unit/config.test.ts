@@ -24,6 +24,8 @@ describe("ConfigSchema", () => {
         { type: "postgres", host: "localhost", port: 5432, user: "user", password: "pass", database: "testdb" },
         { type: "container-volume", containerName: "my-app", volumePath: "/data/volumes" },
         { type: "postgres-container", containerName: "my_db", user: "postgres", password: "secret", database: "myapp" },
+        { type: "sqlite", path: "/data/app/data.db" },
+        { type: "sqlite-container", containerName: "sonarr", dbPath: "/config/sonarr.db" },
       ],
       destinations: [
         { type: "local", path: "/backups/local", retention: 30, parallel: false },
@@ -51,6 +53,30 @@ describe("ConfigSchema", () => {
   test("rejects invalid source path", () => {
     const result = ConfigSchema.safeParse({
       sources: [{ type: "path", path: "" }],
+      destinations: [{ type: "local", path: "/backups" }],
+    })
+    expect(result.success).toBe(false)
+  })
+
+  test("rejects sqlite source with empty path", () => {
+    const result = ConfigSchema.safeParse({
+      sources: [{ type: "sqlite", path: "" }],
+      destinations: [{ type: "local", path: "/backups" }],
+    })
+    expect(result.success).toBe(false)
+  })
+
+  test("rejects sqlite-container source with empty containerName", () => {
+    const result = ConfigSchema.safeParse({
+      sources: [{ type: "sqlite-container", containerName: "", dbPath: "/data/db" }],
+      destinations: [{ type: "local", path: "/backups" }],
+    })
+    expect(result.success).toBe(false)
+  })
+
+  test("rejects sqlite-container source with empty dbPath", () => {
+    const result = ConfigSchema.safeParse({
+      sources: [{ type: "sqlite-container", containerName: "sonarr", dbPath: "" }],
       destinations: [{ type: "local", path: "/backups" }],
     })
     expect(result.success).toBe(false)

@@ -3,7 +3,9 @@
   "retention": 7,
   "sources": [
     { "path": "/data/documents" },
-    { "path": "/data/config.yaml" }
+    { "path": "/data/config.yaml" },
+    { "type": "sqlite", "path": "/data/app/data.db" },
+    { "type": "sqlite-container", "containerName": "sonarr", "dbPath": "/config/sonarr.db" }
   ],
   "destinations": [
     {

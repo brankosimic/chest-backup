@@ -75,6 +75,8 @@
     "typePostgres": "PostgreSQL",
     "typePostgresContainer": "PostgreSQL Kontejner",
     "typeContainerVolume": "Volume Kontejnera",
+    "typeSqlite": "SQLite",
+    "typeSqliteContainer": "SQLite Kontejner",
     "volumePath": "Putanja volumena",
     "container": "Kontejner",
     "includePatterns": "Obrasci za uključivanje",

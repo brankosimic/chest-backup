@@ -27,7 +27,7 @@ const useTree = () => {
   return ctx
 }
 
-const TYPE_ORDER = ["path", "postgres", "postgres-container", "container-volume"] as const
+const TYPE_ORDER = ["path", "postgres", "postgres-container", "container-volume", "sqlite", "sqlite-container"] as const
 
 const TreeNodeRow = ({ node, depth }: TreeNodeRowProps) => {
   const ctx = useTree()
@@ -129,6 +129,10 @@ const sourceDetailLines = (source: Source, t: (key: string) => string): string[]
         lines.push(`${t("sources.include")}: ${source.include.join(", ")}`)
       return lines
     }
+    case "sqlite":
+      return [source.path ?? ""]
+    case "sqlite-container":
+      return [`${t("sources.container")}: ${source.containerName}`]
     default:
       return []
   }
@@ -140,6 +144,8 @@ const sourceTitle = (source: Source): string => {
     case "postgres": return source.host ?? ""
     case "postgres-container": return source.containerName ?? source.host ?? ""
     case "container-volume": return source.containerName ?? source.volumePath ?? ""
+    case "sqlite": return source.path ?? ""
+    case "sqlite-container": return source.containerName ?? ""
     default: return ""
   }
 }

@@ -1,4 +1,4 @@
-import type { Config, Source, Destination, ContainerVolumeSource, PostgresSource, PathSource, DiscordConfig, NotificationsConfig } from "./config"
+import type { Config, Source, Destination, ContainerVolumeSource, PostgresSource, PathSource, SqliteSource, SqliteContainerSource, DiscordConfig, NotificationsConfig } from "./config"
 import type { DestinationHandler, StoreResult } from "./destination"
 
 interface CollectedSources {
@@ -28,6 +28,8 @@ export type {
   Source,
   PathSource,
   PostgresSource,
+  SqliteSource,
+  SqliteContainerSource,
   ContainerVolumeSource,
   Destination,
   DiscordConfig,

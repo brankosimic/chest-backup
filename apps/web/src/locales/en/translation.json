@@ -75,6 +75,8 @@
     "typePostgres": "PostgreSQL",
     "typePostgresContainer": "PostgreSQL Container",
     "typeContainerVolume": "Container Volume",
+    "typeSqlite": "SQLite",
+    "typeSqliteContainer": "SQLite Container",
     "volumePath": "Volume Path",
     "container": "Container",
     "includePatterns": "Include Patterns",

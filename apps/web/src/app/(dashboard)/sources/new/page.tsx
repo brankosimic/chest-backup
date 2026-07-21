@@ -26,6 +26,7 @@ export default function NewSourcePage() {
   const [password, setPassword] = useState("")
   const [database, setDatabase] = useState("")
   const [containerName, setContainerName] = useState("")
+  const [dbPath, setDbPath] = useState("")
 
   const [cvContainerName, setCvContainerName] = useState("")
   const [cvVolumes, setCvVolumes] = useState<ContainerVolume[]>([])
@@ -52,6 +53,10 @@ export default function NewSourcePage() {
     ? !!(fieldsReady && database)
     : type === "container-volume"
       ? !!(cvContainerName && volumePath)
+    : type === "sqlite"
+      ? !!path
+    : type === "sqlite-container"
+      ? !!(containerName && dbPath)
       : !!path
 
   const fetchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -158,6 +163,11 @@ export default function NewSourcePage() {
       body.volumePath = volumePath
       const patterns = include.split("\n").map((s) => s.trim()).filter(Boolean)
       if (patterns.length) body.include = patterns
+    } else if (type === "sqlite") {
+      body.path = path
+    } else if (type === "sqlite-container") {
+      body.containerName = containerName
+      body.dbPath = dbPath
     }
 
     try {
@@ -294,6 +304,8 @@ export default function NewSourcePage() {
                 <option value="postgres">PostgreSQL</option>
                 <option value="postgres-container">PostgreSQL Container</option>
                 <option value="container-volume">Container Volume</option>
+                <option value="sqlite">SQLite</option>
+                <option value="sqlite-container">SQLite Container</option>
               </Select>
             </div>
 
@@ -307,6 +319,40 @@ export default function NewSourcePage() {
             {isPostgres && renderPostgresFields()}
 
             {type === "container-volume" && renderContainerVolumeFields()}
+
+            {type === "sqlite" && (
+              <div className="space-y-2">
+                <Label htmlFor="path">{t("sources.path")}</Label>
+                <Input id="path" value={path} onChange={(e) => { setPath(e.target.value); }} placeholder="/data/app/data.db" />
+              </div>
+            )}
+
+            {type === "sqlite-container" && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="containerName">{t("sources.containerName")}</Label>
+                  <Select
+                    value={containerName}
+                    onChange={(e) => { setContainerName(e.target.value); }}
+                    disabled={dockerContainersLoading || !!dockerContainersError}
+                  >
+                    <option value="" disabled>{dockerContainersLoading ? t("common.loading") : dockerContainersError ? t("sources.containerFetchError") : t("sources.selectContainer")}</option>
+                    {dockerContainers.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                    {containerName && !dockerContainers.includes(containerName) && (
+                      <option value={containerName}>{containerName}</option>
+                    )}
+                  </Select>
+                  {dockerContainersLoading && <p className="text-xs text-muted-foreground">{t("common.loading")}</p>}
+                  {dockerContainersError && <p className="text-xs text-muted-foreground">{dockerContainersError}</p>}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="dbPath">Database Path</Label>
+                  <Input id="dbPath" value={dbPath} onChange={(e) => { setDbPath(e.target.value); }} placeholder="/config/app.db" />
+                </div>
+              </>
+            )}
 
             <div className="flex gap-2 pt-4">
               <Button type="submit" disabled={createMutation.isPending || !canCreate}>

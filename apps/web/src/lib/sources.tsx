@@ -8,6 +8,8 @@ const sourceIcon = (type: string) => {
     case "postgres": return <Database className="h-5 w-5 text-purple-500 shrink-0" />
     case "postgres-container": return <Container className="h-5 w-5 text-amber-500 shrink-0" />
     case "container-volume": return <HardDrive className="h-5 w-5 text-green-500 shrink-0" />
+    case "sqlite": return <Database className="h-5 w-5 text-teal-500 shrink-0" />
+    case "sqlite-container": return <Container className="h-5 w-5 text-cyan-500 shrink-0" />
     default: return <Folder className="h-5 w-5 text-muted-foreground shrink-0" />
   }
 }
@@ -71,8 +73,7 @@ const toTreeNodes = (node: PathTrieNode, prefix: string): TreeNode[] => {
   const result: TreeNode[] = []
   const entries = [...node.children.entries()].sort(([a], [b]) => a.localeCompare(b))
 
-  for (const [seg, child] of entries)
-    result.push(processNode(seg, child, prefix))
+  entries.forEach(([seg, child]) => result.push(processNode(seg, child, prefix)))
 
   return result
 }
@@ -80,7 +81,7 @@ const toTreeNodes = (node: PathTrieNode, prefix: string): TreeNode[] => {
 const buildPathTree = (sources: Source[]): TreeNode[] => {
   const root: PathTrieNode = { children: new Map() }
 
-  for (const s of sources) insertOne(root, s)
+  sources.forEach(s => insertOne(root, s))
 
   return toTreeNodes(root, "")
 }
@@ -91,6 +92,8 @@ const sourceTypeLabelKey = (type: string): string => {
     case "postgres": return "sources.typePostgres"
     case "postgres-container": return "sources.typePostgresContainer"
     case "container-volume": return "sources.typeContainerVolume"
+    case "sqlite": return "sources.typeSqlite"
+    case "sqlite-container": return "sources.typeSqliteContainer"
     default: return type
   }
 }

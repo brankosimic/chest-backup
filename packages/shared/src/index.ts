@@ -1,6 +1,6 @@
 interface Source {
   id: string
-  type: "path" | "postgres" | "postgres-container" | "container-volume"
+  type: "path" | "postgres" | "postgres-container" | "container-volume" | "sqlite" | "sqlite-container"
   path?: string
   host?: string
   port?: number
@@ -12,6 +12,7 @@ interface Source {
   containers?: string[]
   volumePath?: string
   include?: string[]
+  dbPath?: string
   createdAt: string
   updatedAt: string
 }

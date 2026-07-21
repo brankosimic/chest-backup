@@ -1,11 +1,12 @@
 import { existsSync, statSync } from "node:fs"
 import { Glob } from "bun"
-import type { Config, Source, PostgresSource, PostgresContainerSource } from "../types/config"
+import type { Config, Source, PostgresSource, PostgresContainerSource, SqliteSource, SqliteContainerSource } from "../types/config"
 import { logger } from "../utils/logger"
 import { dumpPostgresContainerSources, dumpPostgresSources } from "../database/postgres"
+import { dumpSqliteSources, dumpSqliteContainerSources } from "../database/sqlite"
 
-const isDbSource = (s: Source): s is PostgresSource | PostgresContainerSource =>
-  ["postgres", "postgres-container"].includes(s.type)
+const isDbSource = (s: Source): s is PostgresSource | PostgresContainerSource | SqliteSource | SqliteContainerSource =>
+  ["postgres", "postgres-container", "sqlite", "sqlite-container"].includes(s.type)
 
 const resolveSourcePaths = (source: Source): string[] => {
   if (isDbSource(source)) return []
@@ -56,6 +57,7 @@ const resolvePaths = (sources: Source[]): string[] => [
 const resolveContainers = (sources: Source[]): string[] =>
   sources.flatMap((s) => {
     if (s.type === "container-volume") return [s.containerName]
+    if (s.type === "sqlite-container") return [s.containerName]
     return []
   })
 
@@ -70,7 +72,9 @@ const resolveSources = async (
 
   const dbDumps = await dumpPostgresSources(config.sources, timestamp, tempFiles, tempDir)
   const containerDbDumps = await dumpPostgresContainerSources(config.sources, timestamp, tempFiles, tempDir)
-  paths.push(...dbDumps, ...containerDbDumps)
+  const sqliteDbDumps = await dumpSqliteSources(config.sources, timestamp, tempFiles, tempDir)
+  const sqliteContainerDbDumps = await dumpSqliteContainerSources(config.sources, timestamp, tempFiles, tempDir)
+  paths.push(...dbDumps, ...containerDbDumps, ...sqliteDbDumps, ...sqliteContainerDbDumps)
 
   return { paths, containers }
 }
