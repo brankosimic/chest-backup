@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Header } from "@/components/layout/header"
+import { BackupProgressCard } from "@/components/ui/backup-progress"
 import { formatSize, formatDuration, formatUptime, formatDate } from "@/lib/utils"
 import { useBackupStats, useTriggerBackup, useBackups, useSystem } from "@/hooks/use-queries"
 import { CheckCircle2, Clock, Play } from "lucide-react"
@@ -24,7 +25,7 @@ const DestCard = (props: DestCardProps) => {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground truncate" title={props.path}>{props.name}</CardTitle>
-        <Badge variant={props.type === "local" ? "default" : "secondary"} className="shrink-0">{props.type === "local" ? t("destinations.local") : "SFTP"}</Badge>
+        <Badge variant={props.type === "local" ? "default" : "secondary"} className="shrink-0">{props.type === "local" ? t("destinations.local") : t("destinations.sftp")}</Badge>
       </CardHeader>
       <CardContent className="space-y-2">
         <div className="flex items-baseline gap-4">
@@ -188,7 +189,9 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      <div className="mt-6">
+      <div className="mt-6 space-y-4">
+        <BackupProgressCard />
+
         <Button
           variant="default"
           size="lg"

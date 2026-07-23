@@ -20,6 +20,7 @@ import {
   fetchBackups,
   fetchBackupStats,
   triggerBackup,
+  fetchBackupProgress,
   fetchLogs,
   fetchSystem,
   testNotification,
@@ -130,11 +131,19 @@ const useBackups = (page = 1, limit = 50) =>
 const useBackupStats = () =>
   useQuery({ queryKey: ["backup-stats"], queryFn: fetchBackupStats })
 
+const useBackupProgress = () =>
+  useQuery({
+    queryKey: ["backup-progress"],
+    queryFn: fetchBackupProgress,
+    refetchInterval: 3_000,
+  })
+
 const useTriggerBackup = () => {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: triggerBackup,
     onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["backup-progress"] })
       void qc.invalidateQueries({ queryKey: ["backups"] })
       void qc.invalidateQueries({ queryKey: ["backup-stats"] })
     },
@@ -173,6 +182,7 @@ export {
   useUpdateNotifications,
   useBackups,
   useBackupStats,
+  useBackupProgress,
   useTriggerBackup,
   useLogs,
   useSystem,

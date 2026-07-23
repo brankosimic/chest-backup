@@ -1,6 +1,6 @@
 import type { Config } from "../types/config"
 import type { Destination } from "../types/config"
-import type { StoreResult } from "../types/index"
+import type { StoreResult, BackupProgressCallback } from "../types/index"
 import { getLatestChecksumLocal, storeLocal } from "./local"
 import { connectClient, getLatestChecksumSftp, storeSftp, enforceRetentionSftp } from "./sftp"
 import { enforceRetention } from "../backup/retention"
@@ -40,15 +40,19 @@ const storeToDestination = async (
   dest: Destination,
   retention: number,
   errors: string[],
+  onProgress?: BackupProgressCallback,
 ): Promise<StoreResult> => {
   if (checksumValue) {
     const latest = await getLatestChecksum(dest)
 
     if (latest === checksumValue) {
       logger.info({ dest: dest.path }, "destination already has identical archive, skipping")
+      onProgress?.({ phase: "destination-done", destName: dest.name, destPath: dest.path, destType: dest.type, message: "skipped" })
       return { success: true, skipped: true, skippedReason: "identical", destLabel: dest.type }
     }
   }
+
+  onProgress?.({ phase: "destination-start", destName: dest.name, destPath: dest.path, destType: dest.type })
 
   const start = Date.now()
   const result = await handleDestination(archivePath, checksumFile, dest)
@@ -56,6 +60,7 @@ const storeToDestination = async (
   result.destLabel = dest.type
 
   if (result.success) {
+    onProgress?.({ phase: "destination-done", destName: dest.name, destPath: dest.path, destType: dest.type, speed: result.speed })
     try {
       if (dest.type === "local") {
         enforceRetention(dest, "chest-backup", retention)
@@ -65,6 +70,8 @@ const storeToDestination = async (
     } catch (err) {
       errors.push(`Retention enforcement failed for ${dest.path}: ${String(err)}`)
     }
+  } else {
+    onProgress?.({ phase: "destination-error", destName: dest.name, destPath: dest.path, destType: dest.type, message: result.error })
   }
 
   return result
@@ -76,9 +83,11 @@ const dispatchToDestinations = async (
   checksumValue: string | undefined,
   config: Config,
   errors: string[],
+  onProgress?: BackupProgressCallback,
 ): Promise<StoreResult[]> => {
   const active = config.destinations.filter((d) => !d.skip)
   const skipped = config.destinations.filter((d) => d.skip)
+
   for (const dest of skipped) {
     logger.info({ dest: dest.path, type: dest.type }, "destination skipped per config")
   }
@@ -88,12 +97,12 @@ const dispatchToDestinations = async (
   const results: StoreResult[] = []
 
   for (const dest of sequential) {
-    results.push(await storeToDestination(archivePath, checksumFile, checksumValue, dest, config.retention, errors))
+    results.push(await storeToDestination(archivePath, checksumFile, checksumValue, dest, config.retention, errors, onProgress))
   }
 
   if (parallel.length) {
     const parallelResults = await Promise.all(
-      parallel.map((dest) => storeToDestination(archivePath, checksumFile, checksumValue, dest, config.retention, errors)),
+      parallel.map((dest) => storeToDestination(archivePath, checksumFile, checksumValue, dest, config.retention, errors, onProgress)),
     )
     results.push(...parallelResults)
   }

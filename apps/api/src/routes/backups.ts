@@ -2,6 +2,8 @@ import { Hono } from "hono"
 import { getBackups, getBackupById, getBackupStats, addLogEntry, invalidateBackupCache, persistBackupResult } from "../lib/store"
 import { runBackup } from "@core/backup/orchestrator"
 import { getActiveConfig } from "../lib/api-config"
+import { startBackup, getProgress, updateFromEvent, completeBackup, clearProgress } from "../lib/progress"
+import type { BackupProgressEvent } from "@core/types/index"
 
 const backups = new Hono()
 
@@ -15,6 +17,11 @@ backups.get("/", (c) => {
 backups.get("/stats", async (c) => {
   const data = await getBackupStats()
   return c.json({ success: true, data })
+})
+
+backups.get("/progress", (c) => {
+  const progress = getProgress()
+  return c.json({ success: true, data: progress })
 })
 
 backups.get("/:id", (c) => {
@@ -37,6 +44,11 @@ backups.post("/run", async (c) => {
   const timestamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "")
   const runTimestamp = `${timestamp.slice(0, 8)}-${timestamp.slice(8, 14)}`
 
+  startBackup(
+    config.destinations.map((d) => ({ name: d.name, path: d.path, type: d.type })),
+    runTimestamp,
+  )
+
   c.json(
     {
       success: true,
@@ -46,12 +58,15 @@ backups.post("/run", async (c) => {
     202,
   )
 
-  runBackup(config)
+  runBackup(config, (event: BackupProgressEvent) => { updateFromEvent(event) })
     .then((result) => {
+      completeBackup(result.success)
       invalidateBackupCache()
       persistBackupResult(result)
+      setTimeout(() => clearProgress(), 5000)
     })
     .catch((err: Error) => {
+      completeBackup(false)
       addLogEntry({
         id: `log-error-${Date.now()}`,
         timestamp: new Date().toISOString(),
@@ -59,6 +74,7 @@ backups.post("/run", async (c) => {
         message: `Manual backup failed: ${err.message}`,
         metadata: { error: err.message },
       })
+      setTimeout(() => clearProgress(), 5000)
     })
 })
 

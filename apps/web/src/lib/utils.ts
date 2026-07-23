@@ -3,6 +3,14 @@ import { twMerge } from "tailwind-merge"
 
 const cn = (...inputs: ClassValue[]): string => twMerge(clsx(inputs))
 
+const formatSpeed = (bytesPerSec: number): string => {
+  if (bytesPerSec < 1024) return `${bytesPerSec.toFixed(0)} B/s`
+  const kb = bytesPerSec / 1024
+  if (kb < 1024) return `${kb.toFixed(0)} KB/s`
+  const mb = kb / 1024
+  return `${mb.toFixed(1)} MB/s`
+}
+
 const formatDuration = (ms: number): string => {
   if (ms < 1000) return `${String(ms)}ms`
   const totalSec = Math.round(ms / 1000)
@@ -41,4 +49,4 @@ const formatUptime = (seconds: number): string => {
   return `${String(minutes)}m`
 }
 
-export { cn, formatDate, formatDuration, formatSize, formatUptime }
+export { cn, formatDate, formatDuration, formatSize, formatSpeed, formatUptime }

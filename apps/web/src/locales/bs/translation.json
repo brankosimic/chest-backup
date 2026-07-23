@@ -15,7 +15,8 @@
     "noResults": "Nema rezultata",
     "confirmDelete": "Da li ste sigurni da želite da obrišete ovu stavku? Ova radnja se ne može poništiti.",
     "success": "Uspjeh",
-    "actions": "Akcije"
+    "actions": "Akcije",
+    "pending": "Na čekanju"
   },
   "nav": {
     "dashboard": "Naslovna",
@@ -48,7 +49,10 @@
     "runBackup": "Pokreni backup odmah",
     "fileCount": "Datoteke",
     "size": "Veličina",
-    "storageByDestination": "Po odredištu"
+    "storageByDestination": "Po odredištu",
+    "backupInProgress": "Backup u toku",
+    "archivingSources": "Arhiviranje izvora...",
+    "uploading": "Otpremanje"
   },
   "sources": {
     "title": "Izvori",

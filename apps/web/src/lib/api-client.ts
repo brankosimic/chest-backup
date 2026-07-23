@@ -68,6 +68,26 @@ const fetchBackupStats = () =>
 const triggerBackup = () =>
   apiFetch<{ success: boolean; message: string }>("/api/backups/run", { method: "POST" })
 
+interface DestProgress {
+  name: string
+  path: string
+  type: string
+  status: "pending" | "uploading" | "done" | "error" | "skipped"
+  speed?: number
+  message?: string
+}
+
+interface BackupRunProgress {
+  status: "idle" | "archiving" | "running" | "completed" | "failed"
+  startedAt: string
+  timestamp: string
+  archiveSize?: number
+  destinations: DestProgress[]
+}
+
+const fetchBackupProgress = () =>
+  apiFetch<BackupRunProgress>("/api/backups/progress")
+
 const fetchLogs = (level?: string, search?: string, limit = 100) => {
   const params = new URLSearchParams()
   if (level && level !== "all") params.set("level", level)
@@ -126,6 +146,7 @@ export {
   fetchBackups,
   fetchBackupStats,
   triggerBackup,
+  fetchBackupProgress,
   fetchLogs,
   fetchSystem,
   testNotification,
@@ -134,4 +155,4 @@ export {
   fetchPostgresDatabases,
 }
 
-export type { ContainerVolume }
+export type { ContainerVolume, BackupRunProgress, DestProgress }

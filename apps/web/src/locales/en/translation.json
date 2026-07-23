@@ -15,7 +15,8 @@
     "noResults": "No results found",
     "confirmDelete": "Are you sure you want to delete this item? This action cannot be undone.",
     "success": "Success",
-    "actions": "Actions"
+    "actions": "Actions",
+    "pending": "Pending"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -48,7 +49,10 @@
     "runBackup": "Run Backup Now",
     "fileCount": "Files",
     "size": "Size",
-    "storageByDestination": "By Destination"
+    "storageByDestination": "By Destination",
+    "backupInProgress": "Backup in Progress",
+    "archivingSources": "Creating archive...",
+    "uploading": "Uploading"
   },
   "sources": {
     "title": "Sources",

@@ -8,12 +8,14 @@ import { stopBackupContainers, startBackupContainers } from "../docker/manager"
 import { dispatchToDestinations } from "../destinations/types"
 import { sendStartedNotification, sendCompletedNotification } from "../notification/discord"
 import { logger } from "../utils/logger"
+import type { BackupProgressCallback } from "../types/index"
 
 const executeBackup = async (
   config: Config,
   timestamp: string,
   errors: string[],
   tempFiles: string[],
+  onProgress?: BackupProgressCallback,
 ): Promise<BackupResult> => {
   const containers = config.sources.flatMap((s) => {
     if (s.type === "container-volume") return [s.containerName]
@@ -55,14 +57,17 @@ const executeBackup = async (
     errors.push(`Archive verification failed: ${String(err)}`)
   }
 
-  const destinationResults = await dispatchToDestinations(archivePath, verification?.checksumFile, verification?.checksum, config, errors)
+  const archiveSize = statSync(archivePath).size
+  onProgress?.({ phase: "archiving", archiveSize })
+
+  const destinationResults = await dispatchToDestinations(archivePath, verification?.checksumFile, verification?.checksum, config, errors, onProgress)
   const allOk = destinationResults.every((r) => r.success)
 
   return {
     success: allOk,
     timestamp,
     archiveName: archivePath.split("/").pop() ?? "unknown",
-    archiveSize: statSync(archivePath).size,
+    archiveSize,
     durationMs: 0,
     destinationResults,
     errors,
@@ -70,7 +75,7 @@ const executeBackup = async (
   }
 }
 
-const runBackup = async (config: Config): Promise<BackupResult> => {
+const runBackup = async (config: Config, onProgress?: BackupProgressCallback): Promise<BackupResult> => {
   const startTime = Date.now()
   const timestamp = formatTimestamp(new Date())
   const errors: string[] = []
@@ -80,7 +85,7 @@ const runBackup = async (config: Config): Promise<BackupResult> => {
   logger.info({ timestamp }, "backup started")
 
   try {
-    const result = await executeBackup(config, timestamp, errors, tempFiles)
+    const result = await executeBackup(config, timestamp, errors, tempFiles, onProgress)
     result.durationMs = Date.now() - startTime
     await sendCompletedNotification(config, result)
     logger.info({ success: result.success, durationMs: result.durationMs, timestamp }, "backup finished")

@@ -12,4 +12,18 @@ interface DestinationHandler {
   prune(dest: Destination, prefix: string, globalRetention: number): Promise<void>
 }
 
-export type { DestinationHandler, StoreResult, UploadProgress }
+type ProgressPhase = "archiving" | "destination-start" | "destination-done" | "destination-error"
+
+interface BackupProgressEvent {
+  phase: ProgressPhase
+  destName?: string
+  destPath?: string
+  destType?: string
+  speed?: number
+  archiveSize?: number
+  message?: string
+}
+
+type BackupProgressCallback = (event: BackupProgressEvent) => void
+
+export type { DestinationHandler, StoreResult, UploadProgress, BackupProgressEvent, BackupProgressCallback }
