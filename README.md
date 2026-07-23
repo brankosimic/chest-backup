@@ -42,7 +42,7 @@ Copy the example config and adjust it to your needs:
 cp chest-backup.json.example chest-backup.json
 ```
 
-Edit `chest-backup.json` to define sources, destinations, databases, and schedule.
+Edit `chest-backup.json` to define sources, destinations, and schedule.
 
 ### Environment Variables
 
@@ -87,30 +87,48 @@ Configure a `schedule` field in `chest-backup.json` (cron expression) and start 
 pnpm start
 ```
 
-### Docker
-
-```bash
-docker compose up -d
-```
-
 ## Configuration Reference
 
 ```jsonc
 {
-  "schedule": "0 3 * * *",          // cron expression (optional)
-  "retention": 7,                    // global retention in days (optional)
-  "sources": [                       // files/paths to back up
-    { "path": "/data/documents" },
-    { "path": "/data/config.yaml" },
+  "schedule": "0 3 * * *",                // cron expression (optional)
+  "retention": 7,                          // global retention in days (optional, default: 7)
+  "tempDir": "/tmp",                       // temporary directory for backup staging (optional, default: /tmp)
+  "sources": [                             // backup sources
+    { "type": "path", "path": "/data/documents" },
+    { "type": "path", "path": "/data/config.yaml", "isFile": true },
     { "type": "sqlite", "path": "/data/app/data.db" },
-    { "type": "sqlite-container", "containerName": "sonarr", "dbPath": "/config/sonarr.db" }
+    { "type": "sqlite-container", "containerName": "sonarr", "dbPath": "/config/sonarr.db" },
+    {
+      "type": "postgres",
+      "host": "db.example.com",
+      "port": 5432,
+      "user": "dbuser",
+      "password": "${DB_PASSWORD}",
+      "database": "mydb"
+    },
+    {
+      "type": "postgres-container",
+      "containerName": "my-postgres",
+      "user": "dbuser",
+      "password": "${DB_PASSWORD}",
+      "database": "mydb"
+    },
+    {
+      "type": "container-volume",
+      "containerName": "my-app",
+      "volumePath": "/data",
+      "include": ["config", "logs"]        // optional — subpaths within the volume
+    }
   ],
-  "destinations": [                  // where to store backups
+  "destinations": [                        // where to store backups
     {
       "type": "local",
       "path": "/backups/local",
-      "retention": 30,               // per-destination retention (optional)
-      "parallel": true
+      "retention": 30,                     // per-destination retention in days (optional)
+      "parallel": true,                    // default: true
+      "timeout": 300000,                   // ms (optional)
+      "skip": false                        // temporarily disable without removing (optional)
     },
     {
       "type": "sftp",
@@ -119,25 +137,12 @@ docker compose up -d
       "user": "backupuser",
       "privateKey": "~/.ssh/backup_key_ed25519",
       "path": "/backups",
-      "parallel": false
+      "retention": 30,
+      "parallel": false,
+      "timeout": 300000
     }
   ],
-  "databases": [                     // PostgreSQL databases to back up
-    {
-      "type": "host",
-      "connectionString": "postgresql://user:pass@host:5432/mydb",
-      "database": "mydb"
-    },
-    {
-      "type": "docker",
-      "containerName": "my-postgres",
-      "database": "mydb",
-      "username": "user",
-      "password": "${DB_PASSWORD}"
-    }
-  ],
-  "containers": ["my-app", "my-worker"],  // Docker containers to back up
-  "notifications": {                 // alerting
+  "notifications": {                       // alerting (optional)
     "discord": {
       "webhookUrl": "https://discord.com/api/webhooks/${WEBHOOK_ID}/${WEBHOOK_TOKEN}"
     }

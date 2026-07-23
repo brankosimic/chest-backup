@@ -2,17 +2,39 @@
   "schedule": "0 3 * * *",
   "retention": 7,
   "sources": [
-    { "path": "/data/documents" },
-    { "path": "/data/config.yaml" },
+    { "type": "path", "path": "/data/documents" },
+    { "type": "path", "path": "/data/config.yaml", "isFile": true },
     { "type": "sqlite", "path": "/data/app/data.db" },
-    { "type": "sqlite-container", "containerName": "sonarr", "dbPath": "/config/sonarr.db" }
+    { "type": "sqlite-container", "containerName": "sonarr", "dbPath": "/config/sonarr.db" },
+    {
+      "type": "postgres",
+      "host": "db.example.com",
+      "port": 5432,
+      "user": "dbuser",
+      "password": "${DB_PASSWORD}",
+      "database": "mydb"
+    },
+    {
+      "type": "postgres-container",
+      "containerName": "my-postgres",
+      "user": "dbuser",
+      "password": "${DB_PASSWORD}",
+      "database": "mydb"
+    },
+    {
+      "type": "container-volume",
+      "containerName": "my-app",
+      "volumePath": "/data",
+      "include": ["config", "logs"]
+    }
   ],
   "destinations": [
     {
       "type": "local",
       "path": "/backups/local",
       "retention": 30,
-      "parallel": true
+      "parallel": true,
+      "timeout": 300000
     },
     {
       "type": "sftp",
@@ -21,24 +43,11 @@
       "user": "backupuser",
       "privateKey": "~/.ssh/backup_key_ed25519",
       "path": "/backups",
-      "parallel": false
+      "retention": 30,
+      "parallel": false,
+      "timeout": 300000
     }
   ],
-  "databases": [
-    {
-      "type": "host",
-      "connectionString": "postgresql://user:pass@host:5432/mydb",
-      "database": "mydb"
-    },
-    {
-      "type": "docker",
-      "containerName": "my-postgres",
-      "database": "mydb",
-      "username": "user",
-      "password": "${DB_PASSWORD}"
-    }
-  ],
-  "containers": ["my-app", "my-worker"],
   "notifications": {
     "discord": {
       "webhookUrl": "https://discord.com/api/webhooks/${WEBHOOK_ID}/${WEBHOOK_TOKEN}"
