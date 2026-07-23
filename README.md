@@ -1,10 +1,11 @@
 # chest-backup
 
-A scheduled backup tool for files, Docker containers, and PostgreSQL databases.
+A full-stack backup management system — schedule and monitor backups of files, Docker containers, PostgreSQL, and SQLite databases from a web dashboard or CLI.
 
 ## Features
 
 - **File backup** — archive arbitrary paths and files
+- **SQLite backup** — backup SQLite databases directly or from Docker containers
 - **Docker container backups** — backup running containers
 - **PostgreSQL database backups** — support for host-connected and Docker-based databases
 - **Multiple destinations** — local filesystem and SFTP
@@ -13,6 +14,23 @@ A scheduled backup tool for files, Docker containers, and PostgreSQL databases.
 - **Discord notifications** — receive alerts on backup success/failure
 - **Dry-run mode** — validate configuration without running backups
 - **Environment variable interpolation** — reference secrets from `.env` in config
+- **Web dashboard** — manage config, view backup history, and monitor status from a browser
+- **API server** — programmatic access to backup management and status
+- **System tray integration** — quick access from the desktop notification area
+
+## Architecture
+
+```
+chest-backup/
+├── apps/
+│   ├── api/          # Hono API server (Bun) — backup orchestration, scheduling, system tray
+│   └── web/          # React + Vite frontend — dashboard, config editor, monitoring
+├── packages/
+│   └── shared/       # Shared TypeScript types between API and web
+├── src/              # CLI app — backup engine (orchestration, archiving, retention)
+├── chest-backup.json # Config file
+└── .env              # Environment variables (secrets, API config)
+```
 
 ## Quick Start
 
@@ -34,7 +52,7 @@ Copy the example environment file and set your secrets:
 cp .env.example .env
 ```
 
-### Run Locally
+### Run Backup (CLI)
 
 ```bash
 # Install dependencies
@@ -49,6 +67,17 @@ pnpm start -- --config /path/to/config.json --run-now
 # Validate config without running
 pnpm start -- --dry-run
 ```
+
+### Web Dashboard
+
+Start the API server and dev server:
+
+```bash
+pnpm dev
+```
+
+This starts the API server (port 5199) and the Vite dev server concurrently.
+Open the web UI in your browser (default: `http://localhost:5173`).
 
 ### Run as Daemon
 
@@ -72,7 +101,9 @@ docker compose up -d
   "retention": 7,                    // global retention in days (optional)
   "sources": [                       // files/paths to back up
     { "path": "/data/documents" },
-    { "path": "/data/config.yaml" }
+    { "path": "/data/config.yaml" },
+    { "type": "sqlite", "path": "/data/app/data.db" },
+    { "type": "sqlite-container", "containerName": "sonarr", "dbPath": "/config/sonarr.db" }
   ],
   "destinations": [                  // where to store backups
     {
@@ -122,27 +153,27 @@ docker compose up -d
 | `--dry-run` | Validate config without running backups |
 | `--run-now` | Run a backup immediately |
 
-## Architecture
+## API
 
-```
-src/
-├── backup/      # Backup orchestration, archiving, retention, verification
-├── config/      # Config loading, validation, env interpolation
-├── destinations/ # Local and SFTP backup destinations
-├── database/    # PostgreSQL backups
-├── docker/      # Docker container management
-├── notification/ # Discord webhook notifications
-├── scheduler/   # Cron-based scheduling
-├── utils/       # Shared utilities (logging, shell)
-├── types/       # TypeScript types
-└── index.ts     # Entry point
-```
+The API server provides REST endpoints for managing and monitoring backups. It also includes system tray integration for desktop environments.
+
+| Variable | Default | Description |
+|---|---|---|
+| `API_HOST` | `0.0.0.0` | API server bind address |
+| `API_PORT` | `5199` | API server port |
+| `CHEST_CONFIG_PATH` | `./chest-backup.json` | Path to config file |
 
 ## Development
 
 ```bash
-# Start dev watcher
+# Start API + web dev servers
 pnpm dev
+
+# Start only the API
+pnpm dev:api
+
+# Start only the web frontend
+pnpm dev:web
 
 # Type-check
 pnpm build
