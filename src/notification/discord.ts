@@ -1,18 +1,7 @@
 import type { BackupResult } from "../types/index"
 import type { Config } from "../types/config"
+import type { DiscordEmbed, DiscordPayload, EmbedStatus } from "../types/notification"
 import { logger } from "../utils/logger"
-
-interface DiscordEmbed {
-  title: string
-  description: string
-  color: number
-  fields: { name: string; value: string; inline?: boolean }[]
-  timestamp: string
-}
-
-interface DiscordPayload {
-  embeds: DiscordEmbed[]
-}
 
 const formatDuration = (ms: number): string => {
   if (ms < 1000) return `${String(ms)}ms`
@@ -37,7 +26,7 @@ const formatSpeed = (bytesPerSec: number): string => {
   return `${(kb / 1024).toFixed(1)}MB/s`
 }
 
-const calcEmbedStatus = (result: BackupResult): { color: number; title: string; successCount: number; skippedCount: number; failCount: number } => {
+const calcEmbedStatus = (result: BackupResult): EmbedStatus => {
   const successCount = result.destinationResults.filter((r) => r.success && !r.skipped).length
   const skippedCount = result.destinationResults.filter((r) => r.skipped).length
   const failCount = result.destinationResults.length - successCount - skippedCount
@@ -99,10 +88,10 @@ const buildEmbedFields = (result: BackupResult, successCount: number, skippedCou
 }
 
 const buildEmbed = (result: BackupResult): DiscordEmbed => {
-  const { color, title, successCount, skippedCount, failCount } = calcEmbedStatus(result)
-  const fields = buildEmbedFields(result, successCount, skippedCount, failCount)
+  const embedStatus = calcEmbedStatus(result)
+  const fields = buildEmbedFields(result, embedStatus.successCount, embedStatus.skippedCount, embedStatus.failCount)
 
-  return { title, description: "", color, fields, timestamp: new Date().toISOString() }
+  return { title: embedStatus.title, description: "", color: embedStatus.color, fields, timestamp: new Date().toISOString() }
 }
 
 const buildStartedEmbed = (timestamp: string): DiscordEmbed => ({

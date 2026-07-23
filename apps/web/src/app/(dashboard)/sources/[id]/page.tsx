@@ -8,8 +8,8 @@ import { Label } from "@/components/ui/label"
 import { Select } from "@/components/ui/select"
 import { Header } from "@/components/layout/header"
 import { useSource, useUpdateSource } from "@/hooks/use-queries"
+import type { ContainerVolume } from "@/types/backup"
 import { fetchDockerContainers, fetchContainerVolumes } from "@/lib/api-client"
-import type { ContainerVolume } from "@/lib/api-client"
 
 const getTypeDefault = (type: string, source: Record<string, unknown>): Record<string, unknown> => {
   switch (type) {

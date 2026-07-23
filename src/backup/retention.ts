@@ -54,9 +54,7 @@ const enforceRetention = (
 
   const toDelete = files.slice(retention)
 
-  for (const file of toDelete) {
-    deleteArchiveFile(destPath, file)
-  }
+  toDelete.forEach(file => { deleteArchiveFile(destPath, file) })
 }
 
 export { enforceRetention, parseTimestampFromName, ARCHIVE_PATTERN }

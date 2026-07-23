@@ -1,3 +1,4 @@
+import type { PostgresQuery, PostgresQueryResult, DockerMount, ContainerVolume } from "../types/sources"
 import { $ } from "bun"
 import { Hono } from "hono"
 import { SourceSchema, PostgresDatabasesSchema } from "../lib/validation"
@@ -6,13 +7,13 @@ import { validateBody, notFound } from "../lib/routes"
 
 const sources = new Hono()
 
-const fetchPostgresDatabases = async (data: { type: "postgres" | "postgres-container"; host?: string; port?: number; user: string; password: string; containerName?: string; database?: string }): Promise<{ success: boolean; databases?: string[]; message?: string }> => {
-  const { type, host, port, user, password, containerName, database } = data
-  if (type === "postgres") {
-    if (!host) return { success: false, message: "Host is required" }
+const fetchPostgresDatabases = async (data: PostgresQuery): Promise<PostgresQueryResult> => {
+  const sourceData = data
+  if (sourceData.type === "postgres") {
+    if (!sourceData.host) return { success: false, message: "Host is required" }
     try {
-      const dbFlag = database ? `-d ${database}` : `-d template1`
-      const cmd = `PGPASSWORD=${password} psql -h ${host} -p ${port ?? 5432} -U ${user} ${dbFlag} -t -A -c "SELECT datname FROM pg_database WHERE datistemplate = false ORDER BY datname;"`
+      const dbFlag = sourceData.database ? `-d ${sourceData.database}` : `-d template1`
+      const cmd = `PGPASSWORD=${sourceData.password} psql -h ${sourceData.host} -p ${sourceData.port ?? 5432} -U ${sourceData.user} ${dbFlag} -t -A -c "SELECT datname FROM pg_database WHERE datistemplate = false ORDER BY datname;"`
       const result = await $`bash -c ${cmd}`.quiet().text()
       const databases = result.trim().split("\n").filter(Boolean).map((d) => d.trim())
       return { success: true, databases }
@@ -20,33 +21,16 @@ const fetchPostgresDatabases = async (data: { type: "postgres" | "postgres-conta
       return { success: false, message: err instanceof Error ? err.message : "Failed to fetch databases" }
     }
   }
-  if (!containerName) return { success: false, message: "Container name is required" }
+  if (!sourceData.containerName) return { success: false, message: "Container name is required" }
   try {
-    const dbFlag = database ? `-d ${database}` : `-d template1`
-    const result = await $`docker exec ${containerName} psql -U ${user} ${dbFlag} -t -A -c "SELECT datname FROM pg_database WHERE datistemplate = false ORDER BY datname;"`.quiet().text()
+    const dbFlag = sourceData.database ? `-d ${sourceData.database}` : `-d template1`
+    const result = await $`docker exec ${sourceData.containerName} psql -U ${sourceData.user} ${dbFlag} -t -A -c "SELECT datname FROM pg_database WHERE datistemplate = false ORDER BY datname;"`.quiet().text()
     const databases = result.trim().split("\n").filter(Boolean).map((d) => d.trim())
     return { success: true, databases }
   } catch (err: unknown) {
     return { success: false, message: err instanceof Error ? err.message : "Failed to fetch databases" }
   }
 }
-
-interface ContainerVolume {
-  type: string
-  source: string
-  destination: string
-  name?: string
-  rw: boolean
-}
-
-interface DockerMount {
-  Type: string
-  Source: string
-  Destination: string
-  Name?: string
-  RW: boolean
-}
-
 // Static routes must be registered before parameterized ones
 
 sources.get("/", (c) => {

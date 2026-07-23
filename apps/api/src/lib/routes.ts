@@ -1,9 +1,6 @@
+import type { Result } from "../types/api"
 import type { Context } from "hono"
 import type { ZodType } from "zod"
-
-type Result<T> =
-  | { ok: true; data: T }
-  | { ok: false; error: Response }
 
 const validateBody = async <T>(schema: ZodType<T>, c: Context): Promise<Result<T>> => {
   const body = (await c.req.json())

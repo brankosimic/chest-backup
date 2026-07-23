@@ -23,4 +23,17 @@ interface BackupStats {
   destinations: DestinationUsage[]
 }
 
-export type { PaginatedResult, BackupStats, DestinationUsage }
+type Result<T> =
+  | { ok: true; data: T }
+  | { ok: false; error: Response }
+
+interface CpuTimes {
+  total: number
+  idle: number
+}
+
+interface Retention {
+  globalRetention: number
+}
+
+export type { PaginatedResult, BackupStats, DestinationUsage, Result, CpuTimes, Retention }

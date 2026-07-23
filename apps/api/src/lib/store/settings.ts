@@ -1,3 +1,4 @@
+import type { Retention } from "../../types/api"
 import type { Schedule, NotificationConfig } from "@chest-backup/shared"
 import { getConfig, writeConfig } from "./config"
 
@@ -13,12 +14,12 @@ const updateSchedule = (data: Partial<Schedule>): Schedule => {
   return getSchedule()
 }
 
-const getRetention = (): { globalRetention: number } => {
+const getRetention = (): Retention => {
   const { config } = getConfig()
   return { globalRetention: config.retention ?? 7 }
 }
 
-const updateRetention = (data: { globalRetention: number }): { globalRetention: number } => {
+const updateRetention = (data: Retention): Retention => {
   const { config } = getConfig()
   config.retention = data.globalRetention
   writeConfig(config)

@@ -1,7 +1,6 @@
+import type { CronCallback } from "../types/scheduler"
 import { CronExpressionParser } from "cron-parser"
 import { logger } from "../utils/logger"
-
-type CronCallback = () => Promise<void>
 
 class Scheduler {
   private expression: string

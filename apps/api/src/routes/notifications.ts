@@ -19,9 +19,7 @@ notifications.put("/", async (c) => {
 
 notifications.post("/test", async (c) => {
   const body = await c.req.json<{ webhookUrl: string }>()
-  if (!body.webhookUrl || !body.webhookUrl.startsWith("https://")) {
-    return c.json({ success: false, error: "Valid webhook URL is required" })
-  }
+  if (!body.webhookUrl || !body.webhookUrl.startsWith("https://")) return c.json({ success: false, error: "Valid webhook URL is required" })
 
   try {
     const response = await fetch(body.webhookUrl, {

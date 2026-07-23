@@ -28,18 +28,14 @@ backups.get("/:id", (c) => {
   const id = c.req.param("id")
   const backup = getBackupById(id)
 
-  if (!backup) {
-    return c.json({ success: false, error: "Backup not found" }, 404)
-  }
+  if (!backup) return c.json({ success: false, error: "Backup not found" }, 404)
 
   return c.json({ success: true, data: backup })
 })
 
 backups.post("/run", async (c) => {
   const config = getActiveConfig()
-  if (!config) {
-    return c.json({ success: false, error: "No config loaded — cannot run backup" }, 500)
-  }
+  if (!config) return c.json({ success: false, error: "No config loaded — cannot run backup" }, 500)
 
   const timestamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "")
   const runTimestamp = `${timestamp.slice(0, 8)}-${timestamp.slice(8, 14)}`

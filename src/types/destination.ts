@@ -26,4 +26,9 @@ interface BackupProgressEvent {
 
 type BackupProgressCallback = (event: BackupProgressEvent) => void
 
-export type { DestinationHandler, StoreResult, UploadProgress, BackupProgressEvent, BackupProgressCallback }
+interface SftpUsage {
+  totalSize: number
+  fileCount: number
+}
+
+export type { DestinationHandler, StoreResult, UploadProgress, BackupProgressEvent, BackupProgressCallback, SftpUsage }

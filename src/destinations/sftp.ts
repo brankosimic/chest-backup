@@ -2,7 +2,7 @@ import SFTPClient from "ssh2-sftp-client"
 import { readFileSync, statSync } from "node:fs"
 import { homedir } from "node:os"
 import type { Destination } from "../types/config"
-import type { StoreResult, UploadProgress } from "../types/destination"
+import type { StoreResult, UploadProgress, SftpUsage } from "../types/destination"
 import { logger } from "../utils/logger"
 import { ARCHIVE_PATTERN, parseTimestampFromName } from "../backup/retention"
 
@@ -153,11 +153,6 @@ const enforceRetentionSftp = async (dest: Destination, archivePrefix: string, gl
   } finally {
     await sftp.end()
   }
-}
-
-interface SftpUsage {
-  totalSize: number
-  fileCount: number
 }
 
 const scanSftpUsage = async (dest: Destination): Promise<SftpUsage | null> => {

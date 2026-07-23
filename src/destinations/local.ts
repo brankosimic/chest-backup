@@ -5,7 +5,7 @@ import type { StoreResult } from "../types/index"
 import { ARCHIVE_PATTERN, parseTimestampFromName } from "../backup/retention"
 import { logger } from "../utils/logger"
 
-function copyChecksum(checksumFile: string, destDir: string): void {
+const copyChecksum = (checksumFile: string, destDir: string): void => {
   const shaName = checksumFile.split("/").pop()
   if (!shaName) return
   cpSync(checksumFile, join(destDir, shaName))
@@ -40,11 +40,11 @@ const getLatestChecksumLocal = (dest: Destination): string | null => {
   }
 }
 
-function storeLocal(
+const storeLocal = (
   archivePath: string,
   checksumFile: string | undefined,
   dest: Destination,
-): StoreResult {
+): StoreResult => {
   const destDir = dirname(dest.path)
   mkdirSync(destDir, { recursive: true })
 

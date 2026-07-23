@@ -1,14 +1,5 @@
+import type { ExecResult, ExecOpts } from "../types/shell"
 import { logger } from "./logger"
-
-interface ExecResult {
-  stdout: string
-  stderr: string
-  exitCode: number
-}
-
-interface ExecOpts {
-  timeout?: number
-}
 
 const exec = async (command: string, opts?: ExecOpts): Promise<ExecResult> => {
   logger.debug({ command }, "executing command")
@@ -34,4 +25,5 @@ const exec = async (command: string, opts?: ExecOpts): Promise<ExecResult> => {
   return { stdout: stdout.trim(), stderr: stderr.trim(), exitCode }
 }
 
-export { type ExecResult, type ExecOpts, exec }
+export type { ExecResult, ExecOpts }
+export { exec }

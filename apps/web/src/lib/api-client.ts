@@ -1,3 +1,4 @@
+import type { ContainerVolume, BackupRunProgress } from "../types/backup"
 import type { Source, Destination, BackupRecord, ApiResponse } from "@chest-backup/shared"
 
 const BASE_URL = ""
@@ -68,23 +69,6 @@ const fetchBackupStats = () =>
 const triggerBackup = () =>
   apiFetch<{ success: boolean; message: string }>("/api/backups/run", { method: "POST" })
 
-interface DestProgress {
-  name: string
-  path: string
-  type: string
-  status: "pending" | "uploading" | "done" | "error" | "skipped"
-  speed?: number
-  message?: string
-}
-
-interface BackupRunProgress {
-  status: "idle" | "archiving" | "running" | "completed" | "failed"
-  startedAt: string
-  timestamp: string
-  archiveSize?: number
-  destinations: DestProgress[]
-}
-
 const fetchBackupProgress = () =>
   apiFetch<BackupRunProgress>("/api/backups/progress")
 
@@ -104,14 +88,6 @@ const testNotification = (webhookUrl: string) =>
     method: "POST",
     body: JSON.stringify({ webhookUrl }),
   })
-
-interface ContainerVolume {
-  type: string
-  source: string
-  destination: string
-  name?: string
-  rw: boolean
-}
 
 const fetchDockerContainers = () =>
   apiFetch<string[]>("/api/sources/containers")
@@ -154,5 +130,3 @@ export {
   fetchContainerVolumes,
   fetchPostgresDatabases,
 }
-
-export type { ContainerVolume, BackupRunProgress, DestProgress }

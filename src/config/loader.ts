@@ -3,20 +3,17 @@ import { resolve } from "node:path"
 import type { Config } from "../types/config"
 import { ConfigSchema } from "./schema"
 
-function resolveEnvVars(value: unknown): unknown {
+const resolveEnvVars = (value: unknown): unknown => {
   if (typeof value === "string") {
     return value.replace(/\$\{(\w+)\}/g, (_match: string, name: string) => {
-      if (!(name in process.env)) {
-        throw new Error(`Environment variable "${name}" is not set (referenced in config)`)
-      }
+      if (!(name in process.env)) throw new Error(`Environment variable "${name}" is not set (referenced in config)`)
       return process.env[name] as string
     })
   }
-  if (Array.isArray(value)) {
-    return value.map(resolveEnvVars)
-  }
+  if (Array.isArray(value)) return value.map(resolveEnvVars)
   if (value !== null && typeof value === "object") {
     const obj: Record<string, unknown> = {}
+
     for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
       obj[k] = resolveEnvVars(v)
     }
@@ -25,7 +22,7 @@ function resolveEnvVars(value: unknown): unknown {
   return value
 }
 
-function loadConfig(path?: string): Config {
+const loadConfig = (path?: string): Config => {
   const configPath = resolve(path ?? "./chest-backup.json")
   const raw = readFileSync(configPath, "utf-8")
   const parsed: unknown = resolveEnvVars(JSON.parse(raw))

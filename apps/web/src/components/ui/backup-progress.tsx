@@ -7,27 +7,41 @@ import { formatSize, formatSpeed } from "@/lib/utils"
 import { CheckCircle2, XCircle, Clock, Upload, SkipForward, HardDrive, Network } from "lucide-react"
 import * as styles from "./backup-progress.styles"
 
+const DestStatus = {
+  Done: "done",
+  Error: "error",
+  Uploading: "uploading",
+  Skipped: "skipped",
+} as const
+
+type DestStatus = (typeof DestStatus)[keyof typeof DestStatus]
+
+interface BadgeProps {
+  variant: "success" | "destructive" | "default" | "secondary" | "outline"
+  labelKey: string
+}
+
 const statusIcon = (status: string) => {
   switch (status) {
-    case "done":
+    case DestStatus.Done:
       return <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" />
-    case "error":
+    case DestStatus.Error:
       return <XCircle className="h-4 w-4 text-red-500 shrink-0" />
-    case "uploading":
+    case DestStatus.Uploading:
       return <Upload className="h-4 w-4 text-blue-500 shrink-0 animate-float-up" />
-    case "skipped":
+    case DestStatus.Skipped:
       return <SkipForward className="h-4 w-4 text-amber-500 shrink-0" />
     default:
       return <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
   }
 }
 
-const statusBadgeProps = (status: string): { variant: "success" | "destructive" | "default" | "secondary" | "outline"; labelKey: string } => {
+const statusBadgeProps = (status: string): BadgeProps => {
   switch (status) {
-    case "done": return { variant: "success", labelKey: "status.success" }
-    case "error": return { variant: "destructive", labelKey: "status.error" }
-    case "uploading": return { variant: "default", labelKey: "dashboard.uploading" }
-    case "skipped": return { variant: "secondary", labelKey: "status.skipped" }
+    case DestStatus.Done: return { variant: "success", labelKey: "status.success" }
+    case DestStatus.Error: return { variant: "destructive", labelKey: "status.error" }
+    case DestStatus.Uploading: return { variant: "default", labelKey: "dashboard.uploading" }
+    case DestStatus.Skipped: return { variant: "secondary", labelKey: "status.skipped" }
     default: return { variant: "outline", labelKey: "common.pending" }
   }
 }
@@ -51,7 +65,8 @@ const BackupProgressCard = () => {
   const isActive = ["archiving", "running"].includes(progress.status)
   const isDone = ["completed", "failed"].includes(progress.status)
   const total = progress.destinations.length
-  const done = progress.destinations.filter((d) => ["done", "error", "skipped"].includes(d.status)).length
+  const terminalStatuses = [DestStatus.Done, DestStatus.Error, DestStatus.Skipped] as const
+  const done = progress.destinations.filter((d) => (terminalStatuses as readonly string[]).includes(d.status)).length
   const pct = total > 0 ? Math.round((done / total) * 100) : 0
 
   return (
@@ -105,11 +120,11 @@ const BackupProgressCard = () => {
                 exit={{ opacity: 0, y: 8, scale: 0.97 }}
                 transition={{ duration: 0.3, delay: i * 0.05, ease: "easeOut" }}
                 className={`${styles.destRow} ${
-                  dest.status === "uploading"
+                  dest.status === DestStatus.Uploading
                     ? styles.destRowUploading
-                    : dest.status === "done"
+                    : dest.status === DestStatus.Done
                       ? styles.destRowDone
-                      : dest.status === "error"
+                      : dest.status === DestStatus.Error
                         ? styles.destRowError
                         : ""
                 }`}
@@ -124,7 +139,7 @@ const BackupProgressCard = () => {
                     </Badge>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    {dest.status === "uploading" && (
+                    {dest.status === DestStatus.Uploading && (
                       <motion.span
                         initial={{ opacity: 0, x: 4 }}
                         animate={{ opacity: 1, x: 0 }}
@@ -133,13 +148,13 @@ const BackupProgressCard = () => {
                         {t("dashboard.uploading")}
                       </motion.span>
                     )}
-                    {dest.speed && (dest.status === "done" || dest.status === "uploading") && (
+                    {dest.speed && (dest.status === DestStatus.Done || dest.status === DestStatus.Uploading) && (
                       <span className={styles.speedLabel}>{formatSpeed(dest.speed)}</span>
                     )}
                     <Badge variant={statusBadgeProps(dest.status).variant}>{t(statusBadgeProps(dest.status).labelKey)}</Badge>
                   </div>
                 </div>
-                {dest.message && dest.status === "error" && (
+                {dest.message && dest.status === DestStatus.Error && (
                   <motion.p
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}

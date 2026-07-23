@@ -16,6 +16,7 @@ const sourceIcon = (type: string) => {
 
 const walkOrCreate = (node: PathTrieNode, segments: string[]): PathTrieNode => {
   let current = node
+
   for (const seg of segments) {
     if (!current.children.has(seg))
       current.children.set(seg, { children: new Map() })

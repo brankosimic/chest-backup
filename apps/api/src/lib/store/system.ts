@@ -1,13 +1,9 @@
+import type { CpuTimes } from "../../types/api"
 import { readFileSync } from "node:fs"
 import { totalmem, freemem, uptime as osUptime } from "node:os"
 import { execSync } from "node:child_process"
 import type { SystemInfo } from "@chest-backup/shared"
 import pkg from "../../../package.json" with { type: "json" }
-
-interface CpuTimes {
-  total: number
-  idle: number
-}
 
 let prevCpuTimes: CpuTimes | null = null
 

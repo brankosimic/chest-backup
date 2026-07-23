@@ -15,15 +15,13 @@ const addLogEntry = (entry: LogEntry): void => {
 }
 
 const seedLogsFromHistory = (): void => {
-  for (const record of readBackupHistory()) {
-    pushLog({
-      id: `log-start-${record.id}`,
-      timestamp: record.timestamp,
-      level: "info",
-      message: `Backup completed: ${record.archiveName ?? "unknown"}`,
-      metadata: { archiveName: record.archiveName, success: record.success, durationMs: record.durationMs },
-    })
-  }
+  readBackupHistory().forEach(record => { pushLog({
+    id: `log-start-${record.id}`,
+    timestamp: record.timestamp,
+    level: "info",
+    message: `Backup completed: ${record.archiveName ?? "unknown"}`,
+    metadata: { archiveName: record.archiveName, success: record.success, durationMs: record.durationMs },
+  }) })
 }
 
 const parseTimestamp = (ts: string): string => {
