@@ -12,7 +12,6 @@
     "test:e2e": "docker compose -f docker-compose.test.yaml down --remove-orphans && docker compose -f docker-compose.test.yaml build test-runner && docker compose -f docker-compose.test.yaml run --rm test-runner && docker compose -f docker-compose.test.yaml down --remove-orphans"
   },
   "dependencies": {
-    "@trayjs/trayjs": "^0.0.10",
     "cron-parser": "^5.6.0",
     "pino": "^10.3.1",
     "pino-pretty": "^13.1.3",

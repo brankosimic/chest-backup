@@ -44,7 +44,9 @@ const start = async (): Promise<void> => {
     message: "Chest-Backup API started",
     metadata: {},
   })
-  await loadAndStartDaemon()
+  if (process.env.DAEMON_OWNER !== "tray") {
+    await loadAndStartDaemon()
+  }
 }
 
 await start()

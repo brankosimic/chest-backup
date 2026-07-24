@@ -2,24 +2,24 @@ import { Tray } from "@trayjs/trayjs"
 import type { MenuItem } from "@trayjs/trayjs"
 import { resolve } from "node:path"
 import { execSync } from "node:child_process"
-import { logger } from "../utils/logger"
-import type { TrayState, TrayCallbacks } from "../types/tray"
+import { DaemonStatus } from "@core/daemon"
+import type { TrayCallbacks } from "../types"
 
 const ICONS_DIR = resolve(import.meta.dirname)
 
-const STATE_ICONS: Record<TrayState, string> = {
-  idle: resolve(ICONS_DIR, "icon_idle.png"),
-  running: resolve(ICONS_DIR, "icon_running.png"),
-  success: resolve(ICONS_DIR, "icon_success.png"),
-  error: resolve(ICONS_DIR, "icon_error.png"),
+const STATE_ICONS: Partial<Record<DaemonStatus, string>> = {
+  [DaemonStatus.Idle]: resolve(ICONS_DIR, "icon_idle.png"),
+  [DaemonStatus.Running]: resolve(ICONS_DIR, "icon_running.png"),
+  [DaemonStatus.Success]: resolve(ICONS_DIR, "icon_success.png"),
+  [DaemonStatus.Error]: resolve(ICONS_DIR, "icon_error.png"),
 }
 
 class TrayBridge {
   private tray: Tray | null = null
-  private state: TrayState = "idle"
+  private state: DaemonStatus = DaemonStatus.Idle
 
   async start(callbacks: TrayCallbacks): Promise<void> {
-    const iconPath = STATE_ICONS.idle
+    const iconPath = STATE_ICONS[DaemonStatus.Idle]!
     const tray = new Tray({
       tooltip: "Chest Backup — Idle",
       icon: { png: iconPath, ico: iconPath },
@@ -33,19 +33,20 @@ class TrayBridge {
 
     return new Promise<void>((resolve_) => {
       tray.on("ready", () => {
-        logger.info("system tray icon ready")
+        console.log("system tray icon ready")
         resolve_()
       })
     })
   }
 
-  setState(state: TrayState, message?: string): void {
+  setState(state: DaemonStatus, message?: string): void {
     this.state = state
-
     if (!this.tray) return
 
     const iconPath = STATE_ICONS[state]
-    this.tray.setIcon({ png: iconPath, ico: iconPath })
+    if (iconPath) {
+      this.tray.setIcon({ png: iconPath, ico: iconPath })
+    }
     this.tray.setTooltip(`Chest Backup — ${message ?? state}`)
   }
 
@@ -55,18 +56,18 @@ class TrayBridge {
         timeout: 3000,
       })
     } catch {
-      logger.debug("desktop notification failed")
+      console.debug("desktop notification failed")
     }
   }
 
   stop(): void {
     this.tray?.quit()
     this.tray = null
-    this.state = "idle"
+    this.state = DaemonStatus.Idle
   }
 
   private buildMenu(): MenuItem[] {
-    const isRunning = this.state === "running"
+    const isRunning = this.state === DaemonStatus.Running
 
     return [
       { id: "run_now", title: "Run Backup Now", enabled: !isRunning },

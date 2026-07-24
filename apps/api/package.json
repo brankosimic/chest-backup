@@ -11,7 +11,6 @@
   "dependencies": {
     "@chest-backup/shared": "workspace:*",
     "@hono/node-server": "^2.0.11",
-    "@trayjs/trayjs": "^0.0.10",
     "cron-parser": "^5.6.2",
     "hono": "^4.12.31",
     "pino": "^10.3.1",

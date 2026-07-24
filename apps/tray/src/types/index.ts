@@ -1,5 +1,3 @@
-type TrayState = "idle" | "running" | "success" | "error"
-
 interface TrayCallbacks {
   onRunNow: () => void
   onShowStatus: () => void
@@ -8,4 +6,4 @@ interface TrayCallbacks {
   onQuit: () => void
 }
 
-export type { TrayState, TrayCallbacks }
+export type { TrayCallbacks }

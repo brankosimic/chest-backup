@@ -5,10 +5,13 @@
     "dev": "pnpm --filter @chest-backup/api dev & pnpm --filter @chest-backup/web dev",
     "dev:api": "pnpm --filter @chest-backup/api dev",
     "dev:web": "pnpm --filter @chest-backup/web dev",
+    "dev:tray": "pnpm --filter @chest-backup/tray dev",
     "build": "pnpm -r --filter '!@chest-backup/app' build",
     "build:api": "pnpm --filter @chest-backup/api build",
     "build:web": "pnpm --filter @chest-backup/web build",
+    "build:tray": "pnpm --filter @chest-backup/tray build",
     "start": "pnpm --filter @chest-backup/app start",
+    "start:tray": "pnpm --filter @chest-backup/tray start",
     "lint": "eslint apps/ src/",
     "typecheck": "tsc --noEmit"
   },

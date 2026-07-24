@@ -1,0 +1,42 @@
+#!/usr/bin/bash
+set -e
+
+PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+API_PID=""
+TRAY_PID=""
+
+cleanup() {
+  [ -n "$TRAY_PID" ] && kill "$TRAY_PID" 2>/dev/null || true
+  [ -n "$API_PID" ] && kill "$API_PID" 2>/dev/null || true
+  exit 0
+}
+trap cleanup INT TERM
+
+# Check whether a graphical session is active
+has_display=false
+for id in $(/usr/bin/loginctl list-sessions --no-legend 2>/dev/null | /usr/bin/awk '{print $1}'); do
+  type=$(/usr/bin/loginctl show-session "$id" -p Type --value 2>/dev/null)
+  if [ "$type" = x11 ] || [ "$type" = wayland ]; then
+    has_display=true
+    break
+  fi
+done
+
+# Start the API server (always). The daemon runs here only if no desktop.
+if [ "$has_display" = true ]; then
+  # Tray process will own the daemon — API serves HTTP only
+  DAEMON_OWNER=tray /usr/bin/bun "$PROJECT_DIR/apps/api/src/index.ts" &
+else
+  # No desktop — API runs the daemon itself
+  /usr/bin/bun "$PROJECT_DIR/apps/api/src/index.ts" &
+fi
+API_PID=$!
+
+# Conditionally start tray (desktop only) — owns the daemon
+if [ "$has_display" = true ]; then
+  /usr/bin/bun "$PROJECT_DIR/apps/tray/src/index.ts" &
+  TRAY_PID=$!
+fi
+
+# Wait for API process; exit code follows API
+wait "$API_PID"
