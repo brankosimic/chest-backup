@@ -4,7 +4,6 @@ dist/
 .env
 .env.docker
 chest-backup.json
-chest-backup.service
 *.log
 *.tsbuildinfo
 .chest-data/

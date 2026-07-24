@@ -1,5 +1,6 @@
 {
   "name": "@chest-backup/monorepo",
+  "version": "0.0.0",
   "private": true,
   "scripts": {
     "dev": "pnpm --filter @chest-backup/api dev & pnpm --filter @chest-backup/web dev",
@@ -13,7 +14,10 @@
     "start": "pnpm --filter @chest-backup/app start",
     "start:tray": "pnpm --filter @chest-backup/tray start",
     "lint": "eslint apps/ src/",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "release:patch": "npm version patch -m \"chore(release): v%s\" && git push --follow-tags",
+    "release:minor": "npm version minor -m \"chore(release): v%s\" && git push --follow-tags",
+    "release:major": "npm version major -m \"chore(release): v%s\" && git push --follow-tags"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

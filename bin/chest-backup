@@ -1,7 +1,8 @@
 #!/usr/bin/bash
 set -e
 
-PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+# chest-backup — installed to /usr/share/chest-backup
+INSTALL_DIR="/usr/share/chest-backup"
 API_PID=""
 TRAY_PID=""
 
@@ -25,16 +26,16 @@ done
 # Start the API server (always). The daemon runs here only if no desktop.
 if [ "$has_display" = true ]; then
   # Tray process will own the daemon — API serves HTTP only
-  DAEMON_OWNER=tray /usr/bin/bun "$PROJECT_DIR/apps/api/src/index.ts" &
+  DAEMON_OWNER=tray /usr/bin/bun "$INSTALL_DIR/apps/api/dist/index.js" &
 else
   # No desktop — API runs the daemon itself
-  /usr/bin/bun "$PROJECT_DIR/apps/api/src/index.ts" &
+  /usr/bin/bun "$INSTALL_DIR/apps/api/dist/index.js" &
 fi
 API_PID=$!
 
 # Conditionally start tray (desktop only) — owns the daemon
 if [ "$has_display" = true ]; then
-  /usr/bin/bun "$PROJECT_DIR/apps/tray/src/index.ts" &
+  /usr/bin/bun "$INSTALL_DIR/apps/tray/dist/index.js" &
   TRAY_PID=$!
 fi
 

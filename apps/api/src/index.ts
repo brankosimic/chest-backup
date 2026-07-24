@@ -1,4 +1,5 @@
 import { Hono } from "hono"
+import { serveStatic } from "hono/bun"
 import { cors } from "./middleware/cors"
 import { errorHandling } from "./middleware/error"
 import { port as PORT } from "./env"
@@ -14,6 +15,8 @@ import { system } from "./routes/system"
 import { loadAndStartDaemon } from "./lib/api-config"
 import { seedLogsFromHistory, pushLog } from "./lib/store"
 
+const WEB_DIST = process.env.WEB_DIST_PATH ?? "../web/dist"
+
 const app = new Hono()
 
 app.use("*", cors)
@@ -28,7 +31,15 @@ app.route("/api/backups", backups)
 app.route("/api/logs", logs)
 app.route("/api/system", system)
 
-app.get("/", (c) => c.json({ success: true, message: "Chest-Backup API" }))
+app.use(
+  "/*",
+  serveStatic({
+    root: WEB_DIST,
+  }),
+)
+app.get("/*", (c) => {
+  return c.html(Bun.file(`${WEB_DIST}/index.html`).text())
+})
 
 const start = async (): Promise<void> => {
   Bun.serve({
