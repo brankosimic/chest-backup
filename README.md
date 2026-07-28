@@ -23,7 +23,8 @@ A full-stack backup management system — schedule and monitor backups of files,
 ```
 chest-backup/
 ├── apps/
-│   ├── api/          # Hono API server (Bun) — backup orchestration, scheduling, system tray
+│   ├── api/          # Hono API server (Bun) — backup orchestration, scheduling
+│   ├── tray/         # System tray integration (Bun) — desktop notification area
 │   └── web/          # React + Vite frontend — dashboard, config editor, monitoring
 ├── packages/
 │   └── shared/       # Shared TypeScript types between API and web
@@ -181,6 +182,9 @@ pnpm dev:api
 pnpm dev:web
 
 # Type-check
+pnpm typecheck
+
+# Build all packages
 pnpm build
 
 # Lint
@@ -189,11 +193,10 @@ pnpm lint
 # Format
 pnpm format
 
-# Run tests
-pnpm test
-pnpm test:unit
-pnpm test:e2e
-pnpm test:container   # Run tests in Docker
+# Run tests (from @chest-backup/app)
+pnpm --filter @chest-backup/app test
+pnpm --filter @chest-backup/app test:unit
+pnpm --filter @chest-backup/app test:e2e   # Runs in Docker
 ```
 
 ## License
