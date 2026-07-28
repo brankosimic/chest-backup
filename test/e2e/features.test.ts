@@ -141,30 +141,34 @@ describe("external SFTP", () => {
     $`rm -rf ${REAL_SOURCE}`.nothrow().quiet()
   })
 
-  test("backup to external SFTP server", async () => {
-    expect(E2E.REAL_SFTP_HOST, "E2E_REAL_SFTP_HOST is required").toBeTruthy()
-    expect(E2E.REAL_SFTP_USER, "E2E_REAL_SFTP_USER is required").toBeTruthy()
+  test(
+    "backup to external SFTP server",
+    async () => {
+      expect(E2E.REAL_SFTP_HOST, "E2E_REAL_SFTP_HOST is required").toBeTruthy()
+      expect(E2E.REAL_SFTP_USER, "E2E_REAL_SFTP_USER is required").toBeTruthy()
 
-    const config = {
-      retention: 2,
-      sources: [{ type: "path" as const, path: `${REAL_SOURCE}/*` }],
-      destinations: [
-        {
-          type: "sftp" as const,
-          host: E2E.REAL_SFTP_HOST!,
-          port: E2E.REAL_SFTP_PORT,
-          user: E2E.REAL_SFTP_USER!,
-          password: E2E.REAL_SFTP_PASSWORD,
-          privateKey: E2E.REAL_SFTP_PRIVATE_KEY,
-          path: E2E.REAL_SFTP_PATH!,
-          timeout: 10000,
-          parallel: false,
-        },
-      ],
-    }
+      const config = {
+        retention: 2,
+        sources: [{ type: "path" as const, path: `${REAL_SOURCE}/*` }],
+        destinations: [
+          {
+            type: "sftp" as const,
+            host: E2E.REAL_SFTP_HOST!,
+            port: E2E.REAL_SFTP_PORT,
+            user: E2E.REAL_SFTP_USER!,
+            password: E2E.REAL_SFTP_PASSWORD,
+            privateKey: E2E.REAL_SFTP_PRIVATE_KEY,
+            path: E2E.REAL_SFTP_PATH!,
+            timeout: 10000,
+            parallel: false,
+          },
+        ],
+      }
 
-    const { runBackup } = await import("../../src/backup/orchestrator")
-    const result = await runBackup(config)
-    expect(result.success).toBe(true)
-  }, { timeout: 30_000 })
+      const { runBackup } = await import("../../src/backup/orchestrator")
+      const result = await runBackup(config)
+      expect(result.success).toBe(true)
+    },
+    { timeout: 30_000 },
+  )
 })

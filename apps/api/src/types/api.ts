@@ -23,9 +23,7 @@ interface BackupStats {
   destinations: DestinationUsage[]
 }
 
-type Result<T> =
-  | { ok: true; data: T }
-  | { ok: false; error: Response }
+type Result<T> = { ok: true; data: T } | { ok: false; error: Response }
 
 interface CpuTimes {
   total: number

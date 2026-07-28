@@ -60,7 +60,14 @@ const executeBackup = async (
   const archiveSize = statSync(archivePath).size
   onProgress?.({ phase: "archiving", archiveSize })
 
-  const destinationResults = await dispatchToDestinations(archivePath, verification?.checksumFile, verification?.checksum, config, errors, onProgress)
+  const destinationResults = await dispatchToDestinations(
+    archivePath,
+    verification?.checksumFile,
+    verification?.checksum,
+    config,
+    errors,
+    onProgress,
+  )
   const allOk = destinationResults.every((r) => r.success)
 
   return {

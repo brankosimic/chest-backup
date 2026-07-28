@@ -1,5 +1,12 @@
 import { Hono } from "hono"
-import { getBackups, getBackupById, getBackupStats, addLogEntry, invalidateBackupCache, persistBackupResult } from "../lib/store"
+import {
+  getBackups,
+  getBackupById,
+  getBackupStats,
+  addLogEntry,
+  invalidateBackupCache,
+  persistBackupResult,
+} from "../lib/store"
 import { runBackup } from "@core/backup/orchestrator"
 import { getActiveConfig } from "../lib/api-config"
 import { startBackup, getProgress, updateFromEvent, completeBackup, clearProgress } from "../lib/progress"
@@ -33,11 +40,14 @@ backups.get("/:id", (c) => {
   return c.json({ success: true, data: backup })
 })
 
-backups.post("/run", async (c) => {
+backups.post("/run", (c) => {
   const config = getActiveConfig()
   if (!config) return c.json({ success: false, error: "No config loaded — cannot run backup" }, 500)
 
-  const timestamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "")
+  const timestamp = new Date()
+    .toISOString()
+    .replace(/[-:]/g, "")
+    .replace(/\.\d{3}/, "")
   const runTimestamp = `${timestamp.slice(0, 8)}-${timestamp.slice(8, 14)}`
 
   startBackup(
@@ -45,23 +55,29 @@ backups.post("/run", async (c) => {
     runTimestamp,
   )
 
-  runBackup(config, (event: BackupProgressEvent) => { updateFromEvent(event) })
+  runBackup(config, (event: BackupProgressEvent) => {
+    updateFromEvent(event)
+  })
     .then((result) => {
       completeBackup(result.success)
       invalidateBackupCache()
       persistBackupResult(result)
-      setTimeout(() => clearProgress(), 5000)
+      setTimeout(() => {
+        clearProgress()
+      }, 5000)
     })
-    .catch((err: Error) => {
+    .catch((err: unknown) => {
       completeBackup(false)
       addLogEntry({
-        id: `log-error-${Date.now()}`,
+        id: `log-error-${String(Date.now())}`,
         timestamp: new Date().toISOString(),
         level: "error",
-        message: `Manual backup failed: ${err.message}`,
-        metadata: { error: err.message },
+        message: `Manual backup failed: ${err instanceof Error ? err.message : String(err)}`,
+        metadata: { error: err instanceof Error ? err.message : String(err) },
       })
-      setTimeout(() => clearProgress(), 5000)
+      setTimeout(() => {
+        clearProgress()
+      }, 5000)
     })
 
   return c.json(

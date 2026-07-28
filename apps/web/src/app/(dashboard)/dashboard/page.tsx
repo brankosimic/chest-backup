@@ -16,8 +16,12 @@ const DestCard = (props: DestCardProps) => {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground truncate" title={props.path}>{props.name}</CardTitle>
-        <Badge variant={props.type === "local" ? "default" : "secondary"} className="shrink-0">{props.type === "local" ? t("destinations.local") : t("destinations.sftp")}</Badge>
+        <CardTitle className="text-sm font-medium text-muted-foreground truncate" title={props.path}>
+          {props.name}
+        </CardTitle>
+        <Badge variant={props.type === "local" ? "default" : "secondary"} className="shrink-0">
+          {props.type === "local" ? t("destinations.local") : t("destinations.sftp")}
+        </Badge>
       </CardHeader>
       <CardContent className="space-y-2">
         <div className="flex items-baseline gap-4">
@@ -33,7 +37,9 @@ const DestCard = (props: DestCardProps) => {
         <div className="flex items-center gap-1.5 border-t pt-2 text-xs text-muted-foreground">
           <Clock className="h-3 w-3" />
           <span>{t("dashboard.avgDuration")}: </span>
-          <span className="font-medium text-foreground">{props.avgDurationMs > 0 ? formatDuration(props.avgDurationMs) : "-"}</span>
+          <span className="font-medium text-foreground">
+            {props.avgDurationMs > 0 ? formatDuration(props.avgDurationMs) : "-"}
+          </span>
         </div>
       </CardContent>
     </Card>
@@ -123,7 +129,9 @@ const DashboardPage = () => {
                   </div>
                 </div>
               ))}
-              {!recentBackups.length && <p className="text-center text-sm text-muted-foreground">{t("common.noResults")}</p>}
+              {!recentBackups.length && (
+                <p className="text-center text-sm text-muted-foreground">{t("common.noResults")}</p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -136,7 +144,9 @@ const DashboardPage = () => {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">{t("dashboard.status")}</span>
-                <Badge variant={system?.status === "running" ? "success" : "destructive"}>{system?.status ?? "unknown"}</Badge>
+                <Badge variant={system?.status === "running" ? "success" : "destructive"}>
+                  {system?.status ?? "unknown"}
+                </Badge>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">{t("dashboard.uptime")}</span>
@@ -154,25 +164,42 @@ const DashboardPage = () => {
                       <span className="text-sm">{String(system.cpuUsage)}%</span>
                     </div>
                     <div className="h-2 overflow-hidden rounded-full bg-muted">
-                      <div className="h-full rounded-full bg-blue-500 transition-all" style={{ width: `${String(system.cpuUsage)}%` }} />
+                      <div
+                        className="h-full rounded-full bg-blue-500 transition-all"
+                        style={{ width: `${String(system.cpuUsage)}%` }}
+                      />
                     </div>
                   </div>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-muted-foreground">{t("dashboard.memoryUsage")}</span>
-                      <span className="text-sm">{formatSize(system.memoryUsage.used)} / {formatSize(system.memoryUsage.total)}</span>
+                      <span className="text-sm">
+                        {formatSize(system.memoryUsage.used)} / {formatSize(system.memoryUsage.total)}
+                      </span>
                     </div>
                     <div className="h-2 overflow-hidden rounded-full bg-muted">
-                      <div className="h-full rounded-full bg-green-500 transition-all" style={{ width: `${String(system.memoryUsage.total > 0 ? (system.memoryUsage.used / system.memoryUsage.total) * 100 : 0)}%` }} />
+                      <div
+                        className="h-full rounded-full bg-green-500 transition-all"
+                        style={{
+                          width: `${String(system.memoryUsage.total > 0 ? (system.memoryUsage.used / system.memoryUsage.total) * 100 : 0)}%`,
+                        }}
+                      />
                     </div>
                   </div>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-muted-foreground">{t("dashboard.diskUsage")}</span>
-                      <span className="text-sm">{formatSize(system.diskUsage.used)} / {formatSize(system.diskUsage.total)}</span>
+                      <span className="text-sm">
+                        {formatSize(system.diskUsage.used)} / {formatSize(system.diskUsage.total)}
+                      </span>
                     </div>
                     <div className="h-2 overflow-hidden rounded-full bg-muted">
-                      <div className="h-full rounded-full bg-amber-500 transition-all" style={{ width: `${String(system.diskUsage.total > 0 ? (system.diskUsage.used / system.diskUsage.total) * 100 : 0)}%` }} />
+                      <div
+                        className="h-full rounded-full bg-amber-500 transition-all"
+                        style={{
+                          width: `${String(system.diskUsage.total > 0 ? (system.diskUsage.used / system.diskUsage.total) * 100 : 0)}%`,
+                        }}
+                      />
                     </div>
                   </div>
                 </>
@@ -188,7 +215,9 @@ const DashboardPage = () => {
         <Button
           variant="default"
           size="lg"
-          onClick={() => { triggerMutation.mutate(); }}
+          onClick={() => {
+            triggerMutation.mutate()
+          }}
           disabled={triggerMutation.isPending}
         >
           <Play className="mr-2 h-4 w-4" />

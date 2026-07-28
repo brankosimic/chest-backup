@@ -13,9 +13,13 @@ const fetchPostgresDatabases = async (data: PostgresQuery): Promise<PostgresQuer
     if (!sourceData.host) return { success: false, message: "Host is required" }
     try {
       const dbFlag = sourceData.database ? `-d ${sourceData.database}` : `-d template1`
-      const cmd = `PGPASSWORD=${sourceData.password} psql -h ${sourceData.host} -p ${sourceData.port ?? 5432} -U ${sourceData.user} ${dbFlag} -t -A -c "SELECT datname FROM pg_database WHERE datistemplate = false ORDER BY datname;"`
+      const cmd = `PGPASSWORD=${sourceData.password} psql -h ${sourceData.host} -p ${String(sourceData.port ?? 5432)} -U ${sourceData.user} ${dbFlag} -t -A -c "SELECT datname FROM pg_database WHERE datistemplate = false ORDER BY datname;"`
       const result = await $`bash -c ${cmd}`.quiet().text()
-      const databases = result.trim().split("\n").filter(Boolean).map((d) => d.trim())
+      const databases = result
+        .trim()
+        .split("\n")
+        .filter(Boolean)
+        .map((d) => d.trim())
       return { success: true, databases }
     } catch (err: unknown) {
       return { success: false, message: err instanceof Error ? err.message : "Failed to fetch databases" }
@@ -24,8 +28,15 @@ const fetchPostgresDatabases = async (data: PostgresQuery): Promise<PostgresQuer
   if (!sourceData.containerName) return { success: false, message: "Container name is required" }
   try {
     const dbFlag = sourceData.database ? `-d ${sourceData.database}` : `-d template1`
-    const result = await $`docker exec ${sourceData.containerName} psql -U ${sourceData.user} ${dbFlag} -t -A -c "SELECT datname FROM pg_database WHERE datistemplate = false ORDER BY datname;"`.quiet().text()
-    const databases = result.trim().split("\n").filter(Boolean).map((d) => d.trim())
+    const result =
+      await $`docker exec ${sourceData.containerName} psql -U ${sourceData.user} ${dbFlag} -t -A -c "SELECT datname FROM pg_database WHERE datistemplate = false ORDER BY datname;"`
+        .quiet()
+        .text()
+    const databases = result
+      .trim()
+      .split("\n")
+      .filter(Boolean)
+      .map((d) => d.trim())
     return { success: true, databases }
   } catch (err: unknown) {
     return { success: false, message: err instanceof Error ? err.message : "Failed to fetch databases" }
@@ -48,7 +59,12 @@ sources.post("/", async (c) => {
 sources.get("/containers", async (c) => {
   try {
     const result = await $`docker ps --format '{{.Names}}'`.quiet().text()
-    const containers = result.trim().split("\n").filter(Boolean).map((n) => n.trim()).sort()
+    const containers = result
+      .trim()
+      .split("\n")
+      .filter(Boolean)
+      .map((n) => n.trim())
+      .sort()
     return c.json({ success: true, data: containers })
   } catch {
     return c.json({ success: true, data: [] })
@@ -59,7 +75,7 @@ sources.get("/containers/:name/volumes", async (c) => {
   const name = c.req.param("name")
   try {
     const result = await $`docker inspect ${name} --format '{{json .Mounts}}'`.quiet().text()
-    const mounts: DockerMount[] = JSON.parse(result.trim())
+    const mounts = JSON.parse(result.trim()) as DockerMount[]
     const volumes: ContainerVolume[] = mounts.map((m) => ({
       type: m.Type,
       source: m.Source,

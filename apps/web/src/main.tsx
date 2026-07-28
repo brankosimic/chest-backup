@@ -40,12 +40,14 @@ const router = createBrowserRouter([
   },
 ])
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <QueryProvider>
-      <I18nProvider>
-        <RouterProvider router={router} />
-      </I18nProvider>
-    </QueryProvider>
-  </React.StrictMode>,
-)
+const rootEl = document.getElementById("root")
+if (rootEl)
+  ReactDOM.createRoot(rootEl).render(
+    <React.StrictMode>
+      <QueryProvider>
+        <I18nProvider>
+          <RouterProvider router={router} />
+        </I18nProvider>
+      </QueryProvider>
+    </React.StrictMode>,
+  )

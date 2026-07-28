@@ -49,7 +49,13 @@ const storeToDestination = async (
 
     if (latest === checksumValue) {
       logger.info({ dest: dest.path }, "destination already has identical archive, skipping")
-      onProgress?.({ phase: "destination-done", destName: dest.name, destPath: dest.path, destType: dest.type, message: "skipped" })
+      onProgress?.({
+        phase: "destination-done",
+        destName: dest.name,
+        destPath: dest.path,
+        destType: dest.type,
+        message: "skipped",
+      })
       return { success: true, skipped: true, skippedReason: "identical", destLabel: dest.type }
     }
   }
@@ -62,7 +68,13 @@ const storeToDestination = async (
   result.destLabel = dest.type
 
   if (result.success) {
-    onProgress?.({ phase: "destination-done", destName: dest.name, destPath: dest.path, destType: dest.type, speed: result.speed })
+    onProgress?.({
+      phase: "destination-done",
+      destName: dest.name,
+      destPath: dest.path,
+      destType: dest.type,
+      speed: result.speed,
+    })
     try {
       if (dest.type === "local") {
         enforceRetention(dest, "chest-backup", retention)
@@ -73,7 +85,13 @@ const storeToDestination = async (
       errors.push(`Retention enforcement failed for ${dest.path}: ${String(err)}`)
     }
   } else {
-    onProgress?.({ phase: "destination-error", destName: dest.name, destPath: dest.path, destType: dest.type, message: result.error })
+    onProgress?.({
+      phase: "destination-error",
+      destName: dest.name,
+      destPath: dest.path,
+      destType: dest.type,
+      message: result.error,
+    })
   }
 
   return result
@@ -90,19 +108,25 @@ const dispatchToDestinations = async (
   const active = config.destinations.filter((d) => !d.skip)
   const skipped = config.destinations.filter((d) => d.skip)
 
-  skipped.forEach(dest => { logger.info({ dest: dest.path, type: dest.type }, "destination skipped per config") })
+  skipped.forEach((dest) => {
+    logger.info({ dest: dest.path, type: dest.type }, "destination skipped per config")
+  })
 
   const sequential = active.filter((d) => !d.parallel)
   const parallel = active.filter((d) => d.parallel)
   const results: StoreResult[] = []
 
   for (const dest of sequential) {
-    results.push(await storeToDestination(archivePath, checksumFile, checksumValue, dest, config.retention, errors, onProgress))
+    results.push(
+      await storeToDestination(archivePath, checksumFile, checksumValue, dest, config.retention, errors, onProgress),
+    )
   }
 
   if (parallel.length) {
     const parallelResults = await Promise.all(
-      parallel.map((dest) => storeToDestination(archivePath, checksumFile, checksumValue, dest, config.retention, errors, onProgress)),
+      parallel.map((dest) =>
+        storeToDestination(archivePath, checksumFile, checksumValue, dest, config.retention, errors, onProgress),
+      ),
     )
     results.push(...parallelResults)
   }

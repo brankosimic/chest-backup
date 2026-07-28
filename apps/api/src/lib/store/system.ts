@@ -20,7 +20,7 @@ const parseCpuLine = (line: string): CpuTimes | null => {
 
 const readCpuStat = (): CpuTimes | null => {
   const stat = readFileSync("/proc/stat", "utf-8")
-  const firstLine = stat.split("\n").find(l => l.startsWith("cpu "))
+  const firstLine = stat.split("\n").find((l) => l.startsWith("cpu "))
 
   return firstLine ? parseCpuLine(firstLine) : null
 }

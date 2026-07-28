@@ -50,19 +50,25 @@ export default function DestinationsPage() {
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-base">{dest.name ?? dest.path}</CardTitle>
-                    <Badge variant={dest.type === "local" ? "default" : "secondary"}>{dest.type === "local" ? t("destinations.local") : "SFTP"}</Badge>
+                    <Badge variant={dest.type === "local" ? "default" : "secondary"}>
+                      {dest.type === "local" ? t("destinations.local") : "SFTP"}
+                    </Badge>
                   </div>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-1 text-sm">
                     {dest.type === "sftp" && dest.host && (
                       <>
-                        <p className="text-muted-foreground">{dest.host}:{dest.port}</p>
+                        <p className="text-muted-foreground">
+                          {dest.host}:{dest.port}
+                        </p>
                         <p className="text-muted-foreground">User: {dest.user}</p>
                       </>
                     )}
                     <p className="text-muted-foreground">Retention: {dest.retention ?? "-"} backups</p>
-                    {dest.parallel !== undefined && <p className="text-muted-foreground">Parallel: {dest.parallel ? "Yes" : "No"}</p>}
+                    {dest.parallel !== undefined && (
+                      <p className="text-muted-foreground">Parallel: {dest.parallel ? "Yes" : "No"}</p>
+                    )}
                     {dest.skip && <Badge variant="outline">Skipped</Badge>}
                   </div>
                 </CardContent>

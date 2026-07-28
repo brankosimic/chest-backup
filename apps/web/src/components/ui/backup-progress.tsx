@@ -35,11 +35,16 @@ const statusIcon = (status: string) => {
 
 const statusBadgeProps = (status: string): BadgeProps => {
   switch (status) {
-    case DestStatus.Done: return { variant: "success", labelKey: "status.success" }
-    case DestStatus.Error: return { variant: "destructive", labelKey: "status.error" }
-    case DestStatus.Uploading: return { variant: "default", labelKey: "dashboard.uploading" }
-    case DestStatus.Skipped: return { variant: "secondary", labelKey: "status.skipped" }
-    default: return { variant: "outline", labelKey: "common.pending" }
+    case DestStatus.Done:
+      return { variant: "success", labelKey: "status.success" }
+    case DestStatus.Error:
+      return { variant: "destructive", labelKey: "status.error" }
+    case DestStatus.Uploading:
+      return { variant: "default", labelKey: "dashboard.uploading" }
+    case DestStatus.Skipped:
+      return { variant: "secondary", labelKey: "status.skipped" }
+    default:
+      return { variant: "outline", labelKey: "common.pending" }
   }
 }
 
@@ -74,7 +79,13 @@ const BackupProgressCard = () => {
   const done = display.destinations.filter((d) => (terminalStatuses as readonly string[]).includes(d.status)).length
   const pct = total > 0 ? Math.round((done / total) * 100) : 0
 
-  const borderClass = isStarting ? "border-blue-500/30" : isActive ? "border-blue-500/50 animate-pulse-glow" : isDone ? "border-green-500/50" : ""
+  const borderClass = isStarting
+    ? "border-blue-500/30"
+    : isActive
+      ? "border-blue-500/50 animate-pulse-glow"
+      : isDone
+        ? "border-green-500/50"
+        : ""
 
   return (
     <Card className={borderClass}>
@@ -94,27 +105,21 @@ const BackupProgressCard = () => {
         </div>
         <div className={styles.headerStats}>
           {display.archiveSize && <span>{formatSize(display.archiveSize)}</span>}
-          <span>{done}/{total}</span>
+          <span>
+            {done}/{total}
+          </span>
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
         {isStarting && (
-          <motion.div
-            initial={{ opacity: 0, y: -4 }}
-            animate={{ opacity: 1, y: 0 }}
-            className={styles.archivingRow}
-          >
+          <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} className={styles.archivingRow}>
             <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
             <span>{t("dashboard.preparingBackup")}</span>
           </motion.div>
         )}
 
         {display.status === "archiving" && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className={styles.archivingRow}
-          >
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={styles.archivingRow}>
             <Upload className="h-4 w-4 animate-float-up text-blue-500" />
             <span>{t("dashboard.archivingSources")}</span>
           </motion.div>
@@ -124,14 +129,10 @@ const BackupProgressCard = () => {
           <div className={styles.progressTrack}>
             <motion.div
               className={`${styles.progressBarBase} ${
-                isActive
-                  ? styles.progressBarActive
-                  : isDone
-                    ? styles.progressBarDone
-                    : "bg-blue-500"
+                isActive ? styles.progressBarActive : isDone ? styles.progressBarDone : "bg-blue-500"
               }`}
               initial={{ width: 0 }}
-              animate={{ width: `${pct}%` }}
+              animate={{ width: `${String(pct)}%` }}
               transition={{ duration: 0.7, ease: "easeOut" }}
             />
             {isActive && pct < 100 && (
@@ -193,7 +194,9 @@ const BackupProgressCard = () => {
                         <CheckCircle2 className="h-4 w-4 text-green-500" />
                       </motion.div>
                     )}
-                    <Badge variant={statusBadgeProps(dest.status).variant}>{t(statusBadgeProps(dest.status).labelKey)}</Badge>
+                    <Badge variant={statusBadgeProps(dest.status).variant}>
+                      {t(statusBadgeProps(dest.status).labelKey)}
+                    </Badge>
                   </div>
                 </div>
                 {dest.message && dest.status === DestStatus.Error && (

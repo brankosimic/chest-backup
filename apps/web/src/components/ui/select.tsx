@@ -6,7 +6,10 @@ const Select = ({
   children,
   className,
   ...props
-}: React.SelectHTMLAttributes<HTMLSelectElement> & { value: string; onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void }) => {
+}: React.SelectHTMLAttributes<HTMLSelectElement> & {
+  value: string
+  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void
+}) => {
   return (
     <select
       value={value}

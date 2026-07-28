@@ -1,6 +1,13 @@
 import { existsSync, statSync } from "node:fs"
 import { Glob } from "bun"
-import type { Config, Source, PostgresSource, PostgresContainerSource, SqliteSource, SqliteContainerSource } from "../types/config"
+import type {
+  Config,
+  Source,
+  PostgresSource,
+  PostgresContainerSource,
+  SqliteSource,
+  SqliteContainerSource,
+} from "../types/config"
 import { logger } from "../utils/logger"
 import { dumpPostgresContainerSources, dumpPostgresSources } from "../database/postgres"
 import { dumpSqliteSources, dumpSqliteContainerSources } from "../database/sqlite"
@@ -14,7 +21,13 @@ const resolveSourcePaths = (source: Source): string[] => {
   if (source.type === "container-volume") {
     const basePath = source.volumePath
     if (source.include?.length)
-      return [...new Set(source.include.flatMap(pattern => [...new Glob(`${basePath}/${pattern}`).scanSync({ absolute: true })].filter(existsSync)))]
+      return [
+        ...new Set(
+          source.include.flatMap((pattern) =>
+            [...new Glob(`${basePath}/${pattern}`).scanSync({ absolute: true })].filter(existsSync),
+          ),
+        ),
+      ]
 
     if (!existsSync(basePath)) {
       logger.warn({ path: basePath }, "container volume path does not exist")
@@ -50,9 +63,7 @@ const resolveSourcePaths = (source: Source): string[] => {
   return [source.path]
 }
 
-const resolvePaths = (sources: Source[]): string[] => [
-  ...new Set(sources.flatMap(resolveSourcePaths)),
-]
+const resolvePaths = (sources: Source[]): string[] => [...new Set(sources.flatMap(resolveSourcePaths))]
 
 const resolveContainers = (sources: Source[]): string[] =>
   sources.flatMap((s) => {

@@ -7,7 +7,7 @@ import { logger } from "../utils/logger"
 const getPgDumpPath = (): string => {
   const versions = [18, 17, 16]
 
-  const paths = versions.map((v) => `/usr/lib/postgresql/${v}/bin/pg_dump`)
+  const paths = versions.map((v) => `/usr/lib/postgresql/${String(v)}/bin/pg_dump`)
   return paths.find(existsSync) ?? "pg_dump"
 }
 
@@ -92,7 +92,7 @@ const dumpSinglePostgresSource = async (
   tempFiles.push(outputPath)
   try {
     await dumpHostDatabase(
-      `postgresql://${source.user}:${source.password}@${source.host}:${source.port}/${source.database}`,
+      `postgresql://${source.user}:${source.password}@${source.host}:${String(source.port)}/${source.database}`,
       undefined,
       outputPath,
     )

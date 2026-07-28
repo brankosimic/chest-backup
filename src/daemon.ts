@@ -6,7 +6,7 @@ import type { BackupResult } from "./types/index"
 import { DaemonStatus } from "./types/daemon"
 import type { DaemonOptions, DaemonHandle } from "./types/daemon"
 
-const createDaemon = async (
+const createDaemon = (
   onBackupComplete?: (result: BackupResult) => void,
   options?: DaemonOptions,
 ): Promise<DaemonHandle> => {
@@ -40,7 +40,13 @@ const createDaemon = async (
   onStateChange?.(DaemonStatus.Idle, "Waiting for schedule")
   setupShutdownHandlers(scheduler)
 
-  return { runBackupNow: runBackupIfIdle, stop: () => { scheduler.stop(); process.exit(0) } }
+  return {
+    runBackupNow: runBackupIfIdle,
+    stop: () => {
+      scheduler.stop()
+      process.exit(0)
+    },
+  }
 }
 
 const startDaemon = async (
@@ -69,11 +75,7 @@ const emitAfterBackup = (
   const allSkipped = !!result.destinationResults.length && result.destinationResults.every((r) => r.skipped)
   const someSkipped = result.destinationResults.some((r) => r.skipped)
 
-  const status = allSkipped
-    ? DaemonStatus.Idle
-    : result.success
-      ? DaemonStatus.Success
-      : DaemonStatus.Error
+  const status = allSkipped ? DaemonStatus.Idle : result.success ? DaemonStatus.Success : DaemonStatus.Error
 
   const message = allSkipped
     ? "Skipped — No changes"
@@ -84,8 +86,13 @@ const emitAfterBackup = (
   onStateChange?.(status, message)
 
   if (!result.success) onNotify?.("Backup Failed", result.errors[0] ?? "unknown error")
-  else if (allSkipped) onNotify?.("Backup Skipped", "All destinations already have the latest backup — no changes needed")
-  else if (someSkipped) onNotify?.("Backup Successful", `Archive: ${result.archiveName ?? "unknown"} (some destinations skipped — identical)`)
+  else if (allSkipped)
+    onNotify?.("Backup Skipped", "All destinations already have the latest backup — no changes needed")
+  else if (someSkipped)
+    onNotify?.(
+      "Backup Successful",
+      `Archive: ${result.archiveName ?? "unknown"} (some destinations skipped — identical)`,
+    )
   else onNotify?.("Backup Successful", `Archive: ${result.archiveName ?? "unknown"}`)
 }
 

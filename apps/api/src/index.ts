@@ -46,10 +46,10 @@ const start = async (): Promise<void> => {
     fetch: app.fetch,
     port: PORT,
   })
-  console.log(`Chest-Backup API running on http://localhost:${PORT}`)
+  console.log(`Chest-Backup API running on http://localhost:${String(PORT)}`)
   seedLogsFromHistory()
   pushLog({
-    id: `log-start-${Date.now()}`,
+    id: `log-start-${String(Date.now())}`,
     timestamp: new Date().toISOString(),
     level: "info",
     message: "Chest-Backup API started",

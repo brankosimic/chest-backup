@@ -20,7 +20,7 @@ const formatSize = (bytes: number): string => {
 }
 
 const formatSpeed = (bytesPerSec: number): string => {
-  if (bytesPerSec < 1024) return `${Math.round(bytesPerSec)}B/s`
+  if (bytesPerSec < 1024) return `${String(Math.round(bytesPerSec))}B/s`
   const kb = bytesPerSec / 1024
   if (kb < 1024) return `${kb.toFixed(1)}KB/s`
   return `${(kb / 1024).toFixed(1)}MB/s`
@@ -51,7 +51,12 @@ const calcEmbedStatus = (result: BackupResult): EmbedStatus => {
   return { color, title, successCount, skippedCount, failCount }
 }
 
-const buildEmbedFields = (result: BackupResult, successCount: number, skippedCount: number, failCount: number): DiscordEmbed["fields"] => {
+const buildEmbedFields = (
+  result: BackupResult,
+  successCount: number,
+  skippedCount: number,
+  failCount: number,
+): DiscordEmbed["fields"] => {
   const fields: DiscordEmbed["fields"] = []
 
   if (result.archiveName) fields.push({ name: "Archive", value: result.archiveName, inline: true })
@@ -72,11 +77,19 @@ const buildEmbedFields = (result: BackupResult, successCount: number, skippedCou
 
   result.destinationResults.forEach((d) => {
     if (d.skipped) {
-      fields.push({ name: d.destLabel ?? "Destination", value: `Skipped — ${d.skippedReason ?? "identical"}`, inline: true })
+      fields.push({
+        name: d.destLabel ?? "Destination",
+        value: `Skipped — ${d.skippedReason ?? "identical"}`,
+        inline: true,
+      })
       return
     }
     const speedStr = d.speed !== undefined ? ` | ${formatSpeed(d.speed)}` : ""
-    fields.push({ name: d.destLabel ?? "Destination", value: `${d.error ? "Failed" : "OK"}${d.durationMs !== undefined ? ` (${formatDuration(d.durationMs)})` : ""}${speedStr}`, inline: true })
+    fields.push({
+      name: d.destLabel ?? "Destination",
+      value: `${d.error ? "Failed" : "OK"}${d.durationMs !== undefined ? ` (${formatDuration(d.durationMs)})` : ""}${speedStr}`,
+      inline: true,
+    })
   })
 
   if (result.errors.length)
@@ -91,7 +104,13 @@ const buildEmbed = (result: BackupResult): DiscordEmbed => {
   const embedStatus = calcEmbedStatus(result)
   const fields = buildEmbedFields(result, embedStatus.successCount, embedStatus.skippedCount, embedStatus.failCount)
 
-  return { title: embedStatus.title, description: "", color: embedStatus.color, fields, timestamp: new Date().toISOString() }
+  return {
+    title: embedStatus.title,
+    description: "",
+    color: embedStatus.color,
+    fields,
+    timestamp: new Date().toISOString(),
+  }
 }
 
 const buildStartedEmbed = (timestamp: string): DiscordEmbed => ({

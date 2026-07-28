@@ -13,11 +13,18 @@ const TableBody = ({ className, ...props }: React.HTMLAttributes<HTMLTableSectio
 }
 
 const TableRow = ({ className, ...props }: React.HTMLAttributes<HTMLTableRowElement>) => {
-  return <tr className={cn("border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted", className)} {...props} />
+  return (
+    <tr
+      className={cn("border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted", className)}
+      {...props}
+    />
+  )
 }
 
 const TableHead = ({ className, ...props }: React.ThHTMLAttributes<HTMLTableCellElement>) => {
-  return <th className={cn("h-12 px-4 text-left align-middle font-medium text-muted-foreground", className)} {...props} />
+  return (
+    <th className={cn("h-12 px-4 text-left align-middle font-medium text-muted-foreground", className)} {...props} />
+  )
 }
 
 const TableCell = ({ className, ...props }: React.TdHTMLAttributes<HTMLTableCellElement>) => {

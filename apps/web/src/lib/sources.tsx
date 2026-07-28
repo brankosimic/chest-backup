@@ -4,13 +4,20 @@ import { Folder, Database, Container, File, FolderOpen, HardDrive } from "lucide
 
 const sourceIcon = (type: string) => {
   switch (type) {
-    case "path": return <Folder className="h-5 w-5 text-blue-500 shrink-0" />
-    case "postgres": return <Database className="h-5 w-5 text-purple-500 shrink-0" />
-    case "postgres-container": return <Container className="h-5 w-5 text-amber-500 shrink-0" />
-    case "container-volume": return <HardDrive className="h-5 w-5 text-green-500 shrink-0" />
-    case "sqlite": return <Database className="h-5 w-5 text-teal-500 shrink-0" />
-    case "sqlite-container": return <Container className="h-5 w-5 text-cyan-500 shrink-0" />
-    default: return <Folder className="h-5 w-5 text-muted-foreground shrink-0" />
+    case "path":
+      return <Folder className="h-5 w-5 text-blue-500 shrink-0" />
+    case "postgres":
+      return <Database className="h-5 w-5 text-purple-500 shrink-0" />
+    case "postgres-container":
+      return <Container className="h-5 w-5 text-amber-500 shrink-0" />
+    case "container-volume":
+      return <HardDrive className="h-5 w-5 text-green-500 shrink-0" />
+    case "sqlite":
+      return <Database className="h-5 w-5 text-teal-500 shrink-0" />
+    case "sqlite-container":
+      return <Container className="h-5 w-5 text-cyan-500 shrink-0" />
+    default:
+      return <Folder className="h-5 w-5 text-muted-foreground shrink-0" />
   }
 }
 
@@ -18,9 +25,10 @@ const walkOrCreate = (node: PathTrieNode, segments: string[]): PathTrieNode => {
   let current = node
 
   for (const seg of segments) {
-    if (!current.children.has(seg))
-      current.children.set(seg, { children: new Map() })
-    current = current.children.get(seg)!
+    if (!current.children.has(seg)) current.children.set(seg, { children: new Map() })
+    const next = current.children.get(seg)
+    if (!next) throw new Error(`Unexpected missing child: ${seg}`)
+    current = next
   }
   return current
 }
@@ -32,11 +40,7 @@ const insertOne = (root: PathTrieNode, s: Source): void => {
   walkOrCreate(root, segments).source = s
 }
 
-const processNode = (
-  seg: string,
-  child: PathTrieNode,
-  prefix: string,
-): TreeNode => {
+const processNode = (seg: string, child: PathTrieNode, prefix: string): TreeNode => {
   const fullPath = prefix ? `${prefix}/${seg}` : seg
   const hasChildren = child.children.size > 0
 
@@ -65,9 +69,12 @@ const processNode = (
   return {
     id: child.source?.id ?? `path-${fullPath}`,
     label: seg,
-    icon: child.source && (child.source as { isFile?: boolean }).isFile
-      ? <File className="h-4 w-4 text-muted-foreground shrink-0" />
-      : <Folder className="h-4 w-4 text-muted-foreground shrink-0" />,
+    icon:
+      child.source && (child.source as { isFile?: boolean }).isFile ? (
+        <File className="h-4 w-4 text-muted-foreground shrink-0" />
+      ) : (
+        <Folder className="h-4 w-4 text-muted-foreground shrink-0" />
+      ),
     source: child.source,
   }
 }
@@ -84,20 +91,29 @@ const toTreeNodes = (node: PathTrieNode, prefix: string): TreeNode[] => {
 const buildPathTree = (sources: Source[]): TreeNode[] => {
   const root: PathTrieNode = { children: new Map() }
 
-  sources.forEach(s => insertOne(root, s))
+  sources.forEach((s) => {
+    insertOne(root, s)
+  })
 
   return toTreeNodes(root, "")
 }
 
 const sourceTypeLabelKey = (type: string): string => {
   switch (type) {
-    case "path": return "sources.typePath"
-    case "postgres": return "sources.typePostgres"
-    case "postgres-container": return "sources.typePostgresContainer"
-    case "container-volume": return "sources.typeContainerVolume"
-    case "sqlite": return "sources.typeSqlite"
-    case "sqlite-container": return "sources.typeSqliteContainer"
-    default: return type
+    case "path":
+      return "sources.typePath"
+    case "postgres":
+      return "sources.typePostgres"
+    case "postgres-container":
+      return "sources.typePostgresContainer"
+    case "container-volume":
+      return "sources.typeContainerVolume"
+    case "sqlite":
+      return "sources.typeSqlite"
+    case "sqlite-container":
+      return "sources.typeSqliteContainer"
+    default:
+      return type
   }
 }
 

@@ -13,33 +13,40 @@ import { fetchDockerContainers, fetchContainerVolumes } from "@/lib/api-client"
 
 const getTypeDefault = (type: string, source: Record<string, unknown>): Record<string, unknown> => {
   switch (type) {
-    case "path": return { path: source.path ?? "" }
-    case "postgres": return {
-      host: source.host ?? "localhost",
-      port: source.port ?? 5432,
-      user: source.user ?? "",
-      password: source.password ?? "",
-      database: source.database ?? "",
-    }
-    case "postgres-container": return {
-      containerName: source.containerName ?? "",
-      user: source.user ?? "",
-      password: source.password ?? "",
-      database: source.database ?? "",
-    }
-    case "container-volume": return {
-      containerName: source.containerName ?? "",
-      volumePath: source.volumePath ?? "",
-      include: (source.include as string[] | undefined)?.join("\n") ?? "",
-    }
-    case "sqlite": return {
-      path: source.path ?? "",
-    }
-    case "sqlite-container": return {
-      containerName: source.containerName ?? "",
-      dbPath: source.dbPath ?? "",
-    }
-    default: return {}
+    case "path":
+      return { path: source.path ?? "" }
+    case "postgres":
+      return {
+        host: source.host ?? "localhost",
+        port: source.port ?? 5432,
+        user: source.user ?? "",
+        password: source.password ?? "",
+        database: source.database ?? "",
+      }
+    case "postgres-container":
+      return {
+        containerName: source.containerName ?? "",
+        user: source.user ?? "",
+        password: source.password ?? "",
+        database: source.database ?? "",
+      }
+    case "container-volume":
+      return {
+        containerName: source.containerName ?? "",
+        volumePath: source.volumePath ?? "",
+        include: (source.include as string[] | undefined)?.join("\n") ?? "",
+      }
+    case "sqlite":
+      return {
+        path: source.path ?? "",
+      }
+    case "sqlite-container":
+      return {
+        containerName: source.containerName ?? "",
+        dbPath: source.dbPath ?? "",
+      }
+    default:
+      return {}
   }
 }
 
@@ -80,8 +87,12 @@ export default function SourceEditPage() {
     setDockerContainersError("")
     fetchDockerContainers()
       .then(setDockerContainers)
-      .catch(() => setDockerContainersError("Failed to list containers"))
-      .finally(() => setDockerContainersLoading(false))
+      .catch(() => {
+        setDockerContainersError("Failed to list containers")
+      })
+      .finally(() => {
+        setDockerContainersLoading(false)
+      })
   }, [])
 
   const fetchVolumes = useCallback(async () => {
@@ -124,7 +135,10 @@ export default function SourceEditPage() {
       case "container-volume": {
         body.containerName = form.containerName
         body.volumePath = form.volumePath
-        const patterns = ((form.include as string) ?? "").split("\n").map((s: string) => s.trim()).filter(Boolean)
+        const patterns = (form.include as string)
+          .split("\n")
+          .map((s: string) => s.trim())
+          .filter(Boolean)
         if (patterns.length) body.include = patterns
         break
       }
@@ -139,7 +153,7 @@ export default function SourceEditPage() {
 
     try {
       await updateMutation.mutateAsync({ id, data: body })
-      navigate("/sources")
+      void navigate("/sources")
     } catch {
       alert("Failed to save")
     }
@@ -166,7 +180,13 @@ export default function SourceEditPage() {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label>Type</Label>
-            <Select value={type} onChange={(e) => { setType(e.target.value); setForm(getTypeDefault(e.target.value, {})); }}>
+            <Select
+              value={type}
+              onChange={(e) => {
+                setType(e.target.value)
+                setForm(getTypeDefault(e.target.value, {}))
+              }}
+            >
               <option value="path">Path</option>
               <option value="postgres">PostgreSQL</option>
               <option value="postgres-container">PostgreSQL Container</option>
@@ -179,26 +199,107 @@ export default function SourceEditPage() {
           {type === "path" && (
             <div className="space-y-2">
               <Label>Path</Label>
-              <Input value={(form.path as string) ?? ""} onChange={(e) => { update("path", e.target.value); }} placeholder="/data/documents" />
+              <Input
+                value={form.path as string}
+                onChange={(e) => {
+                  update("path", e.target.value)
+                }}
+                placeholder="/data/documents"
+              />
             </div>
           )}
 
           {type === "postgres" && (
             <>
-              <div className="space-y-2"><Label>Host</Label><Input value={(form.host as string) ?? ""} onChange={(e) => { update("host", e.target.value); }} /></div>
-              <div className="space-y-2"><Label>Port</Label><Input type="number" value={(form.port as number) ?? 5432} onChange={(e) => { update("port", Number(e.target.value)); }} /></div>
-              <div className="space-y-2"><Label>User</Label><Input value={(form.user as string) ?? ""} onChange={(e) => { update("user", e.target.value); }} /></div>
-              <div className="space-y-2"><Label>Password</Label><Input type="password" value={(form.password as string) ?? ""} onChange={(e) => { update("password", e.target.value); }} /></div>
-              <div className="space-y-2"><Label>Database</Label><Input value={(form.database as string) ?? ""} onChange={(e) => { update("database", e.target.value); }} /></div>
+              <div className="space-y-2">
+                <Label>Host</Label>
+                <Input
+                  value={form.host as string}
+                  onChange={(e) => {
+                    update("host", e.target.value)
+                  }}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Port</Label>
+                <Input
+                  type="number"
+                  value={form.port as number}
+                  onChange={(e) => {
+                    update("port", Number(e.target.value))
+                  }}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>User</Label>
+                <Input
+                  value={form.user as string}
+                  onChange={(e) => {
+                    update("user", e.target.value)
+                  }}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Password</Label>
+                <Input
+                  type="password"
+                  value={form.password as string}
+                  onChange={(e) => {
+                    update("password", e.target.value)
+                  }}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Database</Label>
+                <Input
+                  value={form.database as string}
+                  onChange={(e) => {
+                    update("database", e.target.value)
+                  }}
+                />
+              </div>
             </>
           )}
 
           {type === "postgres-container" && (
             <>
-              <div className="space-y-2"><Label>Container Name</Label><Input value={(form.containerName as string) ?? ""} onChange={(e) => { update("containerName", e.target.value); }} /></div>
-              <div className="space-y-2"><Label>User</Label><Input value={(form.user as string) ?? ""} onChange={(e) => { update("user", e.target.value); }} /></div>
-              <div className="space-y-2"><Label>Password</Label><Input type="password" value={(form.password as string) ?? ""} onChange={(e) => { update("password", e.target.value); }} /></div>
-              <div className="space-y-2"><Label>Database</Label><Input value={(form.database as string) ?? ""} onChange={(e) => { update("database", e.target.value); }} /></div>
+              <div className="space-y-2">
+                <Label>Container Name</Label>
+                <Input
+                  value={form.containerName as string}
+                  onChange={(e) => {
+                    update("containerName", e.target.value)
+                  }}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>User</Label>
+                <Input
+                  value={form.user as string}
+                  onChange={(e) => {
+                    update("user", e.target.value)
+                  }}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Password</Label>
+                <Input
+                  type="password"
+                  value={form.password as string}
+                  onChange={(e) => {
+                    update("password", e.target.value)
+                  }}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Database</Label>
+                <Input
+                  value={form.database as string}
+                  onChange={(e) => {
+                    update("database", e.target.value)
+                  }}
+                />
+              </div>
             </>
           )}
 
@@ -207,13 +308,24 @@ export default function SourceEditPage() {
               <div className="space-y-2">
                 <Label>{t("sources.containerName")}</Label>
                 <Select
-                  value={(form.containerName as string) ?? ""}
-                  onChange={(e) => { update("containerName", e.target.value); update("volumePath", ""); }}
+                  value={form.containerName as string}
+                  onChange={(e) => {
+                    update("containerName", e.target.value)
+                    update("volumePath", "")
+                  }}
                   disabled={dockerContainersLoading || !!dockerContainersError}
                 >
-                  <option value="" disabled>{dockerContainersLoading ? t("common.loading") : dockerContainersError ? t("sources.containerFetchError") : t("sources.selectContainer")}</option>
+                  <option value="" disabled>
+                    {dockerContainersLoading
+                      ? t("common.loading")
+                      : dockerContainersError
+                        ? t("sources.containerFetchError")
+                        : t("sources.selectContainer")}
+                  </option>
                   {dockerContainers.map((c) => (
-                    <option key={c} value={c}>{c}</option>
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
                   ))}
                   {(form.containerName as string) && !dockerContainers.includes(form.containerName as string) && (
                     <option value={form.containerName as string}>{form.containerName as string}</option>
@@ -227,14 +339,19 @@ export default function SourceEditPage() {
                 <div className="space-y-2">
                   <Label>{t("sources.volumePath")}</Label>
                   <Select
-                    value={(form.volumePath as string) ?? ""}
-                    onChange={(e) => { update("volumePath", e.target.value); }}
+                    value={form.volumePath as string}
+                    onChange={(e) => {
+                      update("volumePath", e.target.value)
+                    }}
                     disabled={!!cvVolumesError}
                   >
-                    <option value="" disabled>{cvVolumesError ? t("sources.noVolumes") : t("sources.selectVolumePath")}</option>
+                    <option value="" disabled>
+                      {cvVolumesError ? t("sources.noVolumes") : t("sources.selectVolumePath")}
+                    </option>
                     {cvVolumes.map((v, i) => (
-                      <option key={`${v.source}-${i}`} value={v.source}>
-                        {v.destination} → {v.source}{v.name ? ` (${v.name})` : ""}
+                      <option key={`${v.source}-${String(i)}`} value={v.source}>
+                        {v.destination} → {v.source}
+                        {v.name ? ` (${v.name})` : ""}
                       </option>
                     ))}
                   </Select>
@@ -247,8 +364,10 @@ export default function SourceEditPage() {
                   <Label>{t("sources.includePatterns")}</Label>
                   <textarea
                     className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                    value={(form.include as string) ?? ""}
-                    onChange={(e) => { update("include", e.target.value); }}
+                    value={form.include as string}
+                    onChange={(e) => {
+                      update("include", e.target.value)
+                    }}
                     placeholder="logs/*&#10;config/*&#10;data/**/*.db"
                   />
                   <p className="text-xs text-muted-foreground">{t("sources.includePatternsHint")}</p>
@@ -260,7 +379,13 @@ export default function SourceEditPage() {
           {type === "sqlite" && (
             <div className="space-y-2">
               <Label>{t("sources.path")}</Label>
-              <Input value={(form.path as string) ?? ""} onChange={(e) => { update("path", e.target.value); }} placeholder="/data/app/data.db" />
+              <Input
+                value={form.path as string}
+                onChange={(e) => {
+                  update("path", e.target.value)
+                }}
+                placeholder="/data/app/data.db"
+              />
             </div>
           )}
 
@@ -269,13 +394,23 @@ export default function SourceEditPage() {
               <div className="space-y-2">
                 <Label>{t("sources.containerName")}</Label>
                 <Select
-                  value={(form.containerName as string) ?? ""}
-                  onChange={(e) => { update("containerName", e.target.value); }}
+                  value={form.containerName as string}
+                  onChange={(e) => {
+                    update("containerName", e.target.value)
+                  }}
                   disabled={dockerContainersLoading || !!dockerContainersError}
                 >
-                  <option value="" disabled>{dockerContainersLoading ? t("common.loading") : dockerContainersError ? t("sources.containerFetchError") : t("sources.selectContainer")}</option>
+                  <option value="" disabled>
+                    {dockerContainersLoading
+                      ? t("common.loading")
+                      : dockerContainersError
+                        ? t("sources.containerFetchError")
+                        : t("sources.selectContainer")}
+                  </option>
                   {dockerContainers.map((c) => (
-                    <option key={c} value={c}>{c}</option>
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
                   ))}
                   {(form.containerName as string) && !dockerContainers.includes(form.containerName as string) && (
                     <option value={form.containerName as string}>{form.containerName as string}</option>
@@ -286,16 +421,34 @@ export default function SourceEditPage() {
               </div>
               <div className="space-y-2">
                 <Label>Database Path</Label>
-                <Input value={(form.dbPath as string) ?? ""} onChange={(e) => { update("dbPath", e.target.value); }} placeholder="/config/app.db" />
+                <Input
+                  value={form.dbPath as string}
+                  onChange={(e) => {
+                    update("dbPath", e.target.value)
+                  }}
+                  placeholder="/config/app.db"
+                />
               </div>
             </>
           )}
 
           <div className="flex gap-2 pt-4">
-            <Button onClick={handleSave} disabled={updateMutation.isPending}>
+            <Button
+              onClick={() => {
+                void handleSave()
+              }}
+              disabled={updateMutation.isPending}
+            >
               {updateMutation.isPending ? t("common.loading") : t("common.save")}
             </Button>
-            <Button variant="outline" onClick={() => { navigate("/sources"); }}>{t("common.cancel")}</Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                void navigate("/sources")
+              }}
+            >
+              {t("common.cancel")}
+            </Button>
           </div>
         </CardContent>
       </Card>

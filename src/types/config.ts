@@ -46,7 +46,8 @@ type SqliteContainerSource = {
   dbPath: string
 }
 
-type Source = PathSource | PostgresSource | PostgresContainerSource | ContainerVolumeSource | SqliteSource | SqliteContainerSource
+type Source =
+  PathSource | PostgresSource | PostgresContainerSource | ContainerVolumeSource | SqliteSource | SqliteContainerSource
 
 interface Destination {
   type: "local" | "sftp"
@@ -80,4 +81,17 @@ interface Config {
   notifications?: NotificationsConfig
 }
 
-export type { Config, Source, PathSource, PostgresSource, PostgresContainerSource, ContainerVolumeSource, SqliteSource, SqliteContainerSource, Destination, ParsedConnString, DiscordConfig, NotificationsConfig }
+export type {
+  Config,
+  Source,
+  PathSource,
+  PostgresSource,
+  PostgresContainerSource,
+  ContainerVolumeSource,
+  SqliteSource,
+  SqliteContainerSource,
+  Destination,
+  ParsedConnString,
+  DiscordConfig,
+  NotificationsConfig,
+}

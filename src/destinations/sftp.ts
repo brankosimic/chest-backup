@@ -7,7 +7,7 @@ import { logger } from "../utils/logger"
 import { ARCHIVE_PATTERN, parseTimestampFromName } from "../backup/retention"
 
 const makeDestLabel = (dest: Destination): string => {
-  const hostPart = dest.host ? `${dest.user}@${dest.host}:${dest.port ?? 22}` : ""
+  const hostPart = dest.host ? `${String(dest.user)}@${dest.host}:${String(dest.port ?? 22)}` : ""
   return hostPart ? `sftp://${hostPart}${dest.path}` : dest.path
 }
 
@@ -31,15 +31,13 @@ const connectClient = async (sftp: SFTPClient, dest: Destination): Promise<void>
     await sftp.connect(config)
   } catch (err) {
     const msg = err instanceof Error ? err.message || "no details (check host/port/credentials/firewall)" : String(err)
-    throw new Error(`SFTP connection to ${makeDestLabel(dest)} failed: ${msg}`)
+    throw new Error(`SFTP connection to ${makeDestLabel(dest)} failed: ${msg}`, { cause: err })
   }
 }
 
 const getLatestChecksumSftp = async (sftp: SFTPClient, dest: Destination): Promise<string | null> => {
   try {
-    const files = (await sftp.list(dest.path))
-      .map((f) => f.name)
-      .filter((f) => ARCHIVE_PATTERN.test(f))
+    const files = (await sftp.list(dest.path)).map((f) => f.name).filter((f) => ARCHIVE_PATTERN.test(f))
 
     if (!files.length) return null
 
@@ -78,14 +76,20 @@ const storeSftp = async (
     const archiveName = archivePath.split("/").pop() ?? ""
 
     const { uploadedSize, durationMs, speed } = await uploadWithProgress(sftp, archivePath, `${base}/${archiveName}`)
-    logger.info({ remotePath: `${base}/${archiveName}`, size: uploadedSize, durationMs, speed }, "archive uploaded to SFTP destination")
+    logger.info(
+      { remotePath: `${base}/${archiveName}`, size: uploadedSize, durationMs, speed },
+      "archive uploaded to SFTP destination",
+    )
 
     let checksumSize = 0
     if (checksumFile) {
       const checksumName = checksumFile.split("/").pop() ?? ""
       const { uploadedSize: csSize } = await uploadWithProgress(sftp, checksumFile, `${base}/${checksumName}`)
       checksumSize = csSize
-      logger.info({ remotePath: `${base}/${checksumName}`, size: checksumSize }, "checksum uploaded to SFTP destination")
+      logger.info(
+        { remotePath: `${base}/${checksumName}`, size: checksumSize },
+        "checksum uploaded to SFTP destination",
+      )
     }
 
     return { success: true, speed }
@@ -98,11 +102,7 @@ const storeSftp = async (
   }
 }
 
-const uploadWithProgress = async (
-  sftp: SFTPClient,
-  filePath: string,
-  remotePath: string,
-): Promise<UploadProgress> => {
+const uploadWithProgress = async (sftp: SFTPClient, filePath: string, remotePath: string): Promise<UploadProgress> => {
   const fileSize = statSync(filePath).size
   const startTime = Date.now()
 
@@ -129,7 +129,11 @@ const deleteSftpFile = async (sftp: SFTPClient, base: string, file: string): Pro
   }
 }
 
-const enforceRetentionSftp = async (dest: Destination, archivePrefix: string, globalRetention: number): Promise<void> => {
+const enforceRetentionSftp = async (
+  dest: Destination,
+  archivePrefix: string,
+  globalRetention: number,
+): Promise<void> => {
   if (!dest.host || !dest.user) return
 
   const retention = dest.retention ?? globalRetention
@@ -171,8 +175,7 @@ const scanSftpUsage = async (dest: Destination): Promise<SftpUsage | null> => {
   try {
     await connectClient(sftp, dest)
 
-    const files = (await sftp.list(dest.path))
-      .filter((f) => f.name.endsWith(".tar.gz") && ARCHIVE_PATTERN.test(f.name))
+    const files = (await sftp.list(dest.path)).filter((f) => f.name.endsWith(".tar.gz") && ARCHIVE_PATTERN.test(f.name))
 
     return { totalSize: files.reduce((acc, f) => acc + f.size, 0), fileCount: files.length }
   } catch (err) {
@@ -180,7 +183,9 @@ const scanSftpUsage = async (dest: Destination): Promise<SftpUsage | null> => {
     logger.warn({ host: dest.host, path: dest.path, error: msg }, "failed to scan SFTP destination")
     return null
   } finally {
-    await sftp.end().catch((err) => { logger.warn({ err }, "failed to close SFTP connection during usage scan") })
+    await sftp.end().catch((err: unknown) => {
+      logger.warn({ err }, "failed to close SFTP connection during usage scan")
+    })
   }
 }
 

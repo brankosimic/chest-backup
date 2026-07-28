@@ -30,9 +30,7 @@ const getNotifications = (): NotificationConfig => {
   const { config } = getConfig()
   const discordConfig = config.notifications?.discord
   return {
-    discord: discordConfig
-      ? { webhookUrl: discordConfig.webhookUrl ?? "", enabled: true }
-      : undefined,
+    discord: discordConfig ? { webhookUrl: discordConfig.webhookUrl ?? "", enabled: true } : undefined,
   }
 }
 
@@ -46,11 +44,4 @@ const updateNotifications = (data: Partial<NotificationConfig>): NotificationCon
   return getNotifications()
 }
 
-export {
-  getSchedule,
-  updateSchedule,
-  getRetention,
-  updateRetention,
-  getNotifications,
-  updateNotifications,
-}
+export { getSchedule, updateSchedule, getRetention, updateRetention, getNotifications, updateNotifications }

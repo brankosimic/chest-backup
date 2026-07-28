@@ -17,7 +17,13 @@ const generateArchiveName = (timestamp: string): string => {
   return `chest-backup-${timestamp}.tar.gz`
 }
 
-const createArchive = async (timestamp: string, sources: string[], dbDumps: string[], tempDir: string, tempFiles?: string[]): Promise<string> => {
+const createArchive = async (
+  timestamp: string,
+  sources: string[],
+  dbDumps: string[],
+  tempDir: string,
+  tempFiles?: string[],
+): Promise<string> => {
   const archiveName = generateArchiveName(timestamp)
   const archivePath = join(tempDir, archiveName)
 

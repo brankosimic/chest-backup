@@ -45,19 +45,17 @@ export default function NewSourcePage() {
   const isPostgres = ["postgres", "postgres-container"].includes(type)
 
   const isContainer = type === "postgres-container"
-  const fieldsReady = isContainer
-    ? user && password && containerName
-    : user && password && host
+  const fieldsReady = isContainer ? user && password && containerName : user && password && host
 
   const canCreate = isPostgres
     ? !!(fieldsReady && database)
     : type === "container-volume"
       ? !!(cvContainerName && volumePath)
-    : type === "sqlite"
-      ? !!path
-    : type === "sqlite-container"
-      ? !!(containerName && dbPath)
-      : !!path
+      : type === "sqlite"
+        ? !!path
+        : type === "sqlite-container"
+          ? !!(containerName && dbPath)
+          : !!path
 
   const fetchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const cvFetchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -90,7 +88,10 @@ export default function NewSourcePage() {
   useEffect(() => {
     if (fetchTimerRef.current) clearTimeout(fetchTimerRef.current)
     if (!isPostgres || !fieldsReady) return
-    fetchTimerRef.current = setTimeout(fetchDbList, 600)
+    fetchTimerRef.current = setTimeout(() => {
+      void fetchDbList()
+      void 0
+    }, 600)
     return () => {
       if (fetchTimerRef.current) clearTimeout(fetchTimerRef.current)
     }
@@ -101,8 +102,12 @@ export default function NewSourcePage() {
     setDockerContainersError("")
     fetchDockerContainers()
       .then(setDockerContainers)
-      .catch(() => setDockerContainersError("Failed to list containers"))
-      .finally(() => setDockerContainersLoading(false))
+      .catch(() => {
+        setDockerContainersError("Failed to list containers")
+      })
+      .finally(() => {
+        setDockerContainersLoading(false)
+      })
   }, [])
 
   useEffect(() => {
@@ -135,13 +140,16 @@ export default function NewSourcePage() {
   useEffect(() => {
     if (cvFetchTimerRef.current) clearTimeout(cvFetchTimerRef.current)
     if (type !== "container-volume" || !cvContainerName) return
-    cvFetchTimerRef.current = setTimeout(fetchVolumes, 300)
+    cvFetchTimerRef.current = setTimeout(() => {
+      void fetchVolumes()
+      void 0
+    }, 300)
     return () => {
       if (cvFetchTimerRef.current) clearTimeout(cvFetchTimerRef.current)
     }
   }, [fetchVolumes, type, cvContainerName])
 
-  const handleCreate = async (e: SubmitEvent<HTMLFormElement>) => {
+  const handleCreate = (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault()
     const body: Record<string, unknown> = { type }
 
@@ -161,7 +169,10 @@ export default function NewSourcePage() {
     } else if (type === "container-volume") {
       body.containerName = cvContainerName
       body.volumePath = volumePath
-      const patterns = include.split("\n").map((s) => s.trim()).filter(Boolean)
+      const patterns = include
+        .split("\n")
+        .map((s) => s.trim())
+        .filter(Boolean)
       if (patterns.length) body.include = patterns
     } else if (type === "sqlite") {
       body.path = path
@@ -170,12 +181,14 @@ export default function NewSourcePage() {
       body.dbPath = dbPath
     }
 
-    try {
-      await createMutation.mutateAsync(body)
-      navigate("/sources")
-    } catch {
-      alert(t("sources.createError"))
-    }
+    createMutation
+      .mutateAsync(body)
+      .then(() => {
+        void navigate("/sources")
+      })
+      .catch(() => {
+        alert(t("sources.createError"))
+      })
   }
 
   const renderPostgresFields = () => {
@@ -186,12 +199,22 @@ export default function NewSourcePage() {
             <Label htmlFor="containerName">{t("sources.containerName")}</Label>
             <Select
               value={containerName}
-              onChange={(e) => { setContainerName(e.target.value); }}
+              onChange={(e) => {
+                setContainerName(e.target.value)
+              }}
               disabled={dockerContainersLoading || !!dockerContainersError}
             >
-              <option value="" disabled>{dockerContainersLoading ? t("common.loading") : dockerContainersError ? t("sources.containerFetchError") : t("sources.selectContainer")}</option>
+              <option value="" disabled>
+                {dockerContainersLoading
+                  ? t("common.loading")
+                  : dockerContainersError
+                    ? t("sources.containerFetchError")
+                    : t("sources.selectContainer")}
+              </option>
               {dockerContainers.map((c) => (
-                <option key={c} value={c}>{c}</option>
+                <option key={c} value={c}>
+                  {c}
+                </option>
               ))}
               {containerName && !dockerContainers.includes(containerName) && (
                 <option value={containerName}>{containerName}</option>
@@ -202,29 +225,77 @@ export default function NewSourcePage() {
           </div>
         ) : (
           <>
-            <div className="space-y-2"><Label htmlFor="host">{t("sources.host")}</Label><Input id="host" value={host} onChange={(e) => { setHost(e.target.value); }} placeholder={t("sources.hostPlaceholder")} /></div>
-            <div className="space-y-2"><Label htmlFor="port">{t("sources.port")}</Label><Input id="port" type="number" value={port} onChange={(e) => { setPort(Number(e.target.value)); }} placeholder={t("sources.portPlaceholder")} /></div>
+            <div className="space-y-2">
+              <Label htmlFor="host">{t("sources.host")}</Label>
+              <Input
+                id="host"
+                value={host}
+                onChange={(e) => {
+                  setHost(e.target.value)
+                }}
+                placeholder={t("sources.hostPlaceholder")}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="port">{t("sources.port")}</Label>
+              <Input
+                id="port"
+                type="number"
+                value={port}
+                onChange={(e) => {
+                  setPort(Number(e.target.value))
+                }}
+                placeholder={t("sources.portPlaceholder")}
+              />
+            </div>
           </>
         )}
 
-        <div className="space-y-2"><Label htmlFor="user">{t("sources.user")}</Label><Input id="user" value={user} onChange={(e) => { setUser(e.target.value); }} /></div>
-        <div className="space-y-2"><Label htmlFor="password">{t("sources.password")}</Label><Input id="password" type="password" value={password} onChange={(e) => { setPassword(e.target.value); }} /></div>
+        <div className="space-y-2">
+          <Label htmlFor="user">{t("sources.user")}</Label>
+          <Input
+            id="user"
+            value={user}
+            onChange={(e) => {
+              setUser(e.target.value)
+            }}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="password">{t("sources.password")}</Label>
+          <Input
+            id="password"
+            type="password"
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value)
+            }}
+          />
+        </div>
 
         <div className="space-y-2">
           <Label htmlFor="database">{t("sources.database")}</Label>
 
           <Select
             value={database}
-            onChange={(e) => { setDatabase(e.target.value); }}
+            onChange={(e) => {
+              setDatabase(e.target.value)
+            }}
             disabled={!fieldsReady || databasesLoading || databasesError !== ""}
           >
-            <option value="" disabled>{databasesLoading ? t("common.loading") : databasesError ? t("sources.noDatabases") : t("sources.selectDatabase")}</option>
+            <option value="" disabled>
+              {databasesLoading
+                ? t("common.loading")
+                : databasesError
+                  ? t("sources.noDatabases")
+                  : t("sources.selectDatabase")}
+            </option>
             {databases.map((db) => (
-              <option key={db} value={db}>{db}</option>
+              <option key={db} value={db}>
+                {db}
+              </option>
             ))}
-            {database && !databases.includes(database) && (
-              <option value={database}>{database}</option>
-            )}
+            {database && !databases.includes(database) && <option value={database}>{database}</option>}
           </Select>
 
           {databasesLoading && <p className="text-xs text-muted-foreground">{t("sources.fetchingDatabases")}</p>}
@@ -240,12 +311,22 @@ export default function NewSourcePage() {
         <Label htmlFor="cvContainerName">{t("sources.containerName")}</Label>
         <Select
           value={cvContainerName}
-          onChange={(e) => { setCvContainerName(e.target.value); }}
+          onChange={(e) => {
+            setCvContainerName(e.target.value)
+          }}
           disabled={dockerContainersLoading || !!dockerContainersError}
         >
-          <option value="" disabled>{dockerContainersLoading ? t("common.loading") : dockerContainersError ? t("sources.containerFetchError") : t("sources.selectContainer")}</option>
+          <option value="" disabled>
+            {dockerContainersLoading
+              ? t("common.loading")
+              : dockerContainersError
+                ? t("sources.containerFetchError")
+                : t("sources.selectContainer")}
+          </option>
           {dockerContainers.map((c) => (
-            <option key={c} value={c}>{c}</option>
+            <option key={c} value={c}>
+              {c}
+            </option>
           ))}
         </Select>
         {dockerContainersLoading && <p className="text-xs text-muted-foreground">{t("common.loading")}</p>}
@@ -257,13 +338,18 @@ export default function NewSourcePage() {
           <Label htmlFor="volumePath">{t("sources.volumePath")}</Label>
           <Select
             value={volumePath}
-            onChange={(e) => { setVolumePath(e.target.value); }}
+            onChange={(e) => {
+              setVolumePath(e.target.value)
+            }}
             disabled={!!cvVolumesError}
           >
-            <option value="" disabled>{cvVolumesError ? t("sources.noVolumes") : t("sources.selectVolumePath")}</option>
+            <option value="" disabled>
+              {cvVolumesError ? t("sources.noVolumes") : t("sources.selectVolumePath")}
+            </option>
             {cvVolumes.map((v, i) => (
-              <option key={`${v.source}-${i}`} value={v.source}>
-                {v.destination} → {v.source}{v.name ? ` (${v.name})` : ""}
+              <option key={`${v.source}-${String(i)}`} value={v.source}>
+                {v.destination} → {v.source}
+                {v.name ? ` (${v.name})` : ""}
               </option>
             ))}
           </Select>
@@ -278,7 +364,9 @@ export default function NewSourcePage() {
             id="include"
             className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
             value={include}
-            onChange={(e) => { setInclude(e.target.value); }}
+            onChange={(e) => {
+              setInclude(e.target.value)
+            }}
             placeholder={t("sources.includePatternsPlaceholder")}
           />
           <p className="text-xs text-muted-foreground">{t("sources.includePatternsHint")}</p>
@@ -299,7 +387,12 @@ export default function NewSourcePage() {
           <form onSubmit={handleCreate} className="space-y-4">
             <div className="space-y-2">
               <Label>{t("sources.sourceType")}</Label>
-              <Select value={type} onChange={(e) => { setType(e.target.value); }}>
+              <Select
+                value={type}
+                onChange={(e) => {
+                  setType(e.target.value)
+                }}
+              >
                 <option value="path">Path</option>
                 <option value="postgres">PostgreSQL</option>
                 <option value="postgres-container">PostgreSQL Container</option>
@@ -312,7 +405,14 @@ export default function NewSourcePage() {
             {type === "path" && (
               <div className="space-y-2">
                 <Label htmlFor="path">{t("sources.path")}</Label>
-                <Input id="path" value={path} onChange={(e) => { setPath(e.target.value); }} placeholder={t("sources.pathPlaceholder")} />
+                <Input
+                  id="path"
+                  value={path}
+                  onChange={(e) => {
+                    setPath(e.target.value)
+                  }}
+                  placeholder={t("sources.pathPlaceholder")}
+                />
               </div>
             )}
 
@@ -323,7 +423,14 @@ export default function NewSourcePage() {
             {type === "sqlite" && (
               <div className="space-y-2">
                 <Label htmlFor="path">{t("sources.path")}</Label>
-                <Input id="path" value={path} onChange={(e) => { setPath(e.target.value); }} placeholder="/data/app/data.db" />
+                <Input
+                  id="path"
+                  value={path}
+                  onChange={(e) => {
+                    setPath(e.target.value)
+                  }}
+                  placeholder="/data/app/data.db"
+                />
               </div>
             )}
 
@@ -333,12 +440,22 @@ export default function NewSourcePage() {
                   <Label htmlFor="containerName">{t("sources.containerName")}</Label>
                   <Select
                     value={containerName}
-                    onChange={(e) => { setContainerName(e.target.value); }}
+                    onChange={(e) => {
+                      setContainerName(e.target.value)
+                    }}
                     disabled={dockerContainersLoading || !!dockerContainersError}
                   >
-                    <option value="" disabled>{dockerContainersLoading ? t("common.loading") : dockerContainersError ? t("sources.containerFetchError") : t("sources.selectContainer")}</option>
+                    <option value="" disabled>
+                      {dockerContainersLoading
+                        ? t("common.loading")
+                        : dockerContainersError
+                          ? t("sources.containerFetchError")
+                          : t("sources.selectContainer")}
+                    </option>
                     {dockerContainers.map((c) => (
-                      <option key={c} value={c}>{c}</option>
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
                     ))}
                     {containerName && !dockerContainers.includes(containerName) && (
                       <option value={containerName}>{containerName}</option>
@@ -349,7 +466,14 @@ export default function NewSourcePage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="dbPath">Database Path</Label>
-                  <Input id="dbPath" value={dbPath} onChange={(e) => { setDbPath(e.target.value); }} placeholder="/config/app.db" />
+                  <Input
+                    id="dbPath"
+                    value={dbPath}
+                    onChange={(e) => {
+                      setDbPath(e.target.value)
+                    }}
+                    placeholder="/config/app.db"
+                  />
                 </div>
               </>
             )}
@@ -358,7 +482,13 @@ export default function NewSourcePage() {
               <Button type="submit" disabled={createMutation.isPending || !canCreate}>
                 {createMutation.isPending ? t("common.loading") : t("common.create")}
               </Button>
-              <Button type="button" variant="outline" onClick={() => { navigate("/sources"); }}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  void navigate("/sources")
+                }}
+              >
                 {t("common.cancel")}
               </Button>
             </div>

@@ -1,4 +1,15 @@
-import type { Config, Source, Destination, ContainerVolumeSource, PostgresSource, PathSource, SqliteSource, SqliteContainerSource, DiscordConfig, NotificationsConfig } from "./config"
+import type {
+  Config,
+  Source,
+  Destination,
+  ContainerVolumeSource,
+  PostgresSource,
+  PathSource,
+  SqliteSource,
+  SqliteContainerSource,
+  DiscordConfig,
+  NotificationsConfig,
+} from "./config"
 import type { DestinationHandler, StoreResult, BackupProgressEvent, BackupProgressCallback } from "./destination"
 
 interface CollectedSources {

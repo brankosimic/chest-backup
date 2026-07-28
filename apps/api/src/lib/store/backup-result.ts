@@ -16,7 +16,7 @@ const persistBackupResult = (result: BackupResult): void => {
     id: `log-${result.timestamp}`,
     timestamp: parseTimestamp(result.timestamp),
     level: result.success ? "info" : "error",
-    message: `Backup ${result.success ? "completed" : "failed"}: ${result.archiveName ?? "unknown"} (${Math.round(result.durationMs / 1000)}s)`,
+    message: `Backup ${result.success ? "completed" : "failed"}: ${result.archiveName ?? "unknown"} (${String(Math.round(result.durationMs / 1000))}s)`,
     metadata: { archiveName: result.archiveName, success: result.success, durationMs: result.durationMs },
   })
 }

@@ -30,11 +30,19 @@ export default function HistoryPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b">
-                  <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">{t("history.timestamp")}</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">{t("history.status")}</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">{t("history.duration")}</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
+                    {t("history.timestamp")}
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
+                    {t("history.status")}
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
+                    {t("history.duration")}
+                  </th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">{t("history.size")}</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">{t("history.errors")}</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
+                    {t("history.errors")}
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -47,13 +55,17 @@ export default function HistoryPage() {
                       </Badge>
                     </td>
                     <td className="px-4 py-3 text-sm">{formatDuration(backup.durationMs)}</td>
-                    <td className="px-4 py-3 text-sm font-mono">{backup.archiveSize !== undefined ? formatSize(backup.archiveSize) : "-"}</td>
-                    <td className="px-4 py-3 text-sm text-destructive">{backup.errors?.join(", ")}</td>
+                    <td className="px-4 py-3 text-sm font-mono">
+                      {backup.archiveSize !== undefined ? formatSize(backup.archiveSize) : "-"}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-destructive">{backup.errors.join(", ")}</td>
                   </tr>
                 ))}
                 {!backups.length && (
                   <tr>
-                    <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">{t("history.noHistory")}</td>
+                    <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+                      {t("history.noHistory")}
+                    </td>
                   </tr>
                 )}
               </tbody>

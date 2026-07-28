@@ -34,10 +34,14 @@ const main = async (): Promise<void> => {
       }
     },
     onViewLogs: () => {
-      const child = spawn("konsole", ["--hold", "-e", "journalctl", "--user", "-u", "chest-backup", "-n", "50", "-f", "--no-pager"], {
-        detached: true,
-        stdio: "ignore",
-      })
+      const child = spawn(
+        "konsole",
+        ["--hold", "-e", "journalctl", "--user", "-u", "chest-backup", "-n", "50", "-f", "--no-pager"],
+        {
+          detached: true,
+          stdio: "ignore",
+        },
+      )
       child.unref()
     },
     onQuit: () => {

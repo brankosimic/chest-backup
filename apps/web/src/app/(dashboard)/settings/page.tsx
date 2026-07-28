@@ -49,7 +49,9 @@ export default function SettingsPage() {
     try {
       localStorage.setItem("chest-backup-tempDir", tempDir)
       localStorage.setItem("chest-backup-language", language)
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
 
   const handleSaveSchedule = () => {
@@ -65,16 +67,29 @@ export default function SettingsPage() {
       <Header title={t("settings.title")} subtitle={t("settings.subtitle")} />
 
       <Card>
-        <CardHeader><CardTitle>{t("settings.general")}</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle>{t("settings.general")}</CardTitle>
+        </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
             <Label>{t("settings.tempDir")}</Label>
-            <Input value={tempDir} onChange={(e) => { setTempDir(e.target.value); }} placeholder={t("settings.tempDirPlaceholder")} />
+            <Input
+              value={tempDir}
+              onChange={(e) => {
+                setTempDir(e.target.value)
+              }}
+              placeholder={t("settings.tempDirPlaceholder")}
+            />
           </div>
 
           <div className="space-y-2">
             <Label>{t("settings.language")}</Label>
-            <Select value={language} onChange={(e) => { setLanguage(e.target.value); }}>
+            <Select
+              value={language}
+              onChange={(e) => {
+                setLanguage(e.target.value)
+              }}
+            >
               <option value="en">English</option>
               <option value="bs">Bosanski</option>
             </Select>
@@ -85,16 +100,26 @@ export default function SettingsPage() {
             <p className="text-sm text-muted-foreground">{t("settings.themeComingSoon")}</p>
           </div>
 
-          <Button onClick={handleSaveGeneral} className="w-full">{t("common.save")}</Button>
+          <Button onClick={handleSaveGeneral} className="w-full">
+            {t("common.save")}
+          </Button>
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader><CardTitle>{t("settings.schedule")}</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle>{t("settings.schedule")}</CardTitle>
+        </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
             <Label>{t("settings.cronExpression")}</Label>
-            <Input value={schedule} onChange={(e) => { setSchedule(e.target.value); }} placeholder="0 3 * * *" />
+            <Input
+              value={schedule}
+              onChange={(e) => {
+                setSchedule(e.target.value)
+              }}
+              placeholder="0 3 * * *"
+            />
             <p className="text-xs text-muted-foreground">Format: minute hour day-of-month month day-of-week</p>
           </div>
 
@@ -122,7 +147,14 @@ export default function SettingsPage() {
             <Label>{t("settings.presets")}</Label>
             <div className="grid gap-2 sm:grid-cols-3">
               {cronPresets.map((preset) => (
-                <Button key={preset.value} variant="outline" size="sm" onClick={() => { setSchedule(preset.value); }}>
+                <Button
+                  key={preset.value}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSchedule(preset.value)
+                  }}
+                >
                   {t(preset.label)}
                 </Button>
               ))}
@@ -136,11 +168,20 @@ export default function SettingsPage() {
       </Card>
 
       <Card>
-        <CardHeader><CardTitle>{t("settings.retention")}</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle>{t("settings.retention")}</CardTitle>
+        </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
             <Label>{t("settings.globalRetention")}</Label>
-            <Input type="number" min={1} value={globalRetention} onChange={(e) => { setGlobalRetention(Number(e.target.value)); }} />
+            <Input
+              type="number"
+              min={1}
+              value={globalRetention}
+              onChange={(e) => {
+                setGlobalRetention(Number(e.target.value))
+              }}
+            />
             <p className="text-xs text-muted-foreground">{t("settings.retentionDays")}</p>
           </div>
 

@@ -37,7 +37,7 @@ const seedFromArchiveDir = (): BackupRecord[] => {
   const localDest = config.destinations.find((d) => d.type === "local")
   if (!localDest?.path) return []
 
-  const dir = localDest.path as string
+  const dir = localDest.path
   if (!existsSync(dir)) return []
 
   const files = readdirSync(dir)
@@ -64,9 +64,7 @@ const seedFromArchiveDir = (): BackupRecord[] => {
       archiveName: file,
       archiveSize: st.size,
       durationMs: 0,
-      destinationResults: [
-        { success: shaExists, destLabel: localDest.path as string, durationMs: 0 },
-      ],
+      destinationResults: [{ success: shaExists, destLabel: localDest.path, durationMs: 0 }],
       errors: shaExists ? [] : ["Missing SHA256 checksum file"],
     }
   })
@@ -79,8 +77,7 @@ const getBackups = (page = 1, limit = 20): PaginatedResult<BackupRecord> => {
   return { data: paged, total: records.length, page, limit }
 }
 
-const getBackupById = (id: string): BackupRecord | undefined =>
-  readBackupHistory().find((b) => b.id === id)
+const getBackupById = (id: string): BackupRecord | undefined => readBackupHistory().find((b) => b.id === id)
 
 const buildDestDurationMap = (records: BackupRecord[]): Map<string, { sum: number; count: number }> => {
   const map = new Map<string, { sum: number; count: number }>()
@@ -119,7 +116,14 @@ const buildDestUsage = async (
 
   if (destType === "sftp") {
     const usage = await scanSftpUsage(dest as unknown as Destination)
-    return { type: "sftp", name, path: dest.path as string, totalSize: usage?.totalSize ?? 0, fileCount: usage?.fileCount ?? 0, avgDurationMs }
+    return {
+      type: "sftp",
+      name,
+      path: dest.path as string,
+      totalSize: usage?.totalSize ?? 0,
+      fileCount: usage?.fileCount ?? 0,
+      avgDurationMs,
+    }
   }
 
   return null
@@ -157,11 +161,4 @@ const addBackupRecord = (record: BackupRecord): void => {
   backupCache = records
 }
 
-export {
-  getBackups,
-  getBackupById,
-  getBackupStats,
-  addBackupRecord,
-  invalidateBackupCache,
-  readBackupHistory,
-}
+export { getBackups, getBackupById, getBackupStats, addBackupRecord, invalidateBackupCache, readBackupHistory }

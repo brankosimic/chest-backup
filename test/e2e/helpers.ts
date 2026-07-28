@@ -11,9 +11,15 @@ const attemptConnection = async (host: string, port: number): Promise<void> => {
       open(tcp) {
         tcp.end()
       },
-      close() { logger.debug("socket closed") },
-      data() { logger.debug("socket data received") },
-      drain() { logger.debug("socket drained") },
+      close() {
+        logger.debug("socket closed")
+      },
+      data() {
+        logger.debug("socket data received")
+      },
+      drain() {
+        logger.debug("socket drained")
+      },
     },
   })
 }
@@ -69,7 +75,15 @@ export const E2E = {
       ],
       destinations: [
         { type: "local", path: E2E.BACKUP_DIR, parallel: false },
-        { type: "sftp", host: E2E.SFTP_HOST, port: E2E.SFTP_PORT, user: E2E.SFTP_USER, password: E2E.SFTP_PASS, path: "/upload", parallel: true },
+        {
+          type: "sftp",
+          host: E2E.SFTP_HOST,
+          port: E2E.SFTP_PORT,
+          user: E2E.SFTP_USER,
+          password: E2E.SFTP_PASS,
+          path: "/upload",
+          parallel: true,
+        },
       ],
     }
 

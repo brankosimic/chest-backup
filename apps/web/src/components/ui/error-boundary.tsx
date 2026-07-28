@@ -10,11 +10,19 @@ const ErrorBoundary = ({ children, fallback }: { children: React.ReactNode; fall
     }
 
     window.addEventListener("error", handleError)
-    return () => { window.removeEventListener("error", handleError) }
+    return () => {
+      window.removeEventListener("error", handleError)
+    }
   }, [])
 
   if (hasError) {
-    return <>{fallback ?? <div className="flex min-h-[200px] items-center justify-center text-destructive">Something went wrong.</div>}</>
+    return (
+      <>
+        {fallback ?? (
+          <div className="flex min-h-[200px] items-center justify-center text-destructive">Something went wrong.</div>
+        )}
+      </>
+    )
   }
 
   return <>{children}</>

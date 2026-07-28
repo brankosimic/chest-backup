@@ -2,16 +2,7 @@ import { useTranslation } from "react-i18next"
 import { Link, useLocation } from "react-router-dom"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
-import {
-  LayoutDashboard,
-  Database,
-  HardDrive,
-  Bell,
-  History,
-  FileText,
-  Settings,
-  Box,
-} from "lucide-react"
+import { LayoutDashboard, Database, HardDrive, Bell, History, FileText, Settings, Box } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
 interface NavItem {
@@ -54,7 +45,9 @@ const Sidebar = ({ collapsed = false }: { collapsed?: boolean }) => {
               to={item.href}
               className={cn(
                 "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                isActive ? "bg-sidebar-accent text-sidebar-primary-foreground" : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-primary-foreground",
+                isActive
+                  ? "bg-sidebar-accent text-sidebar-primary-foreground"
+                  : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-primary-foreground",
               )}
             >
               <Icon className="h-4 w-4 shrink-0" />

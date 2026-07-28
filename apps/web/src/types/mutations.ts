@@ -29,10 +29,4 @@ interface FetchPostgresParams {
   database?: string
 }
 
-export type {
-  SourceMutationData,
-  ScheduleUpdateData,
-  RetentionUpdateData,
-  NotificationUpdateData,
-  FetchPostgresParams,
-}
+export type { SourceMutationData, ScheduleUpdateData, RetentionUpdateData, NotificationUpdateData, FetchPostgresParams }

@@ -45,7 +45,11 @@ const dumpSqliteSources = async (
   return results.filter((r): r is string => r !== null)
 }
 
-const dumpSqliteContainerDatabase = async (containerName: string, dbPath: string, outputPath: string): Promise<void> => {
+const dumpSqliteContainerDatabase = async (
+  containerName: string,
+  dbPath: string,
+  outputPath: string,
+): Promise<void> => {
   const tmpPath = `/tmp/sqlite-backup-${crypto.randomUUID()}.db`
 
   logger.info({ containerName, dbPath, outputPath }, "starting container sqlite database backup")

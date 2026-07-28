@@ -26,7 +26,7 @@ export default function DestinationEditPage() {
   const handleSave = async () => {
     try {
       await updateMutation.mutateAsync({ id, data: form })
-      navigate("/destinations")
+      void navigate("/destinations")
     } catch {
       alert("Failed to save")
     }
@@ -42,18 +42,25 @@ export default function DestinationEditPage() {
 
   if (!dest) return null
 
-  const type = (form.type as string) ?? dest.type
+  const type = form.type as string
 
   return (
     <div className="mx-auto max-w-2xl">
       <Header title={t("destinations.editDestination")} subtitle={`Type: ${type}`} />
 
       <Card>
-        <CardHeader><CardTitle>Destination Configuration</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle>Destination Configuration</CardTitle>
+        </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label>Type</Label>
-            <Select value={type} onChange={(e) => { setForm({ ...form, type: e.target.value }); }}>
+            <Select
+              value={type}
+              onChange={(e) => {
+                setForm({ ...form, type: e.target.value })
+              }}
+            >
               <option value="local">{t("destinations.local")}</option>
               <option value="sftp">SFTP</option>
             </Select>
@@ -61,51 +68,138 @@ export default function DestinationEditPage() {
 
           <div className="space-y-2">
             <Label>{t("destinations.name")}</Label>
-            <Input value={(form.name as string) ?? ""} onChange={(e) => { setForm({ ...form, name: e.target.value }); }} placeholder="My Server" />
+            <Input
+              value={form.name as string}
+              onChange={(e) => {
+                setForm({ ...form, name: e.target.value })
+              }}
+              placeholder="My Server"
+            />
           </div>
 
           <div className="space-y-2">
             <Label>Path</Label>
-            <Input value={(form.path as string) ?? ""} onChange={(e) => { setForm({ ...form, path: e.target.value }); }} />
+            <Input
+              value={form.path as string}
+              onChange={(e) => {
+                setForm({ ...form, path: e.target.value })
+              }}
+            />
           </div>
 
           {type === "sftp" && (
             <>
-              <div className="space-y-2"><Label>Host</Label><Input value={(form.host as string) ?? ""} onChange={(e) => { setForm({ ...form, host: e.target.value }); }} /></div>
-              <div className="space-y-2"><Label>Port</Label><Input type="number" value={(form.port as number) ?? 22} onChange={(e) => { setForm({ ...form, port: Number(e.target.value) }); }} /></div>
-              <div className="space-y-2"><Label>User</Label><Input value={(form.user as string) ?? ""} onChange={(e) => { setForm({ ...form, user: e.target.value }); }} /></div>
-              <div className="space-y-2"><Label>Password</Label><Input type="password" value={(form.password as string) ?? ""} onChange={(e) => { setForm({ ...form, password: e.target.value }); }} /></div>
-              <div className="space-y-2"><Label>Private Key</Label><Input value={(form.privateKey as string) ?? ""} onChange={(e) => { setForm({ ...form, privateKey: e.target.value }); }} /></div>
+              <div className="space-y-2">
+                <Label>Host</Label>
+                <Input
+                  value={form.host as string}
+                  onChange={(e) => {
+                    setForm({ ...form, host: e.target.value })
+                  }}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Port</Label>
+                <Input
+                  type="number"
+                  value={form.port as number}
+                  onChange={(e) => {
+                    setForm({ ...form, port: Number(e.target.value) })
+                  }}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>User</Label>
+                <Input
+                  value={form.user as string}
+                  onChange={(e) => {
+                    setForm({ ...form, user: e.target.value })
+                  }}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Password</Label>
+                <Input
+                  type="password"
+                  value={form.password as string}
+                  onChange={(e) => {
+                    setForm({ ...form, password: e.target.value })
+                  }}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Private Key</Label>
+                <Input
+                  value={form.privateKey as string}
+                  onChange={(e) => {
+                    setForm({ ...form, privateKey: e.target.value })
+                  }}
+                />
+              </div>
             </>
           )}
 
           <div className="space-y-2">
             <Label>Retention (backups)</Label>
-            <Input type="number" value={(form.retention as number) ?? ""} onChange={(e) => { setForm({ ...form, retention: Number(e.target.value) }); }} />
+            <Input
+              type="number"
+              value={form.retention as number}
+              onChange={(e) => {
+                setForm({ ...form, retention: Number(e.target.value) })
+              }}
+            />
           </div>
 
           {type === "sftp" && (
             <div className="space-y-2">
               <Label>Timeout (seconds)</Label>
-              <Input type="number" value={(form.timeout as number) ?? ""} onChange={(e) => { setForm({ ...form, timeout: Number(e.target.value) }); }} />
+              <Input
+                type="number"
+                value={form.timeout as number}
+                onChange={(e) => {
+                  setForm({ ...form, timeout: Number(e.target.value) })
+                }}
+              />
             </div>
           )}
 
           <div className="flex items-center justify-between rounded-lg border p-3">
             <span className="text-sm font-medium">Parallel Upload</span>
-            <Switch checked={(form.parallel as boolean) ?? false} onCheckedChange={(v) => { setForm({ ...form, parallel: v }); }} />
+            <Switch
+              checked={form.parallel as boolean}
+              onCheckedChange={(v) => {
+                setForm({ ...form, parallel: v })
+              }}
+            />
           </div>
 
           <div className="flex items-center justify-between rounded-lg border p-3">
             <span className="text-sm font-medium">Skip this destination</span>
-            <Switch checked={(form.skip as boolean) ?? false} onCheckedChange={(v) => { setForm({ ...form, skip: v }); }} />
+            <Switch
+              checked={form.skip as boolean}
+              onCheckedChange={(v) => {
+                setForm({ ...form, skip: v })
+              }}
+            />
           </div>
 
           <div className="flex gap-2 pt-4">
-            <Button onClick={handleSave} disabled={updateMutation.isPending}>
+            <Button
+              onClick={() => {
+                void handleSave()
+              }}
+              disabled={updateMutation.isPending}
+            >
               {updateMutation.isPending ? t("common.loading") : t("common.save")}
             </Button>
-            <Button variant="outline" onClick={() => { navigate("/destinations"); }}>{t("common.cancel")}</Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                void navigate("/destinations")
+              }}
+            >
+              {t("common.cancel")}
+            </Button>
           </div>
         </CardContent>
       </Card>

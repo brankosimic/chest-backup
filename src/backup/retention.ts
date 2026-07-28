@@ -27,11 +27,7 @@ const parseTimestampFromName = (name: string): string | null => {
   return match?.[1] ?? null
 }
 
-const enforceRetention = (
-  destination: Destination,
-  archivePrefix: string,
-  globalRetention: number,
-): void => {
+const enforceRetention = (destination: Destination, archivePrefix: string, globalRetention: number): void => {
   const retention = destination.retention ?? globalRetention
   const destPath = destination.path
 
@@ -54,7 +50,9 @@ const enforceRetention = (
 
   const toDelete = files.slice(retention)
 
-  toDelete.forEach(file => { deleteArchiveFile(destPath, file) })
+  toDelete.forEach((file) => {
+    deleteArchiveFile(destPath, file)
+  })
 }
 
 export { enforceRetention, parseTimestampFromName, ARCHIVE_PATTERN }

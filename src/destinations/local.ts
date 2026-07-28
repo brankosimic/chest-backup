@@ -40,11 +40,7 @@ const getLatestChecksumLocal = (dest: Destination): string | null => {
   }
 }
 
-const storeLocal = (
-  archivePath: string,
-  checksumFile: string | undefined,
-  dest: Destination,
-): StoreResult => {
+const storeLocal = (archivePath: string, checksumFile: string | undefined, dest: Destination): StoreResult => {
   const destDir = dirname(dest.path)
   mkdirSync(destDir, { recursive: true })
 

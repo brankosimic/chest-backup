@@ -1,6 +1,12 @@
 import { Hono } from "hono"
 import { DestinationSchema } from "../lib/validation"
-import { createDestination, getDestinations, findDestinationById, updateDestination, deleteDestination } from "../lib/store"
+import {
+  createDestination,
+  getDestinations,
+  findDestinationById,
+  updateDestination,
+  deleteDestination,
+} from "../lib/store"
 import { validateBody, notFound } from "../lib/routes"
 
 const destinations = new Hono()

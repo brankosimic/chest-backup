@@ -19,7 +19,7 @@ class TrayBridge {
   private state: DaemonStatus = DaemonStatus.Idle
 
   async start(callbacks: TrayCallbacks): Promise<void> {
-    const iconPath = STATE_ICONS[DaemonStatus.Idle]!
+    const iconPath = STATE_ICONS[DaemonStatus.Idle] ?? resolve(ICONS_DIR, "icon_idle.png")
     const tray = new Tray({
       tooltip: "Chest Backup — Idle",
       icon: { png: iconPath, ico: iconPath },

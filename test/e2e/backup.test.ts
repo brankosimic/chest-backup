@@ -61,9 +61,7 @@ describe("backup", () => {
     const config = {
       retention: 5,
       sources: [{ type: "path", path: `${E2E.TEST_DATA_DIR_1}/*` }],
-      destinations: [
-        { type: "local" as const, path: localRetDir, retention: 1, parallel: false },
-      ],
+      destinations: [{ type: "local" as const, path: localRetDir, retention: 1, parallel: false }],
     }
     const configPath = "/tmp/chest-backup-e2e-retention-config.json"
     writeFileSync(configPath, JSON.stringify(config, null, 2))

@@ -33,8 +33,12 @@ export default function NotificationsPage() {
 
   const handleTest = () => {
     testMutation.mutate(webhookUrl, {
-      onSuccess: () => setTestSent(true),
-      onError: () => setTestSent(false),
+      onSuccess: () => {
+        setTestSent(true)
+      },
+      onError: () => {
+        setTestSent(false)
+      },
     })
   }
 
@@ -51,7 +55,9 @@ export default function NotificationsPage() {
       <Header title={t("notifications.title")} subtitle={t("notifications.subtitle")} />
 
       <Card>
-        <CardHeader><CardTitle>{t("notifications.cardTitle")}</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle>{t("notifications.cardTitle")}</CardTitle>
+        </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex items-center justify-between rounded-lg border p-3">
             <span className="text-sm font-medium">{t("notifications.enabled")}</span>
@@ -62,7 +68,9 @@ export default function NotificationsPage() {
             <Label>{t("notifications.webhookUrl")}</Label>
             <Input
               value={webhookUrl}
-              onChange={(e) => { setWebhookUrl(e.target.value); }}
+              onChange={(e) => {
+                setWebhookUrl(e.target.value)
+              }}
               placeholder={t("notifications.webhookUrlPlaceholder")}
             />
           </div>

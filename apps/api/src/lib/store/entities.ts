@@ -22,7 +22,7 @@ const sourceFromConfigItem = (item: Record<string, unknown>): Source => {
   } as Source
 
   if (source.type === "path" && !("isFile" in source) && "path" in source) {
-    (source as { isFile?: boolean }).isFile = detectPathType((source.path as string) ?? "")
+    ;(source as { isFile?: boolean }).isFile = detectPathType(source.path as string)
   }
 
   return source
@@ -33,8 +33,7 @@ const getSources = (): Source[] => {
   return config.sources.map(sourceFromConfigItem)
 }
 
-const findSourceById = (id: string): Source | undefined =>
-  getSources().find((s) => s.id === id)
+const findSourceById = (id: string): Source | undefined => getSources().find((s) => s.id === id)
 
 const createSource = (data: Record<string, unknown>): Source => {
   const { config } = getConfig()
@@ -69,15 +68,14 @@ const destinationFromConfigItem = (item: Record<string, unknown>): Destination =
   ...item,
   createdAt: now(),
   updatedAt: now(),
-}) as Destination
+})
 
 const getDestinations = (): Destination[] => {
   const { config } = getConfig()
   return config.destinations.map(destinationFromConfigItem)
 }
 
-const findDestinationById = (id: string): Destination | undefined =>
-  getDestinations().find((d) => d.id === id)
+const findDestinationById = (id: string): Destination | undefined => getDestinations().find((d) => d.id === id)
 
 const createDestination = (data: Record<string, unknown>): Destination => {
   const { config } = getConfig()
