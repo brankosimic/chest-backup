@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Header } from "@/components/layout/header"
 import { BackupProgressCard } from "@/components/ui/backup-progress"
 import { formatSize, formatDuration, formatUptime, formatDate } from "@/lib/utils"
-import { useBackupStats, useTriggerBackup, useBackups, useSystem, useDestinations } from "@/hooks/use-queries"
+import { useBackupStats, useTriggerBackup, useBackups, useSystem, useDestinations, useBackupProgress } from "@/hooks/use-queries"
 import { CheckCircle2, Clock, Play } from "lucide-react"
 import type { DestCardProps } from "@/types/backup"
 
@@ -52,7 +52,9 @@ const DashboardPage = () => {
   const { data: system, isLoading: systemLoading } = useSystem()
   const { data: backupsData } = useBackups(1, 5)
   const { data: destinations } = useDestinations()
+  const { data: progress } = useBackupProgress()
   const triggerMutation = useTriggerBackup(destinations ?? [])
+  const isRunning = progress && ["archiving", "running"].includes(progress.status)
 
   const loading = statsLoading || systemLoading
 
@@ -218,10 +220,14 @@ const DashboardPage = () => {
           onClick={() => {
             triggerMutation.mutate()
           }}
-          disabled={triggerMutation.isPending}
+          disabled={triggerMutation.isPending || isRunning}
         >
           <Play className="mr-2 h-4 w-4" />
-          {triggerMutation.isPending ? t("common.loading") : t("dashboard.runBackup")}
+          {triggerMutation.isPending
+            ? t("common.loading")
+            : isRunning
+              ? t("dashboard.backupInProgress")
+              : t("dashboard.runBackup")}
         </Button>
       </div>
     </div>

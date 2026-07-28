@@ -8,7 +8,7 @@ interface DestProgress {
 }
 
 interface BackupRunProgress {
-  status: "idle" | "starting" | "archiving" | "running" | "completed" | "failed"
+  status: "idle" | "archiving" | "running" | "completed" | "failed"
   startedAt: string
   timestamp: string
   archiveSize?: number

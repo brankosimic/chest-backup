@@ -1,14 +1,15 @@
-import { mkdirSync, cpSync, readFileSync, readdirSync } from "node:fs"
+import { mkdirSync, readFileSync, readdirSync } from "node:fs"
+import { cp, mkdir } from "node:fs/promises"
 import { dirname, join } from "node:path"
 import type { Destination } from "../types/config"
 import type { StoreResult } from "../types/index"
 import { ARCHIVE_PATTERN, parseTimestampFromName } from "../backup/retention"
 import { logger } from "../utils/logger"
 
-const copyChecksum = (checksumFile: string, destDir: string): void => {
+const copyChecksum = async (checksumFile: string, destDir: string): Promise<void> => {
   const shaName = checksumFile.split("/").pop()
   if (!shaName) return
-  cpSync(checksumFile, join(destDir, shaName))
+  await cp(checksumFile, join(destDir, shaName))
 }
 
 const getLatestChecksumLocal = (dest: Destination): string | null => {
@@ -40,20 +41,20 @@ const getLatestChecksumLocal = (dest: Destination): string | null => {
   }
 }
 
-const storeLocal = (archivePath: string, checksumFile: string | undefined, dest: Destination): StoreResult => {
+const storeLocal = async (archivePath: string, checksumFile: string | undefined, dest: Destination): Promise<StoreResult> => {
   const destDir = dirname(dest.path)
-  mkdirSync(destDir, { recursive: true })
+  await mkdir(destDir, { recursive: true })
 
   const archiveName = archivePath.split("/").pop()
   if (!archiveName) return { success: false, error: "Invalid archive path" }
 
   const destPath = join(dest.path, archiveName)
 
-  cpSync(archivePath, destPath)
+  await cp(archivePath, destPath)
   logger.info({ from: archivePath, to: destPath }, "archive copied to local destination")
 
   if (checksumFile) {
-    copyChecksum(checksumFile, dest.path)
+    await copyChecksum(checksumFile, dest.path)
     logger.info({ from: checksumFile }, "checksum copied to local destination")
   }
 
