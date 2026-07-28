@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import type { Source, Destination } from "@chest-backup/shared"
+import type { SourceMutationData, ScheduleUpdateData, RetentionUpdateData, NotificationUpdateData, FetchPostgresParams } from "@/types/mutations"
 import {
   fetchSources,
   fetchSource,
@@ -44,7 +45,7 @@ const useCreateSource = () => {
 const useUpdateSource = () => {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Record<string, unknown> }) => updateSource(id, data),
+    mutationFn: ({ id, data }: SourceMutationData) => updateSource(id, data),
     onSuccess: () => { void qc.invalidateQueries({ queryKey: ["sources"] }) },
   })
 }
@@ -74,7 +75,7 @@ const useCreateDestination = () => {
 const useUpdateDestination = () => {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Record<string, unknown> }) => updateDestination(id, data),
+    mutationFn: ({ id, data }: SourceMutationData) => updateDestination(id, data),
     onSuccess: () => { void qc.invalidateQueries({ queryKey: ["destinations"] }) },
   })
 }
@@ -93,7 +94,7 @@ const useSchedule = () =>
 const useUpdateSchedule = () => {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (data: { schedule: string; enabled: boolean }) => updateSchedule(data),
+    mutationFn: (data: ScheduleUpdateData) => updateSchedule(data),
     onSuccess: () => { void qc.invalidateQueries({ queryKey: ["schedule"] }) },
   })
 }
@@ -104,7 +105,7 @@ const useRetention = () =>
 const useUpdateRetention = () => {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (data: { globalRetention: number }) => updateRetention(data),
+    mutationFn: (data: RetentionUpdateData) => updateRetention(data),
     onSuccess: () => { void qc.invalidateQueries({ queryKey: ["retention"] }) },
   })
 }
@@ -120,7 +121,7 @@ const useTestNotification = () =>
 const useUpdateNotifications = () => {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (data: { discord?: { webhookUrl: string; enabled: boolean } }) => updateNotifications(data),
+    mutationFn: (data: NotificationUpdateData) => updateNotifications(data),
     onSuccess: () => { void qc.invalidateQueries({ queryKey: ["notifications"] }) },
   })
 }
@@ -138,10 +139,23 @@ const useBackupProgress = () =>
     refetchInterval: 3_000,
   })
 
-const useTriggerBackup = () => {
+const useTriggerBackup = (destinations: Destination[]) => {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: triggerBackup,
+    onMutate: () => {
+      qc.setQueryData(["backup-progress"], {
+        status: "starting",
+        startedAt: new Date().toISOString(),
+        timestamp: "",
+        destinations: destinations.map((d) => ({
+          name: d.name ?? d.path,
+          path: d.path,
+          type: d.type,
+          status: "pending" as const,
+        })),
+      })
+    },
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["backup-progress"] })
       void qc.invalidateQueries({ queryKey: ["backups"] })
@@ -156,7 +170,7 @@ const useLogs = (level?: string, search?: string) =>
 const useSystem = () =>
   useQuery({ queryKey: ["system"], queryFn: fetchSystem })
 
-const useFetchPostgresDatabases = (params: { type: "postgres" | "postgres-container"; host?: string; port?: number; user: string; password: string; containerName?: string; database?: string }) =>
+const useFetchPostgresDatabases = (params: FetchPostgresParams) =>
   useQuery({
     queryKey: ["postgres-databases", params.type, params.host, params.port, params.user, params.database ?? ""],
     queryFn: () => fetchPostgresDatabases(params),

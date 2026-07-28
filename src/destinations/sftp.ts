@@ -6,12 +6,17 @@ import type { StoreResult, UploadProgress, SftpUsage } from "../types/destinatio
 import { logger } from "../utils/logger"
 import { ARCHIVE_PATTERN, parseTimestampFromName } from "../backup/retention"
 
+const makeDestLabel = (dest: Destination): string => {
+  const hostPart = dest.host ? `${dest.user}@${dest.host}:${dest.port ?? 22}` : ""
+  return hostPart ? `sftp://${hostPart}${dest.path}` : dest.path
+}
+
 const connectClient = async (sftp: SFTPClient, dest: Destination): Promise<void> => {
   const config: SFTPClient.ConnectOptions = {
     host: dest.host,
     port: dest.port ?? 22,
     username: dest.user,
-    readyTimeout: dest.timeout ?? 2_147_483_647,
+    readyTimeout: dest.timeout ?? 30_000,
   }
 
   if (dest.password) config.password = dest.password
@@ -22,7 +27,12 @@ const connectClient = async (sftp: SFTPClient, dest: Destination): Promise<void>
     config.privateKey = keyPath ? readFileSync(keyPath, "utf8") : dest.privateKey
   }
 
-  await sftp.connect(config)
+  try {
+    await sftp.connect(config)
+  } catch (err) {
+    const msg = err instanceof Error ? err.message || "no details (check host/port/credentials/firewall)" : String(err)
+    throw new Error(`SFTP connection to ${makeDestLabel(dest)} failed: ${msg}`)
+  }
 }
 
 const getLatestChecksumSftp = async (sftp: SFTPClient, dest: Destination): Promise<string | null> => {
@@ -80,8 +90,8 @@ const storeSftp = async (
 
     return { success: true, speed }
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err)
-    logger.error({ error: msg }, "SFTP upload failed")
+    const msg = err instanceof Error ? err.message || "no details" : String(err)
+    logger.error({ dest: makeDestLabel(dest), error: msg }, "SFTP upload failed")
     return { success: false, error: msg }
   } finally {
     await sftp.end()
@@ -170,7 +180,7 @@ const scanSftpUsage = async (dest: Destination): Promise<SftpUsage | null> => {
     logger.warn({ host: dest.host, path: dest.path, error: msg }, "failed to scan SFTP destination")
     return null
   } finally {
-    await sftp.end().catch(() => {})
+    await sftp.end().catch((err) => { logger.warn({ err }, "failed to close SFTP connection during usage scan") })
   }
 }
 

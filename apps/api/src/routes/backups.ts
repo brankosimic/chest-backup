@@ -45,15 +45,6 @@ backups.post("/run", async (c) => {
     runTimestamp,
   )
 
-  c.json(
-    {
-      success: true,
-      message: "Backup triggered successfully",
-      data: { triggered: true, timestamp: runTimestamp },
-    },
-    202,
-  )
-
   runBackup(config, (event: BackupProgressEvent) => { updateFromEvent(event) })
     .then((result) => {
       completeBackup(result.success)
@@ -72,6 +63,15 @@ backups.post("/run", async (c) => {
       })
       setTimeout(() => clearProgress(), 5000)
     })
+
+  return c.json(
+    {
+      success: true,
+      message: "Backup triggered successfully",
+      data: { triggered: true, timestamp: runTimestamp },
+    },
+    202,
+  )
 })
 
 export { backups }

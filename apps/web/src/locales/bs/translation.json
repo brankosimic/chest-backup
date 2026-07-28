@@ -51,6 +51,8 @@
     "size": "Veličina",
     "storageByDestination": "Po odredištu",
     "backupInProgress": "Backup u toku",
+    "startingBackup": "Pokretanje backup-a",
+    "preparingBackup": "Pripremanje backup-a...",
     "archivingSources": "Arhiviranje izvora...",
     "uploading": "Otpremanje"
   },

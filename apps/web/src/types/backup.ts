@@ -8,7 +8,7 @@ interface DestProgress {
 }
 
 interface BackupRunProgress {
-  status: "idle" | "archiving" | "running" | "completed" | "failed"
+  status: "idle" | "starting" | "archiving" | "running" | "completed" | "failed"
   startedAt: string
   timestamp: string
   archiveSize?: number
@@ -23,4 +23,18 @@ interface ContainerVolume {
   rw: boolean
 }
 
-export type { ContainerVolume, BackupRunProgress, DestProgress }
+interface DestCardProps {
+  name: string
+  type: string
+  fileCount: number
+  totalSize: number
+  avgDurationMs: number
+  path: string
+}
+
+interface BadgeProps {
+  variant: "success" | "destructive" | "default" | "secondary" | "outline"
+  labelKey: string
+}
+
+export type { ContainerVolume, BackupRunProgress, DestProgress, DestCardProps, BadgeProps }

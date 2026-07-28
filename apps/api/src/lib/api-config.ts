@@ -8,16 +8,24 @@ let activeConfig: Config | null = null
 
 const getActiveConfig = (): Config | null => activeConfig
 
-const loadAndStartDaemon = async (): Promise<void> => {
+const loadConfigForApi = (): void => {
   const configPath = process.env.CHEST_CONFIG_PATH
   if (!configPath) {
-    console.log("Chest-Backup daemon skipped (no CHEST_CONFIG_PATH)")
+    console.log("Chest-Backup config skipped (no CHEST_CONFIG_PATH)")
     return
   }
 
   try {
-    const config = loadConfig(configPath)
-    activeConfig = config
+    activeConfig = loadConfig(configPath)
+    console.log("Chest-Backup config loaded")
+  } catch (err) {
+    logger.fatal({ err }, "failed to load config")
+    process.exit(1)
+  }
+}
+
+const loadAndStartDaemon = async (): Promise<void> => {
+  try {
     await startDaemon(persistBackupResult)
     console.log("Chest-Backup daemon started")
   } catch (err) {
@@ -26,4 +34,4 @@ const loadAndStartDaemon = async (): Promise<void> => {
   }
 }
 
-export { getActiveConfig, loadAndStartDaemon }
+export { getActiveConfig, loadConfigForApi, loadAndStartDaemon }

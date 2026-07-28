@@ -7,17 +7,9 @@ import { Button } from "@/components/ui/button"
 import { Header } from "@/components/layout/header"
 import { BackupProgressCard } from "@/components/ui/backup-progress"
 import { formatSize, formatDuration, formatUptime, formatDate } from "@/lib/utils"
-import { useBackupStats, useTriggerBackup, useBackups, useSystem } from "@/hooks/use-queries"
+import { useBackupStats, useTriggerBackup, useBackups, useSystem, useDestinations } from "@/hooks/use-queries"
 import { CheckCircle2, Clock, Play } from "lucide-react"
-
-interface DestCardProps {
-  name: string
-  type: string
-  fileCount: number
-  totalSize: number
-  avgDurationMs: number
-  path: string
-}
+import type { DestCardProps } from "@/types/backup"
 
 const DestCard = (props: DestCardProps) => {
   const { t } = useTranslation()
@@ -48,12 +40,13 @@ const DestCard = (props: DestCardProps) => {
   )
 }
 
-export default function DashboardPage() {
+const DashboardPage = () => {
   const { t } = useTranslation()
   const { data: stats, isLoading: statsLoading } = useBackupStats()
   const { data: system, isLoading: systemLoading } = useSystem()
   const { data: backupsData } = useBackups(1, 5)
-  const triggerMutation = useTriggerBackup()
+  const { data: destinations } = useDestinations()
+  const triggerMutation = useTriggerBackup(destinations ?? [])
 
   const loading = statsLoading || systemLoading
 
@@ -205,3 +198,5 @@ export default function DashboardPage() {
     </div>
   )
 }
+
+export { DashboardPage as default }

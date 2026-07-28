@@ -51,6 +51,8 @@
     "size": "Size",
     "storageByDestination": "By Destination",
     "backupInProgress": "Backup in Progress",
+    "startingBackup": "Starting Backup",
+    "preparingBackup": "Preparing backup...",
     "archivingSources": "Creating archive...",
     "uploading": "Uploading"
   },

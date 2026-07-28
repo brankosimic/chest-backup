@@ -12,7 +12,7 @@ import { schedule } from "./routes/schedule"
 import { sources } from "./routes/sources"
 import { system } from "./routes/system"
 
-import { loadAndStartDaemon } from "./lib/api-config"
+import { loadConfigForApi, loadAndStartDaemon } from "./lib/api-config"
 import { seedLogsFromHistory, pushLog } from "./lib/store"
 
 const WEB_DIST = process.env.WEB_DIST_PATH ?? "../web/dist"
@@ -55,9 +55,8 @@ const start = async (): Promise<void> => {
     message: "Chest-Backup API started",
     metadata: {},
   })
-  if (process.env.DAEMON_OWNER !== "tray") {
-    await loadAndStartDaemon()
-  }
+  loadConfigForApi()
+  if (process.env.DAEMON_OWNER !== "tray") await loadAndStartDaemon()
 }
 
 await start()

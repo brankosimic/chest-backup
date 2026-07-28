@@ -1,10 +1,12 @@
+import { useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useTranslation } from "react-i18next"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { useBackupProgress } from "@/hooks/use-queries"
 import { formatSize, formatSpeed } from "@/lib/utils"
-import { CheckCircle2, XCircle, Clock, Upload, SkipForward, HardDrive, Network } from "lucide-react"
+import { CheckCircle2, XCircle, Clock, Upload, SkipForward, HardDrive, Network, Loader2, Sparkles } from "lucide-react"
+import type { BadgeProps } from "@/types/backup"
 import * as styles from "./backup-progress.styles"
 
 const DestStatus = {
@@ -15,11 +17,6 @@ const DestStatus = {
 } as const
 
 type DestStatus = (typeof DestStatus)[keyof typeof DestStatus]
-
-interface BadgeProps {
-  variant: "success" | "destructive" | "default" | "secondary" | "outline"
-  labelKey: string
-}
 
 const statusIcon = (status: string) => {
   switch (status) {
@@ -59,39 +56,73 @@ const typeLabelKey = (type: string): string => {
 const BackupProgressCard = () => {
   const { t } = useTranslation()
   const { data: progress } = useBackupProgress()
+  const lastProgress = useRef(progress)
 
-  if (!progress || progress.status === "idle") return null
+  useEffect(() => {
+    if (progress && progress.status !== "idle") lastProgress.current = progress
+  }, [progress])
 
-  const isActive = ["archiving", "running"].includes(progress.status)
-  const isDone = ["completed", "failed"].includes(progress.status)
-  const total = progress.destinations.length
+  const display = progress?.status !== "idle" ? progress : lastProgress.current
+
+  if (!display || display.status === "idle") return null
+
+  const isStarting = display.status === "starting"
+  const isActive = ["archiving", "running"].includes(display.status)
+  const isDone = ["completed", "failed"].includes(display.status)
+  const total = display.destinations.length
   const terminalStatuses = [DestStatus.Done, DestStatus.Error, DestStatus.Skipped] as const
-  const done = progress.destinations.filter((d) => (terminalStatuses as readonly string[]).includes(d.status)).length
+  const done = display.destinations.filter((d) => (terminalStatuses as readonly string[]).includes(d.status)).length
   const pct = total > 0 ? Math.round((done / total) * 100) : 0
 
+  const borderClass = isStarting ? "border-blue-500/30" : isActive ? "border-blue-500/50 animate-pulse-glow" : isDone ? "border-green-500/50" : ""
+
   return (
-    <Card className={isActive ? "border-blue-500/50 animate-pulse-glow" : isDone ? "border-green-500/50" : ""}>
+    <Card className={borderClass}>
       <CardHeader className={styles.cardHeader}>
         <div className={styles.headerGroup}>
-          <CardTitle className="text-sm font-medium">{t("dashboard.backupInProgress")}</CardTitle>
-          {isActive && <span className="relative flex h-2.5 w-2.5"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75" /><span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-blue-500" /></span>}
+          <CardTitle className="text-sm font-medium">
+            {isStarting ? t("dashboard.startingBackup") : t("dashboard.backupInProgress")}
+          </CardTitle>
+          {isStarting && <Loader2 className="h-4 w-4 animate-spin text-blue-500" />}
+          {isActive && (
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75" />
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-blue-500" />
+            </span>
+          )}
+          {isDone && <Sparkles className="h-4 w-4 text-green-500" />}
         </div>
         <div className={styles.headerStats}>
-          {progress.archiveSize && <span>{formatSize(progress.archiveSize)}</span>}
+          {display.archiveSize && <span>{formatSize(display.archiveSize)}</span>}
           <span>{done}/{total}</span>
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
-        {progress.status === "archiving" && (
-          <div className={styles.archivingRow}>
-            <Upload className="h-4 w-4 animate-float-up text-blue-500" />
-            <span>{t("dashboard.archivingSources")}</span>
-          </div>
+        {isStarting && (
+          <motion.div
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={styles.archivingRow}
+          >
+            <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
+            <span>{t("dashboard.preparingBackup")}</span>
+          </motion.div>
         )}
 
-        {progress.status !== "archiving" && (
+        {display.status === "archiving" && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className={styles.archivingRow}
+          >
+            <Upload className="h-4 w-4 animate-float-up text-blue-500" />
+            <span>{t("dashboard.archivingSources")}</span>
+          </motion.div>
+        )}
+
+        {display.status !== "starting" && display.status !== "archiving" && (
           <div className={styles.progressTrack}>
-            <div
+            <motion.div
               className={`${styles.progressBarBase} ${
                 isActive
                   ? styles.progressBarActive
@@ -99,7 +130,9 @@ const BackupProgressCard = () => {
                     ? styles.progressBarDone
                     : "bg-blue-500"
               }`}
-              style={{ width: `${pct}%` }}
+              initial={{ width: 0 }}
+              animate={{ width: `${pct}%` }}
+              transition={{ duration: 0.7, ease: "easeOut" }}
             />
             {isActive && pct < 100 && (
               <div className={styles.barRipple}>
@@ -111,9 +144,9 @@ const BackupProgressCard = () => {
 
         <div className="space-y-2">
           <AnimatePresence mode="popLayout" initial={false}>
-            {progress.destinations.map((dest, i) => (
+            {display.destinations.map((dest, i) => (
               <motion.div
-                key={dest.name}
+                key={dest.name + dest.path}
                 layout
                 initial={{ opacity: 0, y: -8, scale: 0.97 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -148,8 +181,17 @@ const BackupProgressCard = () => {
                         {t("dashboard.uploading")}
                       </motion.span>
                     )}
-                    {dest.speed && (dest.status === DestStatus.Done || dest.status === DestStatus.Uploading) && (
+                    {dest.speed && ([DestStatus.Done, DestStatus.Uploading] as string[]).includes(dest.status) && (
                       <span className={styles.speedLabel}>{formatSpeed(dest.speed)}</span>
+                    )}
+                    {dest.status === DestStatus.Done && (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: "spring", stiffness: 300, damping: 15 }}
+                      >
+                        <CheckCircle2 className="h-4 w-4 text-green-500" />
+                      </motion.div>
                     )}
                     <Badge variant={statusBadgeProps(dest.status).variant}>{t(statusBadgeProps(dest.status).labelKey)}</Badge>
                   </div>

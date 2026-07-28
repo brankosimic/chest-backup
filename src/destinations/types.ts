@@ -1,5 +1,4 @@
-import type { Config } from "../types/config"
-import type { Destination } from "../types/config"
+import type { Config, Destination } from "../types/config"
 import type { StoreResult, BackupProgressCallback } from "../types/index"
 import { getLatestChecksumLocal, storeLocal } from "./local"
 import { connectClient, getLatestChecksumSftp, storeSftp, enforceRetentionSftp } from "./sftp"
@@ -14,6 +13,9 @@ const getLatestChecksum = async (dest: Destination): Promise<string | null> => {
   try {
     await connectClient(sftp, dest)
     return await getLatestChecksumSftp(sftp, dest)
+  } catch (err) {
+    logger.warn({ err: String(err) }, "checksum lookup failed for SFTP destination")
+    return null
   } finally {
     await sftp.end()
   }
