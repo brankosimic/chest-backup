@@ -8,6 +8,6 @@ chest-backup.json
 *.tsbuildinfo
 .chest-data/
 *.bak
-apps/api/.env
-apps/web/.env.local
-apps/web/.env.production
+packages/api/.env
+packages/web/.env.local
+packages/web/.env.production

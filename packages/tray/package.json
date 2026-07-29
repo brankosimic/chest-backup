@@ -9,7 +9,7 @@
     "start": "bun run dist/index.js"
   },
   "dependencies": {
-    "@chest-backup/app": "workspace:*",
+    "@chest-backup/core": "workspace:*",
     "@trayjs/trayjs": "^0.0.10"
   },
   "devDependencies": {

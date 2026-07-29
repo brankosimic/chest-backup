@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { parseTimestampFromName, ARCHIVE_PATTERN } from "../../src/backup/retention"
+import { parseTimestampFromName, ARCHIVE_PATTERN } from "../../packages/core/src/backup/retention"
 
 describe("retention", () => {
   test("ARCHIVE_PATTERN matches valid filenames", () => {

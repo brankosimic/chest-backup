@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { ConfigSchema } from "../../src/config/schema"
+import { ConfigSchema } from "../../packages/core/src/config/schema"
 
 describe("ConfigSchema", () => {
   test("valid minimal config passes", () => {

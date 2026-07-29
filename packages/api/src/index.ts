@@ -1,5 +1,6 @@
 import { Hono } from "hono"
 import { serveStatic } from "hono/bun"
+import { resolve } from "node:path"
 import { cors } from "./middleware/cors"
 import { errorHandling } from "./middleware/error"
 import { port as PORT } from "./env"
@@ -15,7 +16,7 @@ import { system } from "./routes/system"
 import { loadConfigForApi, loadAndStartDaemon } from "./lib/api-config"
 import { seedLogsFromHistory, pushLog } from "./lib/store"
 
-const WEB_DIST = process.env.WEB_DIST_PATH ?? "../web/dist"
+const WEB_DIST = process.env.WEB_DIST_PATH ?? resolve(import.meta.dirname, "../../web/dist")
 
 const app = new Hono()
 

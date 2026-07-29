@@ -1,7 +1,7 @@
 import { readdirSync, mkdirSync, writeFileSync, existsSync } from "node:fs"
 import { join } from "node:path"
 import { $ } from "bun"
-import { logger } from "../../src/utils/logger"
+import { logger } from "../../packages/core/src/utils/logger"
 
 const attemptConnection = async (host: string, port: number): Promise<void> => {
   await Bun.connect({
@@ -115,7 +115,7 @@ export const E2E = {
   },
 
   spawnBackup(args: string[]) {
-    return Bun.spawn(["bun", "src/index.ts", ...args], { stdout: "pipe", stderr: "pipe" })
+    return Bun.spawn(["bun", "packages/daemon/src/index.ts", ...args], { stdout: "pipe", stderr: "pipe" })
   },
 
   async setupE2E(): Promise<void> {

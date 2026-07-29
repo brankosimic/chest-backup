@@ -55,7 +55,7 @@ describe("CLI", () => {
     const envConfigPath = "/tmp/chest-backup-e2e-env-config.json"
     writeFileSync(envConfigPath, JSON.stringify(config, null, 2))
 
-    const proc = Bun.spawn(["bun", "src/index.ts", "--run-now", "--config", envConfigPath], {
+    const proc = Bun.spawn(["bun", "packages/daemon/src/index.ts", "--run-now", "--config", envConfigPath], {
       stdout: "pipe",
       stderr: "pipe",
       env: { ...process.env, E2E_ENV_TEST_SOURCE: envSource },

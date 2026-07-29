@@ -1,8 +1,8 @@
-import { loadConfig } from "./config/loader"
-import { runBackup } from "./backup/orchestrator"
-import { startDaemon } from "./daemon"
-import { logger } from "./utils/logger"
-import type { Config } from "./types/index"
+import { loadConfig } from "@core/config/loader"
+import { runBackup } from "@core/backup/orchestrator"
+import { startDaemon } from "@core/daemon"
+import { logger } from "@core/utils/logger"
+import type { Config } from "@core/types/index"
 
 const main = async (): Promise<void> => {
   process.title = "chest-backup"

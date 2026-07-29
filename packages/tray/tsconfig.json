@@ -18,10 +18,10 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "outDir": "dist",
-    "rootDir": "../..",
+    "rootDir": "../../packages",
     "paths": {
       "@/*": ["./src/*"],
-      "@core/*": ["../../src/*"]
+      "@core/*": ["../core/src/*"]
     }
   },
   "include": ["src/**/*"],

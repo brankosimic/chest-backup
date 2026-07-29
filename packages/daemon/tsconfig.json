@@ -4,6 +4,7 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "lib": ["ES2022"],
+    "types": ["bun-types"],
     "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
@@ -16,12 +17,11 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "incremental": true,
-    "tsBuildInfoFile": ".tsbuildinfo",
+    "outDir": "dist",
     "paths": {
-      "@core/*": ["./packages/core/src/*"]
+      "@core/*": ["../core/src/*"]
     }
   },
-  "include": ["packages/core/src/**/*", "packages/daemon/src/**/*", "packages/api/src/**/*", "packages/tray/src/**/*", "packages/shared/src/**/*", "test/**/*"],
-  "exclude": ["node_modules", "dist", ".next"]
+  "include": ["src/**/*", "../core/src/**/*"],
+  "exclude": ["node_modules", "dist"]
 }

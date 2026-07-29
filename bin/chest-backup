@@ -26,16 +26,16 @@ done
 # Start the API server (always). The daemon runs here only if no desktop.
 if [ "$has_display" = true ]; then
   # Tray process will own the daemon — API serves HTTP only
-  DAEMON_OWNER=tray /usr/bin/bun "$INSTALL_DIR/apps/api/dist/index.js" &
+  DAEMON_OWNER=tray /usr/bin/bun "$INSTALL_DIR/packages/api/dist/index.js" &
 else
   # No desktop — API runs the daemon itself
-  /usr/bin/bun "$INSTALL_DIR/apps/api/dist/index.js" &
+  /usr/bin/bun "$INSTALL_DIR/packages/api/dist/index.js" &
 fi
 API_PID=$!
 
 # Conditionally start tray (desktop only) — owns the daemon
 if [ "$has_display" = true ]; then
-  /usr/bin/bun "$INSTALL_DIR/apps/tray/dist/index.js" &
+  /usr/bin/bun "$INSTALL_DIR/packages/tray/dist/index.js" &
   TRAY_PID=$!
 fi
 

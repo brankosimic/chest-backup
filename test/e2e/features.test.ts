@@ -104,7 +104,7 @@ describe("features", () => {
       ],
     }
 
-    const { runBackup } = await import("../../src/backup/orchestrator")
+    const { runBackup } = await import("../../packages/core/src/backup/orchestrator")
     const result = await runBackup(config)
     expect(result.success).toBe(true)
   })
@@ -123,7 +123,7 @@ describe("features", () => {
       },
     }
 
-    const { runBackup } = await import("../../src/backup/orchestrator")
+    const { runBackup } = await import("../../packages/core/src/backup/orchestrator")
     const result = await runBackup(config)
     expect(result.success).toBe(true)
   })
@@ -165,7 +165,7 @@ describe("external SFTP", () => {
         ],
       }
 
-      const { runBackup } = await import("../../src/backup/orchestrator")
+      const { runBackup } = await import("../../packages/core/src/backup/orchestrator")
       const result = await runBackup(config)
       expect(result.success).toBe(true)
     },

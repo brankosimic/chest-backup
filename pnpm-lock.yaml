@@ -30,11 +30,11 @@ importers:
         specifier: ^8.65.0
         version: 8.65.0(@typescript/typescript6@6.0.2)(eslint@10.7.0(jiti@2.7.0))
 
-  apps/api:
+  packages/api:
     dependencies:
       '@chest-backup/shared':
         specifier: workspace:*
-        version: link:../../packages/shared
+        version: link:../shared
       '@hono/node-server':
         specifier: ^2.0.11
         version: 2.0.11(hono@4.12.31)
@@ -64,11 +64,48 @@ importers:
         specifier: npm:@typescript/typescript6@^6.0.2
         version: '@typescript/typescript6@6.0.2'
 
-  apps/tray:
+  packages/core:
     dependencies:
-      '@chest-backup/app':
+      cron-parser:
+        specifier: ^5.6.0
+        version: 5.6.2
+      pino:
+        specifier: ^10.3.1
+        version: 10.3.1
+      pino-pretty:
+        specifier: ^13.1.3
+        version: 13.1.3
+      ssh2-sftp-client:
+        specifier: ^12.1.1
+        version: 12.1.1
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
+    devDependencies:
+      '@types/bun':
+        specifier: latest
+        version: 1.3.14
+      '@types/ssh2-sftp-client':
+        specifier: ^9.0.6
+        version: 9.0.6
+
+  packages/daemon:
+    dependencies:
+      '@chest-backup/core':
         specifier: workspace:*
-        version: link:../../src
+        version: link:../core
+    devDependencies:
+      '@types/bun':
+        specifier: latest
+        version: 1.3.14
+
+  packages/shared: {}
+
+  packages/tray:
+    dependencies:
+      '@chest-backup/core':
+        specifier: workspace:*
+        version: link:../core
       '@trayjs/trayjs':
         specifier: ^0.0.10
         version: 0.0.10
@@ -80,11 +117,11 @@ importers:
         specifier: npm:@typescript/typescript6@^6.0.2
         version: '@typescript/typescript6@6.0.2'
 
-  apps/web:
+  packages/web:
     dependencies:
       '@chest-backup/shared':
         specifier: workspace:*
-        version: link:../../packages/shared
+        version: link:../shared
       '@hookform/resolvers':
         specifier: ^5.4.0
         version: 5.4.0(react-hook-form@7.82.0(react@19.2.8))
@@ -170,33 +207,6 @@ importers:
       vite:
         specifier: ^8.1.5
         version: 8.1.5(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)
-
-  packages/shared: {}
-
-  src:
-    dependencies:
-      cron-parser:
-        specifier: ^5.6.0
-        version: 5.6.1
-      pino:
-        specifier: ^10.3.1
-        version: 10.3.1
-      pino-pretty:
-        specifier: ^13.1.3
-        version: 13.1.3
-      ssh2-sftp-client:
-        specifier: ^12.1.1
-        version: 12.1.1
-      zod:
-        specifier: ^4.4.3
-        version: 4.4.3
-    devDependencies:
-      '@types/bun':
-        specifier: latest
-        version: 1.3.14
-      '@types/ssh2-sftp-client':
-        specifier: ^9.0.6
-        version: 9.0.6
 
 packages:
 
@@ -1050,10 +1060,6 @@ packages:
   cpu-features@0.0.10:
     resolution: {integrity: sha512-9IkYqtX3YHPCzoVg1Py+o9057a3i0fp7S530UWokCSaFVTc7CwXPRiOjRjBQQ18ZCNafx78YfnG+HALxtVmOGA==}
     engines: {node: '>=10.0.0'}
-
-  cron-parser@5.6.1:
-    resolution: {integrity: sha512-QBm4o1PwZiuY7KFbVvW7FLC8bozy7YWzv+Fz6KRS7sQghzcbDZCGxr/Bc5b6TQreAoSwuWVP491dIcK0THCX6A==}
-    engines: {node: '>=18'}
 
   cron-parser@5.6.2:
     resolution: {integrity: sha512-yJ/G1LVir6CnlkLI40CsampPLKl1SprGGlUagWtGJxewytRVYezv5xVyzzbT+Pvzx+VIRvZVF7/a0eEMTxdnTA==}
@@ -2489,10 +2495,6 @@ snapshots:
       buildcheck: 0.0.7
       nan: 2.28.0
     optional: true
-
-  cron-parser@5.6.1:
-    dependencies:
-      luxon: 3.7.2
 
   cron-parser@5.6.2:
     dependencies:
