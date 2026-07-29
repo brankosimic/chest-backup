@@ -5,8 +5,8 @@
 # ═══════════════════════════════════════════════════════════════
 #
 # Before publishing to AUR:
-#   1. Create a signed tag:  git tag -s v0.0.0 -m "v0.0.0"
-#   2. Push the tag:         git push origin v0.0.0
+#   1. Create a signed tag:  git tag -s v0.1.0 -m "v0.1.0"
+#   2. Push the tag:         git push origin v0.1.0
 #   3. Generate .SRCINFO:    makepkg --printsrcinfo > .SRCINFO
 #   4. Submit to AUR via     git clone aur@aur.archlinux.org:chest-backup.git
 #      the AUR repo (not
@@ -18,7 +18,7 @@
 # and the build()/package() functions use $srcdir/$pkgname.
 
 pkgname=chest-backup
-pkgver=0.0.0
+pkgver=0.1.0
 pkgrel=1
 pkgdesc="Full-stack backup manager — web UI, system tray, scheduling, SFTP/S3/local destinations"
 arch=('x86_64' 'aarch64')
@@ -60,14 +60,14 @@ package() {
   # The bun build bundles all JS dependencies inline.
   # Only native addons (cpu-features for ssh2) remain external.
 
-  install -d "$pkgdir/usr/share/$pkgname/apps/api/dist"
-  cp apps/api/dist/index.js "$pkgdir/usr/share/$pkgname/apps/api/dist/"
+  install -d "$pkgdir/usr/share/$pkgname/packages/api/dist"
+  cp packages/api/dist/index.js "$pkgdir/usr/share/$pkgname/packages/api/dist/"
 
-  install -d "$pkgdir/usr/share/$pkgname/apps/tray/dist"
-  cp apps/tray/dist/index.js "$pkgdir/usr/share/$pkgname/apps/tray/dist/"
-  cp apps/tray/dist/icon_*.png "$pkgdir/usr/share/$pkgname/apps/tray/dist/"
+  install -d "$pkgdir/usr/share/$pkgname/packages/tray/dist"
+  cp packages/tray/dist/index.js "$pkgdir/usr/share/$pkgname/packages/tray/dist/"
+  cp packages/tray/dist/icon_*.png "$pkgdir/usr/share/$pkgname/packages/tray/dist/"
 
-  cp -r apps/web/dist "$pkgdir/usr/share/$pkgname/apps/web/"
+  cp -r packages/web/dist "$pkgdir/usr/share/$pkgname/packages/web/"
 
   # ── Native addon (cpu-features ─ required by ssh2) ──────────
   # The only external dependency not bundled by bun.
