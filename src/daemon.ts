@@ -9,7 +9,7 @@ import type { DaemonOptions, DaemonHandle } from "./types/daemon"
 const createDaemon = (
   onBackupComplete?: (result: BackupResult) => void,
   options?: DaemonOptions,
-): Promise<DaemonHandle> => {
+): DaemonHandle => {
   const configPath = process.env.CHEST_CONFIG_PATH
   if (!configPath) {
     logger.warn("CHEST_CONFIG_PATH not set, daemon cannot start")
@@ -53,7 +53,7 @@ const startDaemon = async (
   onBackupComplete?: (result: BackupResult) => void,
   options?: DaemonOptions,
 ): Promise<void> => {
-  await createDaemon(onBackupComplete, options)
+  createDaemon(onBackupComplete, options)
   await new Promise(() => {})
 }
 
@@ -96,5 +96,4 @@ const emitAfterBackup = (
   else onNotify?.("Backup Successful", `Archive: ${result.archiveName ?? "unknown"}`)
 }
 
-export { DaemonStatus, createDaemon, startDaemon }
-export type { DaemonOptions, DaemonHandle }
+export { DaemonStatus, createDaemon, startDaemon, type DaemonOptions, type DaemonHandle }

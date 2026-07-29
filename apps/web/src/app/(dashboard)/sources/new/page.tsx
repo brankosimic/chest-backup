@@ -393,12 +393,12 @@ export default function NewSourcePage() {
                   setType(e.target.value)
                 }}
               >
-                <option value="path">Path</option>
-                <option value="postgres">PostgreSQL</option>
-                <option value="postgres-container">PostgreSQL Container</option>
-                <option value="container-volume">Container Volume</option>
-                <option value="sqlite">SQLite</option>
-                <option value="sqlite-container">SQLite Container</option>
+                <option value="path">{t("sources.typePath")}</option>
+                <option value="postgres">{t("sources.typePostgres")}</option>
+                <option value="postgres-container">{t("sources.typePostgresContainer")}</option>
+                <option value="container-volume">{t("sources.typeContainerVolume")}</option>
+                <option value="sqlite">{t("sources.typeSqlite")}</option>
+                <option value="sqlite-container">{t("sources.typeSqliteContainer")}</option>
               </Select>
             </div>
 
@@ -465,7 +465,7 @@ export default function NewSourcePage() {
                   {dockerContainersError && <p className="text-xs text-muted-foreground">{dockerContainersError}</p>}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="dbPath">Database Path</Label>
+                  <Label htmlFor="dbPath">{t("sources.databasePath")}</Label>
                   <Input
                     id="dbPath"
                     value={dbPath}

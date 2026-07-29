@@ -1,5 +1,4 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import type { BackupRunProgress } from "@/types/backup"
 import type { Source, Destination } from "@chest-backup/shared"
 import type {
   SourceMutationData,
@@ -156,7 +155,7 @@ const useBackupProgress = () =>
     queryKey: ["backup-progress"],
     queryFn: fetchBackupProgress,
     refetchInterval: (query) => {
-      const data = query.state.data as BackupRunProgress | undefined
+      const data = query.state.data
       if (data && ["idle", "completed", "failed"].includes(data.status)) return false
       return 1_000
     },

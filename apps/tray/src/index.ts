@@ -17,7 +17,7 @@ const main = async (): Promise<void> => {
     },
   }
 
-  const daemon = await createDaemon(undefined, daemonOptions)
+  const daemon = createDaemon(undefined, daemonOptions)
 
   await tray.start({
     onRunNow: () => {

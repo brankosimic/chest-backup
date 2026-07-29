@@ -5,6 +5,7 @@ import type {
   Source,
   PostgresSource,
   PostgresContainerSource,
+  ContainerVolumeSource,
   SqliteSource,
   SqliteContainerSource,
 } from "../types/config"
@@ -66,11 +67,10 @@ const resolveSourcePaths = (source: Source): string[] => {
 const resolvePaths = (sources: Source[]): string[] => [...new Set(sources.flatMap(resolveSourcePaths))]
 
 const resolveContainers = (sources: Source[]): string[] =>
-  sources.flatMap((s) => {
-    if (s.type === "container-volume") return [s.containerName]
-    if (s.type === "sqlite-container") return [s.containerName]
-    return []
-  })
+  sources
+    .filter((s): s is ContainerVolumeSource | SqliteContainerSource =>
+      ["container-volume", "sqlite-container"].includes(s.type))
+    .map((s) => s.containerName)
 
 const resolveSources = async (
   config: Config,

@@ -27,7 +27,7 @@ const handleDestination = async (
   dest: Destination,
 ): Promise<StoreResult> => {
   try {
-    if (dest.type === "local") return storeLocal(archivePath, checksumFile, dest)
+    if (dest.type === "local") return await storeLocal(archivePath, checksumFile, dest)
     return await storeSftp(archivePath, checksumFile, dest)
   } catch (err) {
     logger.error({ dest: dest.path, err }, "destination store failed")

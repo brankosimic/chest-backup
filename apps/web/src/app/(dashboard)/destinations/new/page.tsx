@@ -75,8 +75,8 @@ export default function NewDestinationPage() {
                   setType(e.target.value)
                 }}
               >
-                <option value="local">Local</option>
-                <option value="sftp">SFTP</option>
+                <option value="local">{t("destinations.local")}</option>
+                <option value="sftp">{t("destinations.sftp")}</option>
               </Select>
             </div>
 
@@ -93,7 +93,7 @@ export default function NewDestinationPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="path">{t("destinations.local")} Path</Label>
+              <Label htmlFor="path">{t("destinations.path")}</Label>
               <Input
                 id="path"
                 value={path}

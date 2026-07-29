@@ -175,11 +175,11 @@ export default function SourceEditPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Source Configuration</CardTitle>
+          <CardTitle>{t("sources.cardTitle")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label>Type</Label>
+            <Label>{t("sources.sourceType")}</Label>
             <Select
               value={type}
               onChange={(e) => {
@@ -187,18 +187,18 @@ export default function SourceEditPage() {
                 setForm(getTypeDefault(e.target.value, {}))
               }}
             >
-              <option value="path">Path</option>
-              <option value="postgres">PostgreSQL</option>
-              <option value="postgres-container">PostgreSQL Container</option>
-              <option value="container-volume">Container Volume</option>
-              <option value="sqlite">SQLite</option>
-              <option value="sqlite-container">SQLite Container</option>
+              <option value="path">{t("sources.typePath")}</option>
+              <option value="postgres">{t("sources.typePostgres")}</option>
+              <option value="postgres-container">{t("sources.typePostgresContainer")}</option>
+              <option value="container-volume">{t("sources.typeContainerVolume")}</option>
+              <option value="sqlite">{t("sources.typeSqlite")}</option>
+              <option value="sqlite-container">{t("sources.typeSqliteContainer")}</option>
             </Select>
           </div>
 
           {type === "path" && (
             <div className="space-y-2">
-              <Label>Path</Label>
+              <Label>{t("sources.path")}</Label>
               <Input
                 value={form.path as string}
                 onChange={(e) => {
@@ -212,16 +212,16 @@ export default function SourceEditPage() {
           {type === "postgres" && (
             <>
               <div className="space-y-2">
-                <Label>Host</Label>
+                <Label>{t("sources.user")}</Label>
                 <Input
-                  value={form.host as string}
+                  value={form.user as string}
                   onChange={(e) => {
-                    update("host", e.target.value)
+                    update("user", e.target.value)
                   }}
                 />
               </div>
               <div className="space-y-2">
-                <Label>Port</Label>
+                <Label>{t("sources.port")}</Label>
                 <Input
                   type="number"
                   value={form.port as number}
@@ -231,7 +231,7 @@ export default function SourceEditPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>User</Label>
+                <Label>{t("sources.user")}</Label>
                 <Input
                   value={form.user as string}
                   onChange={(e) => {
@@ -240,7 +240,7 @@ export default function SourceEditPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Password</Label>
+                <Label>{t("sources.password")}</Label>
                 <Input
                   type="password"
                   value={form.password as string}
@@ -250,7 +250,7 @@ export default function SourceEditPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Database</Label>
+                <Label>{t("sources.database")}</Label>
                 <Input
                   value={form.database as string}
                   onChange={(e) => {
@@ -264,7 +264,7 @@ export default function SourceEditPage() {
           {type === "postgres-container" && (
             <>
               <div className="space-y-2">
-                <Label>Container Name</Label>
+                <Label>{t("sources.containerName")}</Label>
                 <Input
                   value={form.containerName as string}
                   onChange={(e) => {
@@ -273,7 +273,7 @@ export default function SourceEditPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>User</Label>
+                <Label>{t("sources.user")}</Label>
                 <Input
                   value={form.user as string}
                   onChange={(e) => {
@@ -282,7 +282,7 @@ export default function SourceEditPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Password</Label>
+                <Label>{t("sources.password")}</Label>
                 <Input
                   type="password"
                   value={form.password as string}
@@ -292,7 +292,7 @@ export default function SourceEditPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Database</Label>
+                <Label>{t("sources.database")}</Label>
                 <Input
                   value={form.database as string}
                   onChange={(e) => {
@@ -420,7 +420,7 @@ export default function SourceEditPage() {
                 {dockerContainersError && <p className="text-xs text-muted-foreground">{dockerContainersError}</p>}
               </div>
               <div className="space-y-2">
-                <Label>Database Path</Label>
+                <Label>{t("sources.databasePath")}</Label>
                 <Input
                   value={form.dbPath as string}
                   onChange={(e) => {

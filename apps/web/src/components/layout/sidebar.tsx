@@ -61,7 +61,7 @@ const Sidebar = ({ collapsed = false }: { collapsed?: boolean }) => {
       <div className="border-t border-sidebar-border p-4">
         <div className="flex items-center gap-2 text-xs text-sidebar-foreground">
           <div className="h-2 w-2 rounded-full bg-success" />
-          {!collapsed && <span>Daemon Running</span>}
+          {!collapsed && <span>{t("status.running")}</span>}
         </div>
       </div>
     </aside>

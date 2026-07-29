@@ -15,5 +15,4 @@ interface DaemonHandle {
   stop: () => void
 }
 
-export type { DaemonOptions, DaemonHandle }
-export { DaemonStatus }
+export { DaemonStatus, type DaemonOptions, type DaemonHandle }

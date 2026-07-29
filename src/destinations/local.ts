@@ -1,4 +1,4 @@
-import { mkdirSync, readFileSync, readdirSync } from "node:fs"
+import { readFileSync, readdirSync } from "node:fs"
 import { cp, mkdir } from "node:fs/promises"
 import { dirname, join } from "node:path"
 import type { Destination } from "../types/config"

@@ -50,11 +50,11 @@ export default function DestinationEditPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Destination Configuration</CardTitle>
+          <CardTitle>{t("destinations.cardTitle")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label>Type</Label>
+            <Label>{t("destinations.destinationType")}</Label>
             <Select
               value={type}
               onChange={(e) => {
@@ -62,7 +62,7 @@ export default function DestinationEditPage() {
               }}
             >
               <option value="local">{t("destinations.local")}</option>
-              <option value="sftp">SFTP</option>
+              <option value="sftp">{t("destinations.sftp")}</option>
             </Select>
           </div>
 
@@ -78,7 +78,7 @@ export default function DestinationEditPage() {
           </div>
 
           <div className="space-y-2">
-            <Label>Path</Label>
+            <Label>{t("destinations.path")}</Label>
             <Input
               value={form.path as string}
               onChange={(e) => {
@@ -90,7 +90,7 @@ export default function DestinationEditPage() {
           {type === "sftp" && (
             <>
               <div className="space-y-2">
-                <Label>Host</Label>
+                <Label>{t("destinations.host")}</Label>
                 <Input
                   value={form.host as string}
                   onChange={(e) => {
@@ -99,7 +99,7 @@ export default function DestinationEditPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Port</Label>
+                <Label>{t("destinations.port")}</Label>
                 <Input
                   type="number"
                   value={form.port as number}
@@ -109,7 +109,7 @@ export default function DestinationEditPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>User</Label>
+                <Label>{t("destinations.user")}</Label>
                 <Input
                   value={form.user as string}
                   onChange={(e) => {
@@ -118,7 +118,7 @@ export default function DestinationEditPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Password</Label>
+                <Label>{t("destinations.password")}</Label>
                 <Input
                   type="password"
                   value={form.password as string}
@@ -128,7 +128,7 @@ export default function DestinationEditPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Private Key</Label>
+                <Label>{t("destinations.privateKey")}</Label>
                 <Input
                   value={form.privateKey as string}
                   onChange={(e) => {
@@ -140,7 +140,7 @@ export default function DestinationEditPage() {
           )}
 
           <div className="space-y-2">
-            <Label>Retention (backups)</Label>
+            <Label>{t("destinations.retention")}</Label>
             <Input
               type="number"
               value={form.retention as number}
@@ -152,7 +152,7 @@ export default function DestinationEditPage() {
 
           {type === "sftp" && (
             <div className="space-y-2">
-              <Label>Timeout (seconds)</Label>
+              <Label>{t("destinations.timeout")}</Label>
               <Input
                 type="number"
                 value={form.timeout as number}
@@ -164,7 +164,7 @@ export default function DestinationEditPage() {
           )}
 
           <div className="flex items-center justify-between rounded-lg border p-3">
-            <span className="text-sm font-medium">Parallel Upload</span>
+            <span className="text-sm font-medium">{t("destinations.parallel")}</span>
             <Switch
               checked={form.parallel as boolean}
               onCheckedChange={(v) => {
@@ -174,7 +174,7 @@ export default function DestinationEditPage() {
           </div>
 
           <div className="flex items-center justify-between rounded-lg border p-3">
-            <span className="text-sm font-medium">Skip this destination</span>
+            <span className="text-sm font-medium">{t("destinations.skip")}</span>
             <Switch
               checked={form.skip as boolean}
               onCheckedChange={(v) => {
