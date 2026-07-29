@@ -1,9 +1,10 @@
 import { readFileSync, writeFileSync, statSync } from "node:fs"
-import { resolve, dirname } from "node:path"
+import { homedir } from "node:os"
+import { resolve } from "node:path"
 import type { CachedConfig, ConfigFile } from "../../types/store"
 
 const CONFIG_PATH = process.env.CHEST_CONFIG_PATH ?? resolve(process.cwd(), "chest-backup.json")
-const DATA_DIR = process.env.CHEST_DATA_DIR ?? resolve(dirname(CONFIG_PATH), ".chest-data")
+const DATA_DIR = process.env.CHEST_DATA_DIR ?? resolve(homedir(), ".local/share/chest-backup")
 const BACKUP_HISTORY_PATH = resolve(DATA_DIR, "backup-history.json")
 
 let cachedConfig: CachedConfig | null = null
