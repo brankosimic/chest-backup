@@ -195,7 +195,6 @@ pnpm format
 
 # Run tests (from @chest-backup/app)
 pnpm --filter @chest-backup/app test
-pnpm --filter @chest-backup/app test:unit
 pnpm --filter @chest-backup/app test:e2e   # Runs in Docker
 ```
 

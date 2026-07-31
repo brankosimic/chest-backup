@@ -16,7 +16,6 @@
     "lint": "eslint packages/",
     "typecheck": "tsc --noEmit",
     "test": "bun test --bail --timeout 120000 --path-ignore-patterns 'dist/**'",
-    "test:unit": "bun test --bail --path-ignore-patterns 'dist/**' test/unit/",
     "test:e2e": "docker compose -f docker-compose.test.yaml down --remove-orphans && docker compose -f docker-compose.test.yaml build test-runner && docker compose -f docker-compose.test.yaml run --rm test-runner && docker compose -f docker-compose.test.yaml down --remove-orphans",
     "release:patch": "npm version patch -m \"chore(release): v%s\" && git push --follow-tags",
     "release:minor": "npm version minor -m \"chore(release): v%s\" && git push --follow-tags",
