@@ -7,6 +7,7 @@ const getEnv = (name: string, defaultValue?: string): string => {
   return value
 }
 
+const host = getEnv("API_HOST", "127.0.0.1")
 const port = Number(getEnv("API_PORT", "5199"))
 
-export { port }
+export { host, port }

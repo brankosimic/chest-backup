@@ -9,9 +9,9 @@
 #   systemctl --user daemon-reload
 #   systemctl --user enable --now chest-backup
 #
-# Configuration:
-#   /etc/chest-backup/chest-backup.json  — backup sources, destinations, schedule
-#   /etc/chest-backup/.env               — secrets (API keys, passwords)
+# Configuration (per-user, %h expands to $HOME at runtime):
+#   ~/.config/chest-backup/chest-backup.json  — backup sources, destinations, schedule
+#   ~/.config/chest-backup/.env               — secrets (API keys, passwords)
 
 [Unit]
 Description=chest-backup - API server and backup daemon (with optional tray)
@@ -21,11 +21,9 @@ Wants=network.target
 [Service]
 Type=simple
 WorkingDirectory=/usr/share/chest-backup
-EnvironmentFile=/etc/chest-backup/.env
+EnvironmentFile=-%h/.config/chest-backup/.env
 Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-Environment=API_PORT=5199
-Environment=API_HOST=0.0.0.0
-Environment=CHEST_CONFIG_PATH=/etc/chest-backup/chest-backup.json
+Environment=CHEST_CONFIG_PATH=%h/.config/chest-backup/chest-backup.json
 ExecStartPre=/usr/bin/sleep 5
 ExecStart=/usr/bin/chest-backup
 Restart=on-failure

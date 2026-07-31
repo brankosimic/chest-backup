@@ -6,6 +6,8 @@ API_PID=""
 TRAY_PID=""
 GRAPHICAL_SESSION=""
 
+export CHEST_CONFIG_PATH="${CHEST_CONFIG_PATH:-$HOME/.config/chest-backup/chest-backup.json}"
+
 cleanup() {
   [ -n "$TRAY_PID" ] && kill "$TRAY_PID" 2>/dev/null || true
   [ -n "$API_PID" ] && kill "$API_PID" 2>/dev/null || true

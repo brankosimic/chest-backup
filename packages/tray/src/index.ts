@@ -1,4 +1,6 @@
 import { execSync, spawn } from "node:child_process"
+import { homedir } from "node:os"
+import { resolve } from "node:path"
 import { createDaemon } from "@core/daemon"
 import type { DaemonOptions } from "@core/daemon"
 import { TrayBridge } from "./tray/bridge"
@@ -27,8 +29,9 @@ const main = async (): Promise<void> => {
       tray.notify("Chest Backup", "Daemon is running. Click Run Backup Now to start a manual backup.")
     },
     onOpenConfig: () => {
+      const configPath = process.env.CHEST_CONFIG_PATH ?? resolve(homedir(), ".config/chest-backup/chest-backup.json")
       try {
-        execSync("xdg-open ./chest-backup.json", { timeout: 3000 })
+        execSync(`xdg-open "${configPath}"`, { timeout: 3000 })
       } catch {
         console.debug("failed to open config file")
       }

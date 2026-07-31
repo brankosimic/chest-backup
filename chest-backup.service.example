@@ -21,8 +21,6 @@ Type=simple
 WorkingDirectory=%h/<project-path>
 EnvironmentFile=%h/<project-path>/.env
 Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-Environment=API_PORT=5199
-Environment=API_HOST=0.0.0.0
 Environment=CHEST_CONFIG_PATH=%h/<project-path>/chest-backup.json
 Environment=DISPLAY=:0
 ExecStartPre=/usr/bin/sleep 5

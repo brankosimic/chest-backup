@@ -165,7 +165,7 @@ The API server provides REST endpoints for managing and monitoring backups. It a
 
 | Variable | Default | Description |
 |---|---|---|
-| `API_HOST` | `0.0.0.0` | API server bind address |
+| `API_HOST` | `127.0.0.1` | API server bind address (loopback only by default; set to `0.0.0.0` to expose on the network) |
 | `API_PORT` | `5199` | API server port |
 | `CHEST_CONFIG_PATH` | `./chest-backup.json` | Path to config file |
 

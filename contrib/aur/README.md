@@ -70,30 +70,26 @@ makepkg -si
 
 ## Post-install setup
 
-1. Edit the default config to match your sources and destinations:
+Config is stored per-user in `~/.config/chest-backup/` (the service runs as a
+user unit, so `/etc` would not be writable):
 
 ```bash
-sudo nano /etc/chest-backup/chest-backup.json
+nano ~/.config/chest-backup/chest-backup.json
+nano ~/.config/chest-backup/.env
 ```
 
-2. Optionally set secrets in the env file:
+The user service is enabled and started automatically on install, and linger is
+enabled so scheduled backups run at boot without a login.
 
-```bash
-sudo nano /etc/chest-backup/.env
-```
+1. Open the web UI at http://localhost:5199 and manage sources, destinations,
+   and schedule from there — no manual editing required.
+2. After upgrading an existing install, restart the service to pick up the new
+   config location:
+   `systemctl --user restart chest-backup`
 
-3. Enable and start the user service:
-
-```bash
-systemctl --user daemon-reload
-systemctl --user enable --now chest-backup
-```
-
-4. Open the web UI at http://localhost:5199
-
-> Default configs are shipped to `/etc/chest-backup/` on install. On package
-> upgrades, pacman preserves your edits and saves new defaults as `.pacnew`
-> files — safe to update without losing settings.
+> Defaults are seeded into `~/.config/chest-backup/` on first install and are
+> never overwritten on upgrade. If you were on a pre-0.1.7 package, any config
+> in `/etc/chest-backup/` is migrated to `~/.config/chest-backup/` automatically.
 
 ## Notes
 

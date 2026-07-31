@@ -3,7 +3,7 @@ import { serveStatic } from "hono/bun"
 import { resolve } from "node:path"
 import { cors } from "./middleware/cors"
 import { errorHandling } from "./middleware/error"
-import { port as PORT } from "./env"
+import { host as HOST, port as PORT } from "./env"
 import { backups } from "./routes/backups"
 import { destinations } from "./routes/destinations"
 import { logs } from "./routes/logs"
@@ -45,9 +45,10 @@ app.get("/*", (c) => {
 const start = async (): Promise<void> => {
   Bun.serve({
     fetch: app.fetch,
+    hostname: HOST,
     port: PORT,
   })
-  console.log(`Chest-Backup API running on http://localhost:${String(PORT)}`)
+  console.log(`Chest-Backup API running on http://${HOST}:${String(PORT)}`)
   seedLogsFromHistory()
   pushLog({
     id: `log-start-${String(Date.now())}`,
