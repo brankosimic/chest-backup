@@ -1,7 +1,6 @@
 #!/usr/bin/bash
 set -e
 
-# chest-backup — installed to /usr/share/chest-backup
 INSTALL_DIR="/usr/share/chest-backup"
 API_PID=""
 TRAY_PID=""
@@ -9,35 +8,51 @@ TRAY_PID=""
 cleanup() {
   [ -n "$TRAY_PID" ] && kill "$TRAY_PID" 2>/dev/null || true
   [ -n "$API_PID" ] && kill "$API_PID" 2>/dev/null || true
-  exit 0
 }
-trap cleanup INT TERM
+trap cleanup EXIT
+trap 'cleanup; exit 0' INT TERM
 
-# Check whether a graphical session is active
-has_display=false
-for id in $(/usr/bin/loginctl list-sessions --no-legend 2>/dev/null | /usr/bin/awk '{print $1}'); do
-  type=$(/usr/bin/loginctl show-session "$id" -p Type --value 2>/dev/null)
-  if [ "$type" = x11 ] || [ "$type" = wayland ]; then
-    has_display=true
-    break
+has_graphical_session() {
+  for id in $(/usr/bin/loginctl list-sessions --no-legend 2>/dev/null | /usr/bin/awk '{print $1}'); do
+    type=$(/usr/bin/loginctl show-session "$id" -p Type --value 2>/dev/null)
+    if [ "$type" = x11 ] || [ "$type" = wayland ]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+tray_available() {
+  [ -d "$INSTALL_DIR/node_modules/@trayjs/trayjs" ] && ls "$INSTALL_DIR/node_modules/@trayjs"/linux-* >/dev/null 2>&1
+}
+
+start_api() {
+  if [ "$1" = tray ]; then
+    DAEMON_OWNER=tray /usr/bin/bun "$INSTALL_DIR/packages/api/dist/index.js" &
+  else
+    /usr/bin/bun "$INSTALL_DIR/packages/api/dist/index.js" &
   fi
-done
+  API_PID=$!
+}
 
-# Start the API server (always). The daemon runs here only if no desktop.
-if [ "$has_display" = true ]; then
-  # Tray process will own the daemon — API serves HTTP only
-  DAEMON_OWNER=tray /usr/bin/bun "$INSTALL_DIR/packages/api/dist/index.js" &
-else
-  # No desktop — API runs the daemon itself
-  /usr/bin/bun "$INSTALL_DIR/packages/api/dist/index.js" &
-fi
-API_PID=$!
-
-# Conditionally start tray (desktop only) — owns the daemon
-if [ "$has_display" = true ]; then
+start_tray() {
   /usr/bin/bun "$INSTALL_DIR/packages/tray/dist/index.js" &
   TRAY_PID=$!
+}
+
+if has_graphical_session && tray_available; then
+  start_api tray
+  start_tray
+elif has_graphical_session; then
+  echo "chest-backup: tray unavailable; running headless (API owns the daemon)" >&2
+  start_api
+else
+  start_api
 fi
 
-# Wait for API process; exit code follows API
+if [ -n "$TRAY_PID" ]; then
+  wait -n "$API_PID" "$TRAY_PID" 2>/dev/null
+  exit $?
+fi
+
 wait "$API_PID"

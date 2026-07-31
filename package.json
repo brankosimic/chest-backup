@@ -1,6 +1,6 @@
 {
   "name": "@chest-backup/monorepo",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "private": true,
   "scripts": {
     "dev": "pnpm --filter @chest-backup/api dev & pnpm --filter @chest-backup/web dev",
