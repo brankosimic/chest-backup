@@ -26,7 +26,6 @@ Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 Environment=API_PORT=5199
 Environment=API_HOST=0.0.0.0
 Environment=CHEST_CONFIG_PATH=/etc/chest-backup/chest-backup.json
-Environment=DISPLAY=:0
 ExecStartPre=/usr/bin/sleep 5
 ExecStart=/usr/bin/chest-backup
 Restart=on-failure

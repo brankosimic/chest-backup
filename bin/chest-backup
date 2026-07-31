@@ -4,6 +4,7 @@ set -e
 INSTALL_DIR="/usr/share/chest-backup"
 API_PID=""
 TRAY_PID=""
+GRAPHICAL_SESSION=""
 
 cleanup() {
   [ -n "$TRAY_PID" ] && kill "$TRAY_PID" 2>/dev/null || true
@@ -16,6 +17,7 @@ has_graphical_session() {
   for id in $(/usr/bin/loginctl list-sessions --no-legend 2>/dev/null | /usr/bin/awk '{print $1}'); do
     type=$(/usr/bin/loginctl show-session "$id" -p Type --value 2>/dev/null)
     if [ "$type" = x11 ] || [ "$type" = wayland ]; then
+      GRAPHICAL_SESSION="$id"
       return 0
     fi
   done
@@ -40,12 +42,23 @@ start_tray() {
   TRAY_PID=$!
 }
 
-if has_graphical_session && tray_available; then
-  start_api tray
-  start_tray
-elif has_graphical_session; then
-  echo "chest-backup: tray unavailable; running headless (API owns the daemon)" >&2
-  start_api
+set_display() {
+  if [ -n "${DISPLAY:-}" ]; then
+    return
+  fi
+  display=$(/usr/bin/loginctl show-session "$GRAPHICAL_SESSION" -p Display --value 2>/dev/null) || true
+  export DISPLAY="${display:-:0}"
+}
+
+if has_graphical_session; then
+  set_display
+  if tray_available; then
+    start_api tray
+    start_tray
+  else
+    echo "chest-backup: tray unavailable; running headless (API owns the daemon)" >&2
+    start_api
+  fi
 else
   start_api
 fi
