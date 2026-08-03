@@ -22,12 +22,10 @@ A full-stack backup management system — schedule and monitor backups of files,
 
 ```
 chest-backup/
-├── apps/
+├── packages/
 │   ├── api/          # Hono API server (Bun) — backup orchestration, scheduling
 │   ├── tray/         # System tray integration (Bun) — desktop notification area
 │   └── web/          # React + Vite frontend — dashboard, config editor, monitoring
-├── packages/
-│   └── shared/       # Shared TypeScript types between API and web
 ├── src/              # CLI app — backup engine (orchestration, archiving, retention)
 ├── chest-backup.json # Config file
 └── .env              # Environment variables (secrets, API config)
@@ -87,6 +85,26 @@ Configure a `schedule` field in `chest-backup.json` (cron expression) and start 
 ```bash
 pnpm start
 ```
+
+### Run as a Systemd User Service
+
+Two unit files are provided — choose one based on your environment:
+
+**Headless** (servers, SSH, no desktop):
+```bash
+systemctl --user link /usr/lib/systemd/user/chest-backup-headless.service
+systemctl --user daemon-reload
+systemctl --user enable --now chest-backup-headless
+```
+
+**Tray** (desktop environments with X11/Wayland):
+```bash
+systemctl --user link /usr/lib/systemd/user/chest-backup-tray.service
+systemctl --user daemon-reload
+systemctl --user enable --now chest-backup-tray
+```
+
+Switch between modes by disabling one and enabling the other. The `mode` field in `chest-backup.json` also controls this behavior at runtime.
 
 ## Configuration Reference
 
@@ -157,11 +175,12 @@ pnpm start
 |---|---|
 | `--config <path>` | Path to configuration file |
 | `--dry-run` | Validate config without running backups |
+| `--mode <headless\|tray\|auto>` | Override tray mode |
 | `--run-now` | Run a backup immediately |
 
 ## API
 
-The API server provides REST endpoints for managing and monitoring backups. It also includes system tray integration for desktop environments.
+The API server provides REST endpoints for managing and monitoring backups. System tray integration is available as a separate process (desktop environments only).
 
 | Variable | Default | Description |
 |---|---|---|

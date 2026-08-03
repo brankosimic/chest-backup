@@ -1,7 +1,7 @@
 [Unit]
-Description=chest-backup - API server and backup daemon (with system tray)
-After=network.target graphical-session.target
-Wants=network.target graphical-session.target
+Description=chest-backup - API server and backup daemon (headless)
+After=network.target
+Wants=network.target
 
 [Service]
 Type=simple
@@ -10,7 +10,7 @@ EnvironmentFile=-%h/.config/chest-backup/.env
 Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 Environment=CHEST_CONFIG_PATH=%h/.config/chest-backup/chest-backup.json
 ExecStartPre=/usr/bin/sleep 5
-ExecStart=/usr/bin/chest-backup --mode tray
+ExecStart=/usr/bin/chest-backup --mode headless
 Restart=on-failure
 RestartSec=30s
 StandardOutput=journal

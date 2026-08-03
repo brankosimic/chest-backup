@@ -8,6 +8,12 @@ GRAPHICAL_SESSION=""
 
 export CHEST_CONFIG_PATH="${CHEST_CONFIG_PATH:-$HOME/.config/chest-backup/chest-backup.json}"
 
+MODE="auto"
+
+if [ "${1:-}" = "--mode" ]; then
+  MODE="$2"
+fi
+
 cleanup() {
   [ -n "$TRAY_PID" ] && kill "$TRAY_PID" 2>/dev/null || true
   [ -n "$API_PID" ] && kill "$API_PID" 2>/dev/null || true
@@ -52,17 +58,32 @@ set_display() {
   export DISPLAY="${display:-:0}"
 }
 
-if has_graphical_session; then
-  set_display
-  if tray_available; then
-    start_api tray
-    start_tray
-  else
-    echo "chest-backup: tray unavailable; running headless (API owns the daemon)" >&2
-    start_api
-  fi
+run_tray=false
+
+case "$MODE" in
+  tray)
+    run_tray=true
+    ;;
+  headless)
+    run_tray=false
+    ;;
+  auto)
+  has_graphical_session && tray_available && run_tray=true
+  ;;
+esac
+
+if [ "$run_tray" = true ]; then
+  has_graphical_session && set_display
+  start_api tray
+  start_tray
+  echo "chest-backup: running with system tray" >&2
 else
   start_api
+  if [ "$MODE" = "auto" ]; then
+    echo "chest-backup: running headless (no tray)" >&2
+  else
+    echo "chest-backup: running in $MODE mode" >&2
+  fi
 fi
 
 if [ -n "$TRAY_PID" ]; then

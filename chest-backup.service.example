@@ -1,20 +1,7 @@
-# chest-backup systemd user service
-#
-# Single service managing:
-#   - HTTP API server (always)
-#   - system tray icon + backup daemon (only when a desktop session is active)
-#
-# Install:
-#   systemctl --user link $PWD/chest-backup.service
-#   systemctl --user daemon-reload
-#   systemctl --user enable --now chest-backup
-#
-# %h expands to $HOME at runtime.
-
 [Unit]
-Description=chest-backup - API server and backup daemon (with optional tray)
-After=network.target
-Wants=network.target
+Description=chest-backup - API server and backup daemon (with system tray)
+After=network.target graphical-session.target
+Wants=network.target graphical-session.target
 
 [Service]
 Type=simple
@@ -22,9 +9,8 @@ WorkingDirectory=%h/<project-path>
 EnvironmentFile=%h/<project-path>/.env
 Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 Environment=CHEST_CONFIG_PATH=%h/<project-path>/chest-backup.json
-Environment=DISPLAY=:0
 ExecStartPre=/usr/bin/sleep 5
-ExecStart=%h/<project-path>/bin/chest-backup
+ExecStart=%h/<project-path>/bin/chest-backup --mode tray
 Restart=on-failure
 RestartSec=30s
 StandardOutput=journal
