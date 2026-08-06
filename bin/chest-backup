@@ -33,7 +33,15 @@ has_graphical_session() {
 }
 
 tray_available() {
-  [ -d "$INSTALL_DIR/node_modules/@trayjs/trayjs" ] && ls "$INSTALL_DIR/node_modules/@trayjs"/linux-* >/dev/null 2>&1
+  if [ -d "$INSTALL_DIR/node_modules/@trayjs/trayjs" ] && ls "$INSTALL_DIR/node_modules/@trayjs"/linux-* >/dev/null 2>&1; then
+    return 0
+  fi
+  if [ -d "$INSTALL_DIR/packages/tray/node_modules/@trayjs/trayjs" ]; then
+    for bin in "$INSTALL_DIR"/node_modules/.pnpm/@trayjs+linux-*@*/node_modules/@trayjs/linux-*/bin/tray; do
+      [ -x "$bin" ] && return 0
+    done
+  fi
+  return 1
 }
 
 start_api() {
