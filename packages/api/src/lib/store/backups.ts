@@ -126,7 +126,11 @@ const getDestinationUsage = async (id: string): Promise<DestinationUsage | null>
   const dest = findDestinationById(id)
   if (!dest) return null
 
-  const usage = await buildDestUsage(dest, 0)
+  const records = readBackupHistory()
+  const total = records.length
+  const avgDurationMs = total > 0 ? records.reduce((acc, b) => acc + b.durationMs, 0) / total : 0
+
+  const usage = await buildDestUsage(dest, avgDurationMs)
   if (usage) return usage
 
   return {
@@ -135,7 +139,7 @@ const getDestinationUsage = async (id: string): Promise<DestinationUsage | null>
     path: dest.path,
     totalSize: 0,
     fileCount: 0,
-    avgDurationMs: 0,
+    avgDurationMs,
   }
 }
 

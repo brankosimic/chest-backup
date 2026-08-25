@@ -44,7 +44,7 @@ const DestCard = ({ destination }: DestCardProps) => {
               <Clock className="h-3 w-3" />
               <span>{t("dashboard.avgDuration")}: </span>
               <span className="font-medium text-foreground">
-                {usage && usage.avgDurationMs > 0 ? formatDuration(usage.avgDurationMs) : "-"}
+                {usage ? formatDuration(usage.avgDurationMs) : "-"}
               </span>
             </div>
           </>
