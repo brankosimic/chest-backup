@@ -17,7 +17,7 @@ import {
   getNotifications,
   updateNotifications,
 } from "./settings"
-import { getBackups, getBackupById, getBackupStats, addBackupRecord, invalidateBackupCache } from "./backups"
+import { getBackups, getBackupById, getBackupStats, getDestinationUsage, addBackupRecord, invalidateBackupCache } from "./backups"
 import { persistBackupResult } from "./backup-result"
 
 export {
@@ -36,6 +36,7 @@ export {
   getBackups,
   getBackupById,
   getBackupStats,
+  getDestinationUsage,
   getDestinations,
   getNotifications,
   getRetention,

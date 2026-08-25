@@ -130,7 +130,8 @@
     "newDestination": "New Destination",
     "pathPlaceholder": "/backups",
     "noDestinations": "No destinations configured",
-    "noDestinationsDesc": "Add your first backup destination to get started."
+    "noDestinationsDesc": "Add your first backup destination to get started.",
+    "unavailable": "Unavailable"
   },
   "schedule": {
     "title": "Schedule",

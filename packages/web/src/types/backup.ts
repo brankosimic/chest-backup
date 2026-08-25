@@ -23,13 +23,20 @@ interface ContainerVolume {
   rw: boolean
 }
 
+import type { Destination } from "@chest-backup/shared"
+
 interface DestCardProps {
-  name: string
+  destination: Destination
+}
+
+interface DestinationUsage {
   type: string
-  fileCount: number
-  totalSize: number
-  avgDurationMs: number
+  name?: string
   path: string
+  totalSize: number
+  fileCount: number
+  avgDurationMs: number
+  available: boolean
 }
 
 interface BadgeProps {
@@ -37,4 +44,4 @@ interface BadgeProps {
   labelKey: string
 }
 
-export type { ContainerVolume, BackupRunProgress, DestProgress, DestCardProps, BadgeProps }
+export type { ContainerVolume, BackupRunProgress, DestProgress, DestCardProps, DestinationUsage, BadgeProps }

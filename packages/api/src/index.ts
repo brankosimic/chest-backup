@@ -22,6 +22,10 @@ const app = new Hono()
 
 app.use("*", cors)
 app.use("*", errorHandling)
+app.use("*", async (c, next) => {
+  await next()
+  c.header("Cache-Control", "no-cache")
+})
 
 app.route("/api/sources", sources)
 app.route("/api/destinations", destinations)

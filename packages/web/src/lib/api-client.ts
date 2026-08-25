@@ -1,4 +1,4 @@
-import type { ContainerVolume, BackupRunProgress } from "../types/backup"
+import type { ContainerVolume, BackupRunProgress, DestinationUsage } from "../types/backup"
 import type { Source, Destination, BackupRecord, ApiResponse } from "@chest-backup/shared"
 
 const BASE_URL = ""
@@ -40,6 +40,7 @@ const deleteSource = (id: string) => apiFetch<undefined>(`/api/sources/${id}`, {
 
 const fetchDestinations = () => apiFetch<Destination[]>("/api/destinations")
 const fetchDestination = (id: string) => apiFetch<Destination>(`/api/destinations/${id}`)
+const fetchDestinationUsage = (id: string) => apiFetch<DestinationUsage>(`/api/destinations/${id}/usage`)
 const createDestination = (data: Record<string, unknown>) =>
   apiFetch<Destination>("/api/destinations", { method: "POST", body: JSON.stringify(data) })
 const updateDestination = (id: string, data: Record<string, unknown>) =>
@@ -142,6 +143,7 @@ export {
   deleteSource,
   fetchDestinations,
   fetchDestination,
+  fetchDestinationUsage,
   createDestination,
   updateDestination,
   deleteDestination,

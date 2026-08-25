@@ -7,6 +7,7 @@ import type {
   NotificationUpdateData,
   FetchPostgresParams,
 } from "@/types/mutations"
+import type { DestinationUsage } from "@/types/backup"
 import {
   fetchSources,
   fetchSource,
@@ -15,6 +16,7 @@ import {
   deleteSource,
   fetchDestinations,
   fetchDestination,
+  fetchDestinationUsage,
   createDestination,
   updateDestination,
   deleteDestination,
@@ -70,6 +72,9 @@ const useDeleteSource = () => {
 }
 
 const useDestinations = () => useQuery<Destination[]>({ queryKey: ["destinations"], queryFn: fetchDestinations })
+
+const useDestinationUsage = (id: string) =>
+  useQuery<DestinationUsage>({ queryKey: ["destination-usage", id], queryFn: () => fetchDestinationUsage(id), enabled: !!id })
 
 const useDestination = (id: string) =>
   useQuery<Destination>({ queryKey: ["destinations", id], queryFn: () => fetchDestination(id), enabled: !!id })
@@ -148,7 +153,8 @@ const useUpdateNotifications = () => {
 const useBackups = (page = 1, limit = 50) =>
   useQuery({ queryKey: ["backups", page, limit], queryFn: () => fetchBackups(page, limit) })
 
-const useBackupStats = () => useQuery({ queryKey: ["backup-stats"], queryFn: fetchBackupStats })
+const useBackupStats = () =>
+  useQuery({ queryKey: ["backup-stats"], queryFn: fetchBackupStats, refetchInterval: 15_000 })
 
 const useBackupProgress = () =>
   useQuery({
@@ -205,6 +211,7 @@ export {
   useUpdateSource,
   useDeleteSource,
   useDestinations,
+  useDestinationUsage,
   useDestination,
   useCreateDestination,
   useUpdateDestination,

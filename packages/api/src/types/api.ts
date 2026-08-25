@@ -12,6 +12,7 @@ interface DestinationUsage {
   totalSize: number
   fileCount: number
   avgDurationMs: number
+  available: boolean
 }
 
 interface BackupStats {
@@ -19,8 +20,6 @@ interface BackupStats {
   success: number
   failed: number
   avgDuration: number
-  totalSize: number
-  destinations: DestinationUsage[]
 }
 
 type Result<T> = { ok: true; data: T } | { ok: false; error: Response }
