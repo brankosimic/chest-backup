@@ -17,7 +17,7 @@ const DestCard = ({ destination }: DestCardProps) => {
   const { data: usage, isLoading } = useDestinationUsage(destination.id)
   return (
     <Card className={cn(
-      usage?.available ? "border-green-500/60" : !usage?.available && "border-destructive/60",
+      usage?.available ? "border-green-500" : !usage?.available && "border-destructive",
     )}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground truncate" title={destination.path}>
@@ -28,10 +28,7 @@ const DestCard = ({ destination }: DestCardProps) => {
             {destination.type === "local" ? t("destinations.local") : t("destinations.sftp")}
           </Badge>
           {usage && !usage.available && (
-            <Badge variant="destructive" className="gap-1">
-              <AlertTriangle className="h-3 w-3" />
-              {t("destinations.unavailable")}
-            </Badge>
+            <AlertTriangle className="h-4 w-4 text-destructive" aria-label={t("destinations.unavailable")} />
           )}
         </div>
       </CardHeader>
