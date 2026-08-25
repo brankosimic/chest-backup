@@ -16,7 +16,9 @@ const DestCard = ({ destination }: DestCardProps) => {
   const { t } = useTranslation()
   const { data: usage, isLoading } = useDestinationUsage(destination.id)
   return (
-    <Card className={cn(!usage?.available && "border-destructive/60")}>
+    <Card className={cn(
+      usage?.available ? "border-green-500/60" : !usage?.available && "border-destructive/60",
+    )}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground truncate" title={destination.path}>
           {destination.name ?? destination.path}
