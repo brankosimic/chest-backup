@@ -1,208 +1,23 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import type { Source, Destination } from "@chest-backup/shared"
-import type {
-  SourceMutationData,
-  ScheduleUpdateData,
-  RetentionUpdateData,
-  NotificationUpdateData,
-  FetchPostgresParams,
-} from "@/types/mutations"
-import type { DestinationUsage } from "@/types/backup"
+import { useSources, useSource, useCreateSource, useUpdateSource, useDeleteSource } from "./queries/sources"
 import {
-  fetchSources,
-  fetchSource,
-  createSource,
-  updateSource,
-  deleteSource,
-  fetchDestinations,
-  fetchDestination,
-  fetchDestinationUsage,
-  createDestination,
-  updateDestination,
-  deleteDestination,
-  fetchSchedule,
-  updateSchedule,
-  fetchRetention,
-  updateRetention,
-  fetchNotifications,
-  updateNotifications,
-  fetchBackups,
-  fetchBackupStats,
-  triggerBackup,
-  fetchBackupProgress,
-  fetchLogs,
-  fetchSystem,
-  testNotification,
-  fetchPostgresDatabases,
-} from "@/lib/api-client"
-
-const useSources = () => useQuery<Source[]>({ queryKey: ["sources"], queryFn: fetchSources })
-
-const useSource = (id: string) =>
-  useQuery<Source>({ queryKey: ["sources", id], queryFn: () => fetchSource(id), enabled: !!id })
-
-const useCreateSource = () => {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (data: Record<string, unknown>) => createSource(data),
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["sources"] })
-    },
-  })
-}
-
-const useUpdateSource = () => {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: ({ id, data }: SourceMutationData) => updateSource(id, data),
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["sources"] })
-    },
-  })
-}
-
-const useDeleteSource = () => {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (id: string) => deleteSource(id),
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["sources"] })
-    },
-  })
-}
-
-const useDestinations = () => useQuery<Destination[]>({ queryKey: ["destinations"], queryFn: fetchDestinations })
-
-const useDestinationUsage = (id: string) =>
-  useQuery<DestinationUsage>({ queryKey: ["destination-usage", id], queryFn: () => fetchDestinationUsage(id), enabled: !!id })
-
-const useDestination = (id: string) =>
-  useQuery<Destination>({ queryKey: ["destinations", id], queryFn: () => fetchDestination(id), enabled: !!id })
-
-const useCreateDestination = () => {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (data: Record<string, unknown>) => createDestination(data),
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["destinations"] })
-    },
-  })
-}
-
-const useUpdateDestination = () => {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: ({ id, data }: SourceMutationData) => updateDestination(id, data),
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["destinations"] })
-    },
-  })
-}
-
-const useDeleteDestination = () => {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (id: string) => deleteDestination(id),
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["destinations"] })
-    },
-  })
-}
-
-const useSchedule = () => useQuery({ queryKey: ["schedule"], queryFn: fetchSchedule })
-
-const useUpdateSchedule = () => {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (data: ScheduleUpdateData) => updateSchedule(data),
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["schedule"] })
-    },
-  })
-}
-
-const useRetention = () => useQuery({ queryKey: ["retention"], queryFn: fetchRetention })
-
-const useUpdateRetention = () => {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (data: RetentionUpdateData) => updateRetention(data),
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["retention"] })
-    },
-  })
-}
-
-const useNotifications = () => useQuery({ queryKey: ["notifications"], queryFn: fetchNotifications })
-
-const useTestNotification = () =>
-  useMutation({
-    mutationFn: (webhookUrl: string) => testNotification(webhookUrl),
-  })
-
-const useUpdateNotifications = () => {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (data: NotificationUpdateData) => updateNotifications(data),
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["notifications"] })
-    },
-  })
-}
-
-const useBackups = (page = 1, limit = 50) =>
-  useQuery({ queryKey: ["backups", page, limit], queryFn: () => fetchBackups(page, limit) })
-
-const useBackupStats = () =>
-  useQuery({ queryKey: ["backup-stats"], queryFn: fetchBackupStats, refetchInterval: 15_000 })
-
-const useBackupProgress = () =>
-  useQuery({
-    queryKey: ["backup-progress"],
-    queryFn: fetchBackupProgress,
-    refetchInterval: (query) => {
-      const data = query.state.data
-      if (data && ["idle", "completed", "failed"].includes(data.status)) return false
-      return 1_000
-    },
-  })
-
-const useTriggerBackup = (destinations: Destination[]) => {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: triggerBackup,
-    onMutate: () => {
-      qc.setQueryData(["backup-progress"], {
-        status: "running",
-        startedAt: new Date().toISOString(),
-        timestamp: "",
-        destinations: destinations.map((d) => ({
-          name: d.name ?? d.path,
-          path: d.path,
-          type: d.type,
-          status: "pending" as const,
-        })),
-      })
-    },
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["backup-progress"] })
-      void qc.invalidateQueries({ queryKey: ["backups"] })
-      void qc.invalidateQueries({ queryKey: ["backup-stats"] })
-    },
-  })
-}
-
-const useLogs = (level?: string, search?: string) =>
-  useQuery({ queryKey: ["logs", level, search], queryFn: () => fetchLogs(level, search) })
-
-const useSystem = () => useQuery({ queryKey: ["system"], queryFn: fetchSystem })
-
-const useFetchPostgresDatabases = (params: FetchPostgresParams) =>
-  useQuery({
-    queryKey: ["postgres-databases", params.type, params.host, params.port, params.user, params.database ?? ""],
-    queryFn: () => fetchPostgresDatabases(params),
-    enabled: !!(params.user && params.password),
-  })
+  useDestinations,
+  useDestinationUsage,
+  useDestination,
+  useCreateDestination,
+  useUpdateDestination,
+  useDeleteDestination,
+} from "./queries/destinations"
+import {
+  useSchedule,
+  useUpdateSchedule,
+  useRetention,
+  useUpdateRetention,
+  useNotifications,
+  useUpdateNotifications,
+  useTestNotification,
+} from "./queries/config"
+import { useBackups, useBackupStats, useBackupProgress, useTriggerBackup, useLogs } from "./queries/backups"
+import { useSystem } from "./queries/system"
 
 export {
   useSources,
@@ -222,12 +37,11 @@ export {
   useUpdateRetention,
   useNotifications,
   useUpdateNotifications,
+  useTestNotification,
   useBackups,
   useBackupStats,
   useBackupProgress,
   useTriggerBackup,
   useLogs,
   useSystem,
-  useTestNotification,
-  useFetchPostgresDatabases,
 }

@@ -16,7 +16,9 @@
     "confirmDelete": "Are you sure you want to delete this item? This action cannot be undone.",
     "success": "Success",
     "actions": "Actions",
-    "pending": "Pending"
+    "pending": "Pending",
+    "saveError": "Failed to save",
+    "unknown": "Unknown"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -101,7 +103,12 @@
     "noDatabases": "No databases available",
     "fetchingDatabases": "Fetching databases...",
     "fetchDatabasesError": "Failed to fetch databases",
-    "createError": "Failed to create source"
+    "createError": "Failed to create source",
+    "containersError": "Failed to list containers",
+    "pathPlaceholderEdit": "/data/documents",
+    "sqlitePathPlaceholder": "/data/app/data.db",
+    "dbPathPlaceholder": "/config/app.db",
+    "includePatternsExample": "logs/*\nconfig/*\ndata/**/*.db"
   },
   "destinations": {
     "title": "Destinations",
@@ -131,7 +138,8 @@
     "pathPlaceholder": "/backups",
     "noDestinations": "No destinations configured",
     "noDestinationsDesc": "Add your first backup destination to get started.",
-    "unavailable": "Unavailable"
+    "unavailable": "Unavailable",
+    "namePlaceholder": "My Server"
   },
   "schedule": {
     "title": "Schedule",
@@ -219,6 +227,7 @@
     "error": "Error",
     "success": "Success",
     "skipped": "Skipped",
-    "partial": "Partial"
+    "partial": "Partial",
+    "failed": "Failed"
   }
 }

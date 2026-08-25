@@ -124,14 +124,21 @@ const getBackupStats = (): BackupStats => {
   return { total, success, failed, avgDuration }
 }
 
+const destAvgDurationMs = (id: string, destType: string): number => {
+  const durations = readBackupHistory()
+    .flatMap((b) => b.destinationResults)
+    .filter((r) => r.success && !r.skipped && (r.destId === id || r.destLabel === destType))
+    .map((r) => r.durationMs)
+    .filter((d): d is number => typeof d === "number" && d > 0)
+
+  return durations.length ? durations.reduce((acc, d) => acc + d, 0) / durations.length : 0
+}
+
 const getDestinationUsage = async (id: string): Promise<DestinationUsage | null> => {
   const dest = findDestinationById(id)
   if (!dest) return null
 
-  const records = readBackupHistory()
-  const total = records.length
-  const avgDurationMs = total > 0 ? records.reduce((acc, b) => acc + b.durationMs, 0) / total : 0
-
+  const avgDurationMs = destAvgDurationMs(dest.id, dest.type)
   const usage = await buildDestUsage(dest, avgDurationMs)
   if (usage) return usage
 

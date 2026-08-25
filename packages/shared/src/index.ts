@@ -69,6 +69,7 @@ interface StoreResult {
   success: boolean
   error?: string
   durationMs?: number
+  destId?: string
   destLabel?: string
   speed?: number
   skipped?: boolean

@@ -50,6 +50,7 @@ type Source =
   PathSource | PostgresSource | PostgresContainerSource | ContainerVolumeSource | SqliteSource | SqliteContainerSource
 
 interface Destination {
+  id?: string
   type: "local" | "sftp"
   name?: string
   path: string

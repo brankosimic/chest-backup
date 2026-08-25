@@ -56,7 +56,7 @@ const storeToDestination = async (
         destType: dest.type,
         message: "skipped",
       })
-      return { success: true, skipped: true, skippedReason: "identical", destLabel: dest.type }
+      return { success: true, skipped: true, skippedReason: "identical", destId: dest.id, destLabel: dest.type }
     }
   }
 
@@ -65,6 +65,7 @@ const storeToDestination = async (
   const start = Date.now()
   const result = await handleDestination(archivePath, checksumFile, dest)
   result.durationMs = Date.now() - start
+  if (dest.id) result.destId = dest.id
   result.destLabel = dest.type
 
   if (result.success) {

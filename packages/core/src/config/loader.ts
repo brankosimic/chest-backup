@@ -1,7 +1,13 @@
 import { readFileSync } from "node:fs"
 import { resolve } from "node:path"
 import type { Config } from "../types/config"
+import { stableId } from "../utils/stable-id"
 import { ConfigSchema } from "./schema"
+
+const withStableIds = (config: Config): Config => ({
+  ...config,
+  destinations: config.destinations.map((d) => (d.id ? d : { ...d, id: stableId(d as unknown as Record<string, unknown>) })),
+})
 
 const resolveEnvVars = (value: unknown): unknown => {
   if (typeof value === "string") {
@@ -33,7 +39,7 @@ const loadConfig = (path?: string): Config => {
     throw new Error(`Config validation failed:\n${issues}`)
   }
 
-  return result.data
+  return withStableIds(result.data)
 }
 
 export { loadConfig }

@@ -1,3 +1,6 @@
+import type { ReactNode } from "react"
+import type { Destination } from "@chest-backup/shared"
+
 interface DestProgress {
   name: string
   path: string
@@ -23,8 +26,6 @@ interface ContainerVolume {
   rw: boolean
 }
 
-import type { Destination } from "@chest-backup/shared"
-
 interface DestCardProps {
   destination: Destination
 }
@@ -39,9 +40,10 @@ interface DestinationUsage {
   available: boolean
 }
 
-interface BadgeProps {
-  variant: "success" | "destructive" | "default" | "secondary" | "outline"
-  labelKey: string
+interface StatCardProps {
+  title: string
+  icon: ReactNode
+  value: string
 }
 
-export type { ContainerVolume, BackupRunProgress, DestProgress, DestCardProps, DestinationUsage, BadgeProps }
+export type { ContainerVolume, BackupRunProgress, DestProgress, DestCardProps, DestinationUsage, StatCardProps }

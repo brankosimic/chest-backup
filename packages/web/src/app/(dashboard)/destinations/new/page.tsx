@@ -10,14 +10,16 @@ import { Label } from "@/components/ui/label"
 import { Select } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Header } from "@/components/layout/header"
+import { SftpFields } from "@/components/destinations/sftp-fields"
 import { useCreateDestination } from "@/hooks/use-queries"
 import type { SyntheticEvent } from "react"
+import * as styles from "./page.styles"
 
-export default function NewDestinationPage() {
+const NewDestinationPage = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const createMutation = useCreateDestination()
-  const [type, setType] = useState("local")
+  const [type, setType] = useState<string>("local")
   const [name, setName] = useState("")
   const [path, setPath] = useState("")
   const [host, setHost] = useState("")
@@ -30,8 +32,7 @@ export default function NewDestinationPage() {
   const [timeout, setTimeout_] = useState<number | undefined>(undefined)
   const [skip, setSkip] = useState(false)
 
-  const handleCreate = (e: SyntheticEvent<HTMLFormElement>) => {
-    e.preventDefault()
+  const buildBody = (): Record<string, unknown> => {
     const body: Record<string, unknown> = { type, name: name || undefined, path }
 
     if (type === "sftp") {
@@ -47,18 +48,24 @@ export default function NewDestinationPage() {
     body.parallel = parallel
     body.skip = skip
 
+    return body
+  }
+
+  const handleCreate = (e: SyntheticEvent<HTMLFormElement>) => {
+    e.preventDefault()
+
     createMutation
-      .mutateAsync(body)
+      .mutateAsync(buildBody())
       .then(() => {
         void navigate("/destinations")
       })
       .catch(() => {
-        alert("Failed to create destination")
+        alert(t("common.saveError"))
       })
   }
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className={styles.page}>
       <Header title={t("destinations.addDestination")} />
 
       <Card>
@@ -66,144 +73,91 @@ export default function NewDestinationPage() {
           <CardTitle>{t("destinations.newDestination")}</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleCreate} className="space-y-4">
-            <div className="space-y-2">
+          <form onSubmit={handleCreate} className={styles.fieldGroup}>
+            <div className={styles.fieldGroup}>
               <Label>{t("destinations.destinationType")}</Label>
               <Select
                 value={type}
-                onChange={(e) => {
-                  setType(e.target.value)
-                }}
+                onChange={(e) => { setType(e.target.value); }}
               >
-                <option value="local">{t("destinations.local")}</option>
-                <option value="sftp">{t("destinations.sftp")}</option>
+                <option value={"local"}>{t("destinations.local")}</option>
+                <option value={"sftp"}>{t("destinations.sftp")}</option>
               </Select>
             </div>
 
-            <div className="space-y-2">
+            <div className={styles.fieldGroup}>
               <Label htmlFor="name">{t("destinations.name")}</Label>
               <Input
                 id="name"
                 value={name}
-                onChange={(e) => {
-                  setName(e.target.value)
-                }}
-                placeholder="My Server"
+                onChange={(e) => { setName(e.target.value); }}
+                placeholder={t("destinations.namePlaceholder")}
               />
             </div>
 
-            <div className="space-y-2">
+            <div className={styles.fieldGroup}>
               <Label htmlFor="path">{t("destinations.path")}</Label>
               <Input
                 id="path"
                 value={path}
-                onChange={(e) => {
-                  setPath(e.target.value)
-                }}
+                onChange={(e) => { setPath(e.target.value); }}
                 placeholder={t("destinations.pathPlaceholder")}
               />
             </div>
 
             {type === "sftp" && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="host">{t("destinations.sftpHost")}</Label>
-                  <Input
-                    id="host"
-                    value={host}
-                    onChange={(e) => {
-                      setHost(e.target.value)
-                    }}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="port">{t("destinations.sftpPort")}</Label>
-                  <Input
-                    id="port"
-                    type="number"
-                    value={port}
-                    onChange={(e) => {
-                      setPort(Number(e.target.value))
-                    }}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="user">{t("destinations.sftpUser")}</Label>
-                  <Input
-                    id="user"
-                    value={user}
-                    onChange={(e) => {
-                      setUser(e.target.value)
-                    }}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password">{t("destinations.sftpPassword")}</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => {
-                      setPassword(e.target.value)
-                    }}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="privateKey">{t("destinations.privateKey")}</Label>
-                  <Input
-                    id="privateKey"
-                    value={privateKey}
-                    onChange={(e) => {
-                      setPrivateKey(e.target.value)
-                    }}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="timeout">{t("destinations.timeout")}</Label>
-                  <Input
-                    id="timeout"
-                    type="number"
-                    value={timeout ?? ""}
-                    onChange={(e) => {
-                      setTimeout_(e.target.value ? Number(e.target.value) : undefined)
-                    }}
-                  />
-                </div>
-              </>
+              <SftpFields
+                props={{
+                  host,
+                  port,
+                  user,
+                  password,
+                  privateKey,
+                  timeout,
+                  onHostChange: setHost,
+                  onPortChange: setPort,
+                  onUserChange: setUser,
+                  onPasswordChange: setPassword,
+                  onPrivateKeyChange: setPrivateKey,
+                  onTimeoutChange: setTimeout_,
+                  labels: {
+                    host: t("destinations.sftpHost"),
+                    port: t("destinations.sftpPort"),
+                    user: t("destinations.sftpUser"),
+                    password: t("destinations.sftpPassword"),
+                  },
+                }}
+              />
             )}
 
-            <div className="space-y-2">
+            <div className={styles.fieldGroup}>
               <Label htmlFor="retention">{t("destinations.retention")}</Label>
               <Input
                 id="retention"
                 type="number"
                 value={retention ?? ""}
-                onChange={(e) => {
-                  setRetention(e.target.value ? Number(e.target.value) : undefined)
-                }}
+                onChange={(e) => { setRetention(e.target.value ? Number(e.target.value) : undefined); }}
               />
             </div>
 
-            <div className="flex items-center justify-between rounded-lg border p-3">
-              <span className="text-sm font-medium">{t("destinations.parallel")}</span>
+            <div className={styles.toggleRow}>
+              <span className={styles.toggleLabel}>{t("destinations.parallel")}</span>
               <Switch checked={parallel} onCheckedChange={setParallel} />
             </div>
 
-            <div className="flex items-center justify-between rounded-lg border p-3">
-              <span className="text-sm font-medium">{t("destinations.skip")}</span>
+            <div className={styles.toggleRow}>
+              <span className={styles.toggleLabel}>{t("destinations.skip")}</span>
               <Switch checked={skip} onCheckedChange={setSkip} />
             </div>
 
-            <div className="flex gap-2 pt-4">
+            <div className={styles.actions}>
               <Button type="submit" disabled={createMutation.isPending}>
                 {createMutation.isPending ? t("common.loading") : t("common.create")}
               </Button>
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => {
-                  void navigate("/destinations")
-                }}
+                onClick={() => void navigate("/destinations")}
               >
                 {t("common.cancel")}
               </Button>
@@ -214,3 +168,5 @@ export default function NewDestinationPage() {
     </div>
   )
 }
+
+export default NewDestinationPage

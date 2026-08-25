@@ -19,14 +19,4 @@ interface NotificationUpdateData {
   }
 }
 
-interface FetchPostgresParams {
-  type: "postgres" | "postgres-container"
-  host?: string
-  port?: number
-  user: string
-  password: string
-  containerName?: string
-  database?: string
-}
-
-export type { SourceMutationData, ScheduleUpdateData, RetentionUpdateData, NotificationUpdateData, FetchPostgresParams }
+export type { SourceMutationData, ScheduleUpdateData, RetentionUpdateData, NotificationUpdateData }

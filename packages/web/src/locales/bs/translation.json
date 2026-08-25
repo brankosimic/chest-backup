@@ -16,7 +16,9 @@
     "confirmDelete": "Da li ste sigurni da želite da obrišete ovu stavku? Ova radnja se ne može poništiti.",
     "success": "Uspjeh",
     "actions": "Akcije",
-    "pending": "Na čekanju"
+    "pending": "Na čekanju",
+    "saveError": "Greška pri spremanju",
+    "unknown": "Nepoznato"
   },
   "nav": {
     "dashboard": "Naslovna",
@@ -101,7 +103,12 @@
     "noDatabases": "Nema dostupnih baza",
     "fetchingDatabases": "Dohvaćanje baza...",
     "fetchDatabasesError": "Greška pri dohvaćanju baza",
-    "createError": "Greška pri kreiranju izvora"
+    "createError": "Greška pri kreiranju izvora",
+    "containersError": "Greška pri preuzimanju kontejnera",
+    "pathPlaceholderEdit": "/data/documents",
+    "sqlitePathPlaceholder": "/data/app/data.db",
+    "dbPathPlaceholder": "/config/app.db",
+    "includePatternsExample": "logs/*\nconfig/*\ndata/**/*.db"
   },
   "destinations": {
     "title": "Odredišta",
@@ -131,7 +138,8 @@
     "pathPlaceholder": "/backup",
     "noDestinations": "Nema konfigurisanih odredišta",
     "noDestinationsDesc": "Dodajte prvo odredište za backup da počnete.",
-    "unavailable": "Nedostupno"
+    "unavailable": "Nedostupno",
+    "namePlaceholder": "Moj server"
   },
   "schedule": {
     "title": "Raspored",
@@ -219,6 +227,7 @@
     "error": "Greška",
     "success": "Uspjeh",
     "skipped": "Preskočeno",
-    "partial": "Djelimično"
+    "partial": "Djelimično",
+    "failed": "Neuspjeh"
   }
 }

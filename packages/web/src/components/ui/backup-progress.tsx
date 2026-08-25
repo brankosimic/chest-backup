@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge"
 import { useBackupProgress } from "@/hooks/use-queries"
 import { formatSize, formatSpeed } from "@/lib/utils"
 import { CheckCircle2, XCircle, Clock, Upload, SkipForward, HardDrive, Network, Sparkles } from "lucide-react"
-import type { BadgeProps } from "@/types/backup"
 import * as styles from "./backup-progress.styles"
 
 const DestStatus = {
@@ -33,7 +32,12 @@ const statusIcon = (status: string) => {
   }
 }
 
-const statusBadgeProps = (status: string): BadgeProps => {
+interface StatusBadgeProps {
+  variant: "success" | "destructive" | "default" | "secondary" | "outline"
+  labelKey: string
+}
+
+const statusBadgeProps = (status: string): StatusBadgeProps => {
   switch (status) {
     case DestStatus.Done:
       return { variant: "success", labelKey: "status.success" }

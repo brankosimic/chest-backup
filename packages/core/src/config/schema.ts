@@ -51,6 +51,7 @@ const SourceSchema = z.discriminatedUnion("type", [
 ])
 
 const DestinationSchema = z.object({
+  id: z.string().optional(),
   type: z.enum(["local", "sftp"]),
   path: z.string().min(1),
   host: z.string().optional(),
