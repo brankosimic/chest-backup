@@ -130,7 +130,8 @@
     "newDestination": "Novo odredište",
     "pathPlaceholder": "/backup",
     "noDestinations": "Nema konfigurisanih odredišta",
-    "noDestinationsDesc": "Dodajte prvo odredište za backup da počnete."
+    "noDestinationsDesc": "Dodajte prvo odredište za backup da počnete.",
+    "unavailable": "Nedostupno"
   },
   "schedule": {
     "title": "Raspored",

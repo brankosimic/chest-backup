@@ -7,23 +7,31 @@ import { Button } from "@/components/ui/button"
 import { Header } from "@/components/layout/header"
 import { BackupProgressCard } from "@/components/ui/backup-progress"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
-import { formatSize, formatDuration, formatUptime, formatDate } from "@/lib/utils"
+import { formatSize, formatDuration, formatUptime, formatDate, cn } from "@/lib/utils"
 import { useBackupStats, useTriggerBackup, useBackups, useSystem, useDestinations, useBackupProgress, useDestinationUsage } from "@/hooks/use-queries"
-import { CheckCircle2, Clock, Play } from "lucide-react"
+import { CheckCircle2, Clock, Play, AlertTriangle } from "lucide-react"
 import type { DestCardProps } from "@/types/backup"
 
 const DestCard = ({ destination }: DestCardProps) => {
   const { t } = useTranslation()
   const { data: usage, isLoading } = useDestinationUsage(destination.id)
   return (
-    <Card>
+    <Card className={cn(!usage?.available && "border-destructive/60")}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground truncate" title={destination.path}>
           {destination.name ?? destination.path}
         </CardTitle>
-        <Badge variant={destination.type === "local" ? "default" : "secondary"} className="shrink-0">
-          {destination.type === "local" ? t("destinations.local") : t("destinations.sftp")}
-        </Badge>
+        <div className="flex items-center gap-1.5 shrink-0">
+          <Badge variant={destination.type === "local" ? "default" : "secondary"}>
+            {destination.type === "local" ? t("destinations.local") : t("destinations.sftp")}
+          </Badge>
+          {usage && !usage.available && (
+            <Badge variant="destructive" className="gap-1">
+              <AlertTriangle className="h-3 w-3" />
+              {t("destinations.unavailable")}
+            </Badge>
+          )}
+        </div>
       </CardHeader>
       <CardContent className="space-y-2">
         {isLoading ? (

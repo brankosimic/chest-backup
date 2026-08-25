@@ -12,6 +12,7 @@ interface DestinationUsage {
   totalSize: number
   fileCount: number
   avgDurationMs: number
+  available: boolean
 }
 
 interface BackupStats {

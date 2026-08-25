@@ -94,7 +94,7 @@ const buildDestUsage = async (
       if (!existsSync(dir)) return null
       const files = readdirSync(dir).filter((f) => f.endsWith(".tar.gz") && !f.endsWith(".sha256"))
       const totalSize = files.reduce((acc, f) => acc + statSync(resolve(dir, f)).size, 0)
-      return { type: "local", name, path: dir, totalSize, fileCount: files.length, avgDurationMs }
+      return { type: "local", name, path: dir, totalSize, fileCount: files.length, avgDurationMs, available: true }
     } catch {
       console.warn("failed to scan local destination", dest.path)
       return null
@@ -102,13 +102,15 @@ const buildDestUsage = async (
   }
 
   const usage = await withTimeout(scanSftpUsage(dest), 8000, null)
+  if (!usage) return null
   return {
     type: "sftp",
     name,
     path: dest.path,
-    totalSize: usage?.totalSize ?? 0,
-    fileCount: usage?.fileCount ?? 0,
+    totalSize: usage.totalSize,
+    fileCount: usage.fileCount,
     avgDurationMs,
+    available: true,
   }
 }
 
@@ -140,6 +142,7 @@ const getDestinationUsage = async (id: string): Promise<DestinationUsage | null>
     totalSize: 0,
     fileCount: 0,
     avgDurationMs,
+    available: false,
   }
 }
 
