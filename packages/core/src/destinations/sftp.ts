@@ -16,7 +16,7 @@ const connectClient = async (sftp: SFTPClient, dest: Destination): Promise<void>
     host: dest.host,
     port: dest.port ?? 22,
     username: dest.user,
-    readyTimeout: dest.timeout ?? 30_000,
+    readyTimeout: dest.timeout ?? 3_000,
   }
 
   if (dest.password) config.password = dest.password

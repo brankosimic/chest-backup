@@ -5,6 +5,7 @@ import { getConfig, stableId, DATA_DIR, BACKUP_HISTORY_PATH } from "./config"
 import type { PaginatedResult, BackupStats, DestinationUsage } from "../../types/api"
 import { scanSftpUsage } from "@core/destinations/sftp"
 import type { Destination } from "@core/types/config"
+import { withTimeout } from "../utils"
 
 let backupCache: BackupRecord[] | null = null
 
@@ -115,7 +116,7 @@ const buildDestUsage = async (
   }
 
   if (destType === "sftp") {
-    const usage = await scanSftpUsage(dest as unknown as Destination)
+    const usage = await withTimeout(scanSftpUsage(dest as unknown as Destination), 8000, null)
     return {
       type: "sftp",
       name,
