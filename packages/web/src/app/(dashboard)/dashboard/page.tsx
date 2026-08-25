@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Header } from "@/components/layout/header"
 import { BackupProgressCard } from "@/components/ui/backup-progress"
+import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { formatSize, formatDuration, formatUptime, formatDate } from "@/lib/utils"
 import { useBackupStats, useTriggerBackup, useBackups, useSystem, useDestinations, useBackupProgress, useDestinationUsage } from "@/hooks/use-queries"
 import { CheckCircle2, Clock, Play } from "lucide-react"
@@ -25,23 +26,29 @@ const DestCard = ({ destination }: { destination: Destination }) => {
         </Badge>
       </CardHeader>
       <CardContent className="space-y-2">
-        <div className="flex items-baseline gap-4">
-          <div>
-            <div className="text-lg font-bold">{isLoading ? "…" : (usage?.fileCount ?? 0)}</div>
-            <p className="text-xs text-muted-foreground">{t("dashboard.fileCount")}</p>
-          </div>
-          <div>
-            <div className="text-lg font-bold">{isLoading ? "…" : formatSize(usage?.totalSize ?? 0)}</div>
-            <p className="text-xs text-muted-foreground">{t("dashboard.size")}</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-1.5 border-t pt-2 text-xs text-muted-foreground">
-          <Clock className="h-3 w-3" />
-          <span>{t("dashboard.avgDuration")}: </span>
-          <span className="font-medium text-foreground">
-            {usage && usage.avgDurationMs > 0 ? formatDuration(usage.avgDurationMs) : "-"}
-          </span>
-        </div>
+        {isLoading ? (
+          <LoadingSpinner size="sm" className="h-16 w-full" />
+        ) : (
+          <>
+            <div className="flex items-baseline gap-4">
+              <div>
+                <div className="text-lg font-bold">{usage?.fileCount ?? 0}</div>
+                <p className="text-xs text-muted-foreground">{t("dashboard.fileCount")}</p>
+              </div>
+              <div>
+                <div className="text-lg font-bold">{formatSize(usage?.totalSize ?? 0)}</div>
+                <p className="text-xs text-muted-foreground">{t("dashboard.size")}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5 border-t pt-2 text-xs text-muted-foreground">
+              <Clock className="h-3 w-3" />
+              <span>{t("dashboard.avgDuration")}: </span>
+              <span className="font-medium text-foreground">
+                {usage && usage.avgDurationMs > 0 ? formatDuration(usage.avgDurationMs) : "-"}
+              </span>
+            </div>
+          </>
+        )}
       </CardContent>
     </Card>
   )
