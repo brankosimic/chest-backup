@@ -32,18 +32,9 @@ interface DestCardProps {
   path: string
 }
 
-interface DestinationUsage {
-  type: string
-  name?: string
-  path: string
-  totalSize: number
-  fileCount: number
-  avgDurationMs: number
-}
-
 interface BadgeProps {
   variant: "success" | "destructive" | "default" | "secondary" | "outline"
   labelKey: string
 }
 
-export type { ContainerVolume, BackupRunProgress, DestProgress, DestCardProps, DestinationUsage, BadgeProps }
+export type { ContainerVolume, BackupRunProgress, DestProgress, DestCardProps, BadgeProps }
