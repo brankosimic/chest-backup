@@ -18,9 +18,9 @@ const DestCard = ({ destination }: DestCardProps) => {
   return (
     <Card className={cn(
       "relative",
-      usage ? (usage.available ? "border-green-500" : "border-destructive") : "",
+      !isLoading && usage ? (usage.available ? "border-green-500" : "border-destructive") : "",
     )}>
-      {usage && !usage.available && (
+      {!isLoading && usage && !usage.available && (
         <AlertTriangle className="absolute right-2 top-2 h-4 w-4 text-destructive" aria-label={t("destinations.unavailable")} />
       )}
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
