@@ -106,8 +106,8 @@ interface ApiResponse<T> {
 
 // --- Utility types for frontend use (subset without server-only fields) ---
 
-interface WebSource extends Omit<Source, "createdAt" | "updatedAt"> {}
-interface WebDestination extends Omit<Destination, "createdAt" | "updatedAt"> {}
+type WebSource = Omit<Source, "createdAt" | "updatedAt">
+type WebDestination = Omit<Destination, "createdAt" | "updatedAt">
 
 export type {
   Source,

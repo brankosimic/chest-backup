@@ -24,6 +24,7 @@ const dumpSqliteSources = async (
   timestamp: string,
   tempFiles: string[],
   tempDir: string,
+  errors: string[],
 ): Promise<string[]> => {
   const sqliteSources = sources.filter((s): s is SqliteSource => s.type === "sqlite")
   if (!sqliteSources.length) return []
@@ -37,7 +38,9 @@ const dumpSqliteSources = async (
         await dumpSqliteDatabase(source.path, outputPath)
         return outputPath
       } catch (err) {
+        const message = `SQLite backup failed for ${source.path}: ${String(err)}`
         logger.error({ source: source.path, err }, "sqlite backup failed")
+        errors.push(message)
         return null
       }
     }),
@@ -71,6 +74,7 @@ const dumpSqliteContainerSources = async (
   timestamp: string,
   tempFiles: string[],
   tempDir: string,
+  errors: string[],
 ): Promise<string[]> => {
   const containerSources = sources.filter((s): s is SqliteContainerSource => s.type === "sqlite-container")
   if (!containerSources.length) return []
@@ -84,7 +88,9 @@ const dumpSqliteContainerSources = async (
         await dumpSqliteContainerDatabase(source.containerName, source.dbPath, outputPath)
         return outputPath
       } catch (err) {
+        const message = `SQLite container backup failed for ${source.containerName}:${source.dbPath}: ${String(err)}`
         logger.error({ container: source.containerName, dbPath: source.dbPath, err }, "container sqlite backup failed")
+        errors.push(message)
         return null
       }
     }),

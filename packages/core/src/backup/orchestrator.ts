@@ -29,7 +29,7 @@ const executeBackup = async (
 
   let archivePath: string | null | undefined
   try {
-    const resolved = await resolveSources(config, timestamp, tempFiles)
+    const resolved = await resolveSources(config, timestamp, tempFiles, errors)
     const sources = resolved.paths
 
     if (!sources.length) {
@@ -69,9 +69,10 @@ const executeBackup = async (
     onProgress,
   )
   const allOk = destinationResults.every((r) => r.success)
+  const success = allOk && errors.length === 0
 
   return {
-    success: allOk,
+    success,
     timestamp,
     archiveName: archivePath.split("/").pop() ?? "unknown",
     archiveSize,

@@ -75,11 +75,12 @@ const dumpPostgresSources = async (
   timestamp: string,
   tempFiles: string[],
   tempDir: string,
+  errors: string[],
 ): Promise<string[]> => {
   const postgresSources = sources.filter((s): s is PostgresSource => s.type === "postgres")
   if (!postgresSources.length) return []
 
-  return dumpPostgresSourceBatch(postgresSources, timestamp, tempFiles, tempDir)
+  return dumpPostgresSourceBatch(postgresSources, timestamp, tempFiles, tempDir, errors)
 }
 
 const dumpSinglePostgresSource = async (
@@ -87,6 +88,7 @@ const dumpSinglePostgresSource = async (
   timestamp: string,
   tempFiles: string[],
   tempDir: string,
+  errors: string[],
 ): Promise<string | null> => {
   const outputPath = join(tempDir, `db-dump-${timestamp}-${crypto.randomUUID()}.dump`)
   tempFiles.push(outputPath)
@@ -98,7 +100,9 @@ const dumpSinglePostgresSource = async (
     )
     return outputPath
   } catch (err) {
+    const message = `Postgres dump failed for ${source.database}: ${String(err)}`
     logger.error({ source: source.database, err }, "postgres dump failed")
+    errors.push(message)
     return null
   }
 }
@@ -108,8 +112,9 @@ const dumpPostgresSourceBatch = async (
   timestamp: string,
   tempFiles: string[],
   tempDir: string,
+  errors: string[],
 ): Promise<string[]> => {
-  const results = await Promise.all(sources.map((s) => dumpSinglePostgresSource(s, timestamp, tempFiles, tempDir)))
+  const results = await Promise.all(sources.map((s) => dumpSinglePostgresSource(s, timestamp, tempFiles, tempDir, errors)))
   return results.filter((r): r is string => r !== null)
 }
 
@@ -118,6 +123,7 @@ const dumpPostgresContainerSources = async (
   timestamp: string,
   tempFiles: string[],
   tempDir: string,
+  errors: string[],
 ): Promise<string[]> => {
   const containerSources = sources.filter((s): s is PostgresContainerSource => s.type === "postgres-container")
   if (!containerSources.length) return []
@@ -130,7 +136,9 @@ const dumpPostgresContainerSources = async (
         await dumpDockerDatabase(source.containerName, source.database, source.user, source.password, outputPath)
         return outputPath
       } catch (err) {
+        const message = `Postgres container dump failed for ${source.containerName}/${source.database}: ${String(err)}`
         logger.error({ source: source.containerName, err }, "container postgres dump failed")
+        errors.push(message)
         return null
       }
     }),
