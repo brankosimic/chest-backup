@@ -3,6 +3,7 @@ import { DestinationSchema } from "../lib/validation"
 import {
   createDestination,
   getDestinations,
+  getDestinationUsage,
   findDestinationById,
   updateDestination,
   deleteDestination,
@@ -21,6 +22,13 @@ destinations.get("/:id", (c) => {
   const destination = findDestinationById(id)
   if (!destination) return notFound(c, "Destination")
   return c.json({ success: true, data: destination })
+})
+
+destinations.get("/:id/usage", async (c) => {
+  const id = c.req.param("id")
+  const usage = await getDestinationUsage(id)
+  if (!usage) return notFound(c, "Destination")
+  return c.json({ success: true, data: usage })
 })
 
 destinations.post("/", async (c) => {
