@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Link } from "react-router-dom"
 import { Header } from "@/components/layout/header"
 import { BackupProgressCard } from "@/components/ui/backup-progress"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
@@ -16,47 +17,49 @@ const DestCard = ({ destination }: DestCardProps) => {
   const { t } = useTranslation()
   const { data: usage, isLoading } = useDestinationUsage(destination.id)
   return (
-    <Card className={cn(
-      "relative",
-      !isLoading && usage ? (usage.available ? "border-green-500" : "border-destructive") : "",
-    )}>
-      {!isLoading && usage && !usage.available && (
-        <AlertTriangle className="absolute right-2 top-2 h-4 w-4 text-destructive" aria-label={t("destinations.unavailable")} />
-      )}
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground truncate" title={destination.path}>
-          {destination.name ?? destination.path}
-        </CardTitle>
-        <Badge variant={destination.type === "local" ? "default" : "secondary"} className="shrink-0">
-          {destination.type === "local" ? t("destinations.local") : t("destinations.sftp")}
-        </Badge>
-      </CardHeader>
-      <CardContent className="space-y-2">
-        {isLoading ? (
-          <LoadingSpinner size="sm" className="h-16 w-full" />
-        ) : (
-          <>
-            <div className="flex items-baseline gap-4">
-              <div>
-                <div className="text-lg font-bold">{usage?.fileCount ?? 0}</div>
-                <p className="text-xs text-muted-foreground">{t("dashboard.fileCount")}</p>
-              </div>
-              <div>
-                <div className="text-lg font-bold">{formatSize(usage?.totalSize ?? 0)}</div>
-                <p className="text-xs text-muted-foreground">{t("dashboard.size")}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-1.5 border-t pt-2 text-xs text-muted-foreground">
-              <Clock className="h-3 w-3" />
-              <span>{t("dashboard.avgDuration")}: </span>
-              <span className="font-medium text-foreground">
-                {usage ? formatDuration(usage.avgDurationMs) : "-"}
-              </span>
-            </div>
-          </>
+    <Link to={`/destinations/${destination.id}`} className="block">
+      <Card className={cn(
+        "relative transition-colors hover:border-primary",
+        !isLoading && usage ? (usage.available ? "border-green-500" : "border-destructive") : "",
+      )}>
+        {!isLoading && usage && !usage.available && (
+          <AlertTriangle className="absolute right-2 top-2 h-4 w-4 text-destructive" aria-label={t("destinations.unavailable")} />
         )}
-      </CardContent>
-    </Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground truncate" title={destination.path}>
+            {destination.name ?? destination.path}
+          </CardTitle>
+          <Badge variant={destination.type === "local" ? "default" : "secondary"} className="shrink-0">
+            {destination.type === "local" ? t("destinations.local") : t("destinations.sftp")}
+          </Badge>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {isLoading ? (
+            <LoadingSpinner size="sm" className="h-16 w-full" />
+          ) : (
+            <>
+              <div className="flex items-baseline gap-4">
+                <div>
+                  <div className="text-lg font-bold">{usage?.fileCount ?? 0}</div>
+                  <p className="text-xs text-muted-foreground">{t("dashboard.fileCount")}</p>
+                </div>
+                <div>
+                  <div className="text-lg font-bold">{formatSize(usage?.totalSize ?? 0)}</div>
+                  <p className="text-xs text-muted-foreground">{t("dashboard.size")}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-1.5 border-t pt-2 text-xs text-muted-foreground">
+                <Clock className="h-3 w-3" />
+                <span>{t("dashboard.avgDuration")}: </span>
+                <span className="font-medium text-foreground">
+                  {usage ? formatDuration(usage.avgDurationMs) : "-"}
+                </span>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
+    </Link>
   )
 }
 
