@@ -10,9 +10,9 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { formatSize, formatDuration, formatUptime, formatDate } from "@/lib/utils"
 import { useBackupStats, useTriggerBackup, useBackups, useSystem, useDestinations, useBackupProgress, useDestinationUsage } from "@/hooks/use-queries"
 import { CheckCircle2, Clock, Play } from "lucide-react"
-import type { Destination } from "@chest-backup/shared"
+import type { DestCardProps } from "@/types/backup"
 
-const DestCard = ({ destination }: { destination: Destination }) => {
+const DestCard = ({ destination }: DestCardProps) => {
   const { t } = useTranslation()
   const { data: usage, isLoading } = useDestinationUsage(destination.id)
   return (

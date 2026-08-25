@@ -23,13 +23,10 @@ interface ContainerVolume {
   rw: boolean
 }
 
+import type { Destination } from "@chest-backup/shared"
+
 interface DestCardProps {
-  name: string
-  type: string
-  fileCount: number
-  totalSize: number
-  avgDurationMs: number
-  path: string
+  destination: Destination
 }
 
 interface DestinationUsage {
