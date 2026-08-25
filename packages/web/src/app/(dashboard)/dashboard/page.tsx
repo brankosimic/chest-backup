@@ -17,20 +17,19 @@ const DestCard = ({ destination }: DestCardProps) => {
   const { data: usage, isLoading } = useDestinationUsage(destination.id)
   return (
     <Card className={cn(
+      "relative",
       usage?.available ? "border-green-500" : !usage?.available && "border-destructive",
     )}>
+      {usage && !usage.available && (
+        <AlertTriangle className="absolute right-2 top-2 h-4 w-4 text-destructive" aria-label={t("destinations.unavailable")} />
+      )}
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground truncate" title={destination.path}>
           {destination.name ?? destination.path}
         </CardTitle>
-        <div className="flex items-center gap-1.5 shrink-0">
-          <Badge variant={destination.type === "local" ? "default" : "secondary"}>
-            {destination.type === "local" ? t("destinations.local") : t("destinations.sftp")}
-          </Badge>
-          {usage && !usage.available && (
-            <AlertTriangle className="h-4 w-4 text-destructive" aria-label={t("destinations.unavailable")} />
-          )}
-        </div>
+        <Badge variant={destination.type === "local" ? "default" : "secondary"} className="shrink-0">
+          {destination.type === "local" ? t("destinations.local") : t("destinations.sftp")}
+        </Badge>
       </CardHeader>
       <CardContent className="space-y-2">
         {isLoading ? (
