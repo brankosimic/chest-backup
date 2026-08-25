@@ -2,6 +2,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync, statSy
 import { resolve } from "node:path"
 import type { BackupRecord } from "@chest-backup/shared"
 import { getConfig, stableId, DATA_DIR, BACKUP_HISTORY_PATH } from "./config"
+import { findDestinationById } from "./entities"
 import type { PaginatedResult, BackupStats, DestinationUsage } from "../../types/api"
 import { scanSftpUsage } from "@core/destinations/sftp"
 import type { Destination } from "@core/types/config"
@@ -80,31 +81,16 @@ const getBackups = (page = 1, limit = 20): PaginatedResult<BackupRecord> => {
 
 const getBackupById = (id: string): BackupRecord | undefined => readBackupHistory().find((b) => b.id === id)
 
-const buildDestDurationMap = (records: BackupRecord[]): Map<string, { sum: number; count: number }> => {
-  const map = new Map<string, { sum: number; count: number }>()
-  for (const record of records) {
-    for (const result of record.destinationResults) {
-      if (result.durationMs === undefined) continue
-      const key = result.destLabel ?? "unknown"
-      const entry = map.get(key) ?? { sum: 0, count: 0 }
-      entry.sum += result.durationMs
-      entry.count++
-      map.set(key, entry)
-    }
-  }
-  return map
-}
-
 const buildDestUsage = async (
-  dest: Record<string, unknown>,
+  dest: Destination,
   avgDurationMs: number,
 ): Promise<DestinationUsage | null> => {
-  const name = "name" in dest ? (dest.name as string) : undefined
-  const destType = dest.type as string
+  const name = dest.name
+  const destType = dest.type
 
   if (destType === "local") {
     try {
-      const dir = dest.path as string
+      const dir = dest.path
       if (!existsSync(dir)) return null
       const files = readdirSync(dir).filter((f) => f.endsWith(".tar.gz") && !f.endsWith(".sha256"))
       const totalSize = files.reduce((acc, f) => acc + statSync(resolve(dir, f)).size, 0)
@@ -115,44 +101,42 @@ const buildDestUsage = async (
     }
   }
 
-  if (destType === "sftp") {
-    const usage = await withTimeout(scanSftpUsage(dest as unknown as Destination), 8000, null)
-    return {
-      type: "sftp",
-      name,
-      path: dest.path as string,
-      totalSize: usage?.totalSize ?? 0,
-      fileCount: usage?.fileCount ?? 0,
-      avgDurationMs,
-    }
+  const usage = await withTimeout(scanSftpUsage(dest), 8000, null)
+  return {
+    type: "sftp",
+    name,
+    path: dest.path,
+    totalSize: usage?.totalSize ?? 0,
+    fileCount: usage?.fileCount ?? 0,
+    avgDurationMs,
   }
-
-  return null
 }
 
-const getBackupStats = async (): Promise<BackupStats> => {
+const getBackupStats = (): BackupStats => {
   const records = readBackupHistory()
   const total = records.length
   const success = records.filter((b) => b.success).length
   const failed = total - success
   const avgDuration = total > 0 ? records.reduce((acc, b) => acc + b.durationMs, 0) / total : 0
 
-  const { config } = getConfig()
-  const destDurationMap = buildDestDurationMap(records)
+  return { total, success, failed, avgDuration }
+}
 
-  const destResults = await Promise.all(
-    (config.destinations as Array<Record<string, unknown>>).map(async (dest) => {
-      const destType = dest.type as string
-      const durEntry = destDurationMap.get(destType)
-      const avgDurationMs = durEntry?.count ? Math.round(durEntry.sum / durEntry.count) : 0
-      return buildDestUsage(dest, avgDurationMs)
-    }),
-  )
+const getDestinationUsage = async (id: string): Promise<DestinationUsage | null> => {
+  const dest = findDestinationById(id)
+  if (!dest) return null
 
-  const destinations: DestinationUsage[] = destResults.filter((d): d is DestinationUsage => d !== null)
-  const totalSize = destinations.reduce((acc, d) => acc + d.totalSize, 0)
+  const usage = await buildDestUsage(dest, 0)
+  if (usage) return usage
 
-  return { total, success, failed, avgDuration, totalSize, destinations }
+  return {
+    type: dest.type,
+    name: dest.name,
+    path: dest.path,
+    totalSize: 0,
+    fileCount: 0,
+    avgDurationMs: 0,
+  }
 }
 
 const addBackupRecord = (record: BackupRecord): void => {
@@ -162,4 +146,4 @@ const addBackupRecord = (record: BackupRecord): void => {
   backupCache = records
 }
 
-export { getBackups, getBackupById, getBackupStats, addBackupRecord, invalidateBackupCache, readBackupHistory }
+export { getBackups, getBackupById, getBackupStats, getDestinationUsage, addBackupRecord, invalidateBackupCache, readBackupHistory }
