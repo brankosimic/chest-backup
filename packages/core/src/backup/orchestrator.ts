@@ -33,6 +33,7 @@ const executeBackup = async (
     const sources = resolved.paths
 
     if (!sources.length) {
+      logger.error({ timestamp }, "no sources to archive")
       errors.push("No sources to archive")
       return { success: false, timestamp, durationMs: 0, destinationResults: [], errors }
     }
@@ -54,6 +55,7 @@ const executeBackup = async (
     verification = await verifyArchive(archivePath)
     tempFiles.push(verification.checksumFile)
   } catch (err) {
+    logger.error({ err }, "archive verification failed")
     errors.push(`Archive verification failed: ${String(err)}`)
   }
 
