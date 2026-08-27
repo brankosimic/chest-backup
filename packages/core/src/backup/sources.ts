@@ -21,17 +21,18 @@ const resolveSourcePaths = (source: Source, errors: string[]): string[] => {
 
   if (source.type === "container-volume") {
     const basePath = source.volumePath
-    if (source.include?.length) {
+    const includePatterns = source.include ?? []
+    if (includePatterns.length) {
       const matched = [
         ...new Set(
-          source.include.flatMap((pattern) =>
+          includePatterns.flatMap((pattern) =>
             [...new Glob(pattern).scanSync({ absolute: true, cwd: basePath })].filter(existsSync),
           ),
         ),
       ]
       if (!matched.length) {
         const message = `container-volume "${source.containerName}" include patterns matched no files under ${basePath}`
-        logger.warn({ container: source.containerName, path: basePath, include: source.include }, message)
+        logger.warn({ container: source.containerName, path: basePath, include: includePatterns }, message)
         errors.push(message)
       }
       return matched

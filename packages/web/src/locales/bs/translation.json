@@ -89,7 +89,7 @@
     "container": "Kontejner",
     "includePatterns": "Obrasci za uključivanje",
     "includePatternsPlaceholder": "logs/*\nconfig/*\ndata/**/*.db",
-    "includePatternsHint": "Jedan obrazac po liniji — samo podfolderi koji odgovaraju biće uključeni",
+    "includePatternsHint": "Jedan obrazac po liniji — podfolderi i fajlovi u korijenu (npr. *.db) biće uključeni",
     "selectVolumePath": "Odaberite putanju volumena",
     "noVolumes": "Nema volumena za ovaj kontejner",
     "fetchVolumesError": "Greška pri dohvaćanju volumena kontejnera",

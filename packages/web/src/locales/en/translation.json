@@ -89,7 +89,7 @@
     "container": "Container",
     "includePatterns": "Include Patterns",
     "includePatternsPlaceholder": "logs/*\nconfig/*\ndata/**/*.db",
-    "includePatternsHint": "One pattern per line — only matching subfolders will be included",
+    "includePatternsHint": "One pattern per line — subfolders and top-level files (e.g. *.db) will be included",
     "selectVolumePath": "Select a volume path",
     "noVolumes": "No volumes found for this container",
     "fetchVolumesError": "Failed to fetch container volumes",
