@@ -12,7 +12,7 @@ const formatSpeed = (bytesPerSec: number): string => {
 }
 
 const formatDuration = (ms: number): string => {
-  if (ms < 1000) return `${String(ms)}ms`
+  if (ms < 1000) return `${String(Math.round(ms))}ms`
   const totalSec = Math.round(ms / 1000)
   if (totalSec < 60) return `${String(totalSec)}s`
   const m = Math.floor(totalSec / 60)
