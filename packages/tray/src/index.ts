@@ -3,6 +3,7 @@ import { homedir } from "node:os"
 import { resolve } from "node:path"
 import { createDaemon } from "@core/daemon"
 import type { DaemonOptions } from "@core/daemon"
+import { persistBackupResult, invalidateBackupCache } from "../../api/src/lib/store/index"
 import { TrayBridge } from "./tray/bridge"
 
 const main = async (): Promise<void> => {
@@ -19,7 +20,10 @@ const main = async (): Promise<void> => {
     },
   }
 
-  const daemon = createDaemon(undefined, daemonOptions)
+  const daemon = createDaemon((result) => {
+    invalidateBackupCache()
+    persistBackupResult(result)
+  }, daemonOptions)
 
   await tray.start({
     onRunNow: () => {
