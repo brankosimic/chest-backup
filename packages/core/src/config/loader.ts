@@ -1,8 +1,17 @@
 import { readFileSync } from "node:fs"
 import { resolve } from "node:path"
-import type { Config } from "../types/config"
+import type { Config, Source } from "../types/config"
 import { stableId } from "../utils/stable-id"
 import { ConfigSchema } from "./schema"
+
+const expandSources = (config: Config): Config => ({
+  ...config,
+  sources: [
+    ...config.paths.map((path): Source => ({ type: "path", path })),
+    ...config.sqlite.map((path): Source => ({ type: "sqlite", path })),
+    ...config.sources,
+  ],
+})
 
 const withStableIds = (config: Config): Config => ({
   ...config,
@@ -39,7 +48,7 @@ const loadConfig = (path?: string): Config => {
     throw new Error(`Config validation failed:\n${issues}`)
   }
 
-  return withStableIds(result.data)
+  return expandSources(withStableIds(result.data))
 }
 
 export { loadConfig }

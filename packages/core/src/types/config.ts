@@ -73,17 +73,25 @@ interface NotificationsConfig {
   discord?: DiscordConfig
 }
 
-interface Config {
+interface ConfigFile {
   schedule?: string
   retention: number
   tempDir?: string
+  paths?: string[]
+  sqlite?: string[]
   sources: Source[]
   destinations: Destination[]
   notifications?: NotificationsConfig
 }
 
+type Config = Omit<ConfigFile, "paths" | "sqlite"> & {
+  paths: string[]
+  sqlite: string[]
+}
+
 export type {
   Config,
+  ConfigFile,
   Source,
   PathSource,
   PostgresSource,

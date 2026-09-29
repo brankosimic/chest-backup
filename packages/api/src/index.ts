@@ -1,5 +1,5 @@
 import { Hono } from "hono"
-import { serveStatic } from "hono/bun"
+import { serveStatic } from "@hono/bun"
 import { resolve } from "node:path"
 import { cors } from "./middleware/cors"
 import { errorHandling } from "./middleware/error"
