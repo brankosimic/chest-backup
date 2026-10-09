@@ -56,9 +56,9 @@ const storeToDestination = async (
     })
     try {
       if (dest.type === "local") {
-        enforceRetention(dest, config.retention, config.tempDir ?? "/tmp")
+        enforceRetention(dest, config.retention)
       } else {
-        await enforceRetentionSftp(dest, config.retention, config.tempDir ?? "/tmp")
+        await enforceRetentionSftp(dest, config.retention)
       }
     } catch (err) {
       errors.push(`Retention enforcement failed for ${dest.path}: ${String(err)}`)

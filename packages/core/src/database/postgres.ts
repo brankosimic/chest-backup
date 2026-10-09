@@ -4,6 +4,15 @@ import { join } from "node:path"
 import type { ParsedConnString, PostgresContainerSource, PostgresSource, Source } from "../types/config"
 import { logger } from "../utils/logger"
 
+const UNMETADATA = "cluster"
+
+const slugify = (value: string): string =>
+  value
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80) || UNMETADATA
+
 const getPgDumpPath = (): string => {
   const versions = [18, 17, 16]
 
@@ -47,6 +56,14 @@ const dumpHostDatabase = async (connString: string, dbName: string | undefined, 
   logger.info({ outputPath, serverVersion }, "host database dump completed")
 }
 
+// The host path always runs pg_dumpall, so the dump covers every database on the
+// server and is named after the server rather than a single database.
+const hostDumpName = (source: PostgresSource): string =>
+  `db-dump-${slugify(`${source.host}-${String(source.port)}`)}.dump`
+
+const containerDumpName = (source: PostgresContainerSource): string =>
+  `db-dump-${slugify(`${source.containerName}-${source.database}`)}.dump`
+
 const dumpDockerDatabase = async (
   containerName: string,
   dbName: string | undefined,
@@ -70,27 +87,13 @@ const dumpDockerDatabase = async (
   }
 }
 
-const dumpPostgresSources = async (
-  sources: Source[],
-  timestamp: string,
-  tempFiles: string[],
-  tempDir: string,
-  errors: string[],
-): Promise<string[]> => {
-  const postgresSources = sources.filter((s): s is PostgresSource => s.type === "postgres")
-  if (!postgresSources.length) return []
-
-  return dumpPostgresSourceBatch(postgresSources, timestamp, tempFiles, tempDir, errors)
-}
-
 const dumpSinglePostgresSource = async (
   source: PostgresSource,
-  timestamp: string,
   tempFiles: string[],
   tempDir: string,
   errors: string[],
 ): Promise<string | null> => {
-  const outputPath = join(tempDir, `db-dump-${timestamp}-${crypto.randomUUID()}.dump`)
+  const outputPath = join(tempDir, hostDumpName(source))
   tempFiles.push(outputPath)
   try {
     await dumpHostDatabase(
@@ -107,20 +110,16 @@ const dumpSinglePostgresSource = async (
   }
 }
 
-const dumpPostgresSourceBatch = async (
-  sources: PostgresSource[],
-  timestamp: string,
-  tempFiles: string[],
-  tempDir: string,
-  errors: string[],
-): Promise<string[]> => {
-  const results = await Promise.all(sources.map((s) => dumpSinglePostgresSource(s, timestamp, tempFiles, tempDir, errors)))
+const dumpPostgresSources = async (sources: Source[], tempFiles: string[], tempDir: string, errors: string[]): Promise<string[]> => {
+  const postgresSources = sources.filter((s): s is PostgresSource => s.type === "postgres")
+  if (!postgresSources.length) return []
+
+  const results = await Promise.all(postgresSources.map((s) => dumpSinglePostgresSource(s, tempFiles, tempDir, errors)))
   return results.filter((r): r is string => r !== null)
 }
 
 const dumpPostgresContainerSources = async (
   sources: Source[],
-  timestamp: string,
   tempFiles: string[],
   tempDir: string,
   errors: string[],
@@ -130,7 +129,7 @@ const dumpPostgresContainerSources = async (
 
   const results = await Promise.all(
     containerSources.map(async (source) => {
-      const outputPath = join(tempDir, `db-dump-${timestamp}-${crypto.randomUUID()}.dump`)
+      const outputPath = join(tempDir, containerDumpName(source))
       tempFiles.push(outputPath)
       try {
         await dumpDockerDatabase(source.containerName, source.database, source.user, source.password, outputPath)

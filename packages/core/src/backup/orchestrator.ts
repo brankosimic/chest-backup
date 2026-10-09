@@ -18,7 +18,7 @@ const processDestination = async (
   errors: string[],
   onProgress?: BackupProgressCallback,
 ): Promise<DestOutcome> => {
-  const { diff, manifest } = prepareIncremental(config, dest, files)
+  const { diff, manifest } = await prepareIncremental(config, dest, files)
 
   if (!diff.toUpload.length && !diff.toDelete.length) {
     const result = { success: true, skipped: true, skippedReason: "no-changes", destId: dest.id, destLabel: dest.type, uploaded: [], deleted: [] }
@@ -82,7 +82,7 @@ const executeBackup = async (
 
   let files: string[] = []
   try {
-    const resolved = await resolveSources(config, timestamp, tempFiles, errors)
+    const resolved = await resolveSources(config, tempFiles, errors)
     files = resolved.paths
 
     if (!files.length) {

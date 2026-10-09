@@ -2,8 +2,8 @@ import { readdirSync, rmSync } from "node:fs"
 import { join } from "node:path"
 import type { Destination } from "../types/config"
 import { logger } from "../utils/logger"
-import { basename, ageDays, parseTimestampFromName } from "../utils/retention-naming"
-import { mirrorPathFor, normalizeBase } from "../utils/mirror"
+import { basename, parseTimestampFromName } from "../utils/retention-naming"
+import { normalizeBase } from "../utils/mirror"
 
 const BACKUP_PREFIXES = ["chest-backup-", "db-dump-", "sqlite-backup-", "sqlite-container-backup-"]
 const TIMESTAMP_PATTERN = /(\d{8}-\d{6})/
@@ -31,26 +31,6 @@ const collectRoot = (dir: string): string[] => {
   }
 }
 
-const collectRecursive = (dir: string, acc: string[]): string[] => {
-  const entries = readdirSync(dir, { withFileTypes: true })
-  entries.forEach((entry) => {
-    const full = join(dir, entry.name)
-    if (entry.isDirectory()) collectRecursive(full, acc)
-    else if (entry.isFile()) acc.push(full)
-  })
-
-  return acc
-}
-
-const collectSafely = (dir: string): string[] => {
-  try {
-    return collectRecursive(dir, [])
-  } catch (err) {
-    logger.debug({ dir, err }, "retention scan directory unreadable")
-    return []
-  }
-}
-
 const removeWithChecksum = (filePath: string): void => {
   try {
     rmSync(filePath, { force: true })
@@ -70,28 +50,21 @@ const selectByCount = (files: string[], retention: number): string[] => {
     .map((f) => f.path)
 }
 
-const selectOlderThanDays = (files: string[], maxAgeDays: number): string[] =>
-  files.filter((path) => {
-    const age = ageDays(basename(path))
-    return age !== null && age > maxAgeDays
-  })
-
 const backupFiles = (files: string[]): string[] => files.filter((f) => isBackupFile(basename(f)))
 
-const enforceRetention = (destination: Destination, globalRetention: number, tempDir: string): void => {
+// Each destination mirrors the source tree, so there is exactly one copy of every
+// file and no generation to age out. Only legacy whole-archive files left at the
+// destination root are pruned, and only by count. Dump artefacts are deliberately
+// never pruned: with one copy per database, deleting on age destroys the backup.
+const enforceRetention = (destination: Destination, globalRetention: number): void => {
   const retention = Math.max(destination.retention ?? globalRetention, MIN_RETENTION_DAYS)
-  const base = normalizeBase(destination.path)
-  const root = backupFiles(collectRoot(base))
-  const dumps = backupFiles(collectSafely(mirrorPathFor(base, tempDir)))
+  const legacy = backupFiles(collectRoot(normalizeBase(destination.path)))
 
-  selectByCount(root, retention).forEach((path) => {
-    removeWithChecksum(path)
-  })
-  selectOlderThanDays(dumps, retention).forEach((path) => {
+  selectByCount(legacy, retention).forEach((path) => {
     removeWithChecksum(path)
   })
 
   logger.debug({ dest: destination.path, retention }, "retention enforcement complete")
 }
 
-export { enforceRetention, parseTimestampFromName, sortByTimestampDesc, isBackupFile, selectByCount, selectOlderThanDays, backupFiles }
+export { enforceRetention, parseTimestampFromName, sortByTimestampDesc, isBackupFile, selectByCount, backupFiles }

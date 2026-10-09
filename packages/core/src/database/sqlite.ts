@@ -4,6 +4,15 @@ import { join } from "node:path"
 import type { SqliteSource, SqliteContainerSource, Source } from "../types/config"
 import { logger } from "../utils/logger"
 
+const slugify = (value: string): string =>
+  value
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80) || "database"
+
+const basename = (value: string): string => value.split("/").pop() ?? "database"
+
 const getSqlite3Path = (): string => {
   const candidates = ["/usr/bin/sqlite3", "/usr/local/bin/sqlite3"]
   return candidates.find(existsSync) ?? "sqlite3"
@@ -19,20 +28,19 @@ const dumpSqliteDatabase = async (dbPath: string, outputPath: string): Promise<v
   logger.info({ outputPath }, "sqlite database backup completed")
 }
 
-const dumpSqliteSources = async (
-  sources: Source[],
-  timestamp: string,
-  tempFiles: string[],
-  tempDir: string,
-  errors: string[],
-): Promise<string[]> => {
+// Stable names keep the manifest key constant. A per-run UUID here meant the
+// manifest could never match a dump against its previous copy, so unchanged
+// databases were re-uploaded on every single run.
+const dumpName = (source: SqliteSource | SqliteContainerSource): string =>
+  `sqlite-backup-${slugify(source.type === "sqlite" ? basename(source.path) : `${source.containerName}-${basename(source.dbPath)}`)}`
+
+const dumpSqliteSources = async (sources: Source[], tempFiles: string[], tempDir: string, errors: string[]): Promise<string[]> => {
   const sqliteSources = sources.filter((s): s is SqliteSource => s.type === "sqlite")
   if (!sqliteSources.length) return []
 
   const results = await Promise.all(
     sqliteSources.map(async (source) => {
-      const dbName = source.path.split("/").pop() ?? "database.db"
-      const outputPath = join(tempDir, `sqlite-backup-${timestamp}-${dbName}`)
+      const outputPath = join(tempDir, dumpName(source))
       tempFiles.push(outputPath)
       try {
         await dumpSqliteDatabase(source.path, outputPath)
@@ -71,7 +79,6 @@ const dumpSqliteContainerDatabase = async (
 
 const dumpSqliteContainerSources = async (
   sources: Source[],
-  timestamp: string,
   tempFiles: string[],
   tempDir: string,
   errors: string[],
@@ -81,8 +88,7 @@ const dumpSqliteContainerSources = async (
 
   const results = await Promise.all(
     containerSources.map(async (source) => {
-      const dbName = source.dbPath.split("/").pop() ?? "database.db"
-      const outputPath = join(tempDir, `sqlite-container-backup-${timestamp}-${dbName}`)
+      const outputPath = join(tempDir, dumpName(source))
       tempFiles.push(outputPath)
       try {
         await dumpSqliteContainerDatabase(source.containerName, source.dbPath, outputPath)

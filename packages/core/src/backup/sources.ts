@@ -88,7 +88,6 @@ const resolveContainers = (sources: Source[]): string[] =>
 
 const resolveSources = async (
   config: Config,
-  timestamp: string,
   tempFiles: string[],
   errors: string[],
 ): Promise<{ paths: string[]; containers: string[] }> => {
@@ -96,10 +95,10 @@ const resolveSources = async (
   const containers = resolveContainers(config.sources)
   const tempDir = config.tempDir ?? "/tmp"
 
-  const dbDumps = await dumpPostgresSources(config.sources, timestamp, tempFiles, tempDir, errors)
-  const containerDbDumps = await dumpPostgresContainerSources(config.sources, timestamp, tempFiles, tempDir, errors)
-  const sqliteDbDumps = await dumpSqliteSources(config.sources, timestamp, tempFiles, tempDir, errors)
-  const sqliteContainerDbDumps = await dumpSqliteContainerSources(config.sources, timestamp, tempFiles, tempDir, errors)
+  const dbDumps = await dumpPostgresSources(config.sources, tempFiles, tempDir, errors)
+  const containerDbDumps = await dumpPostgresContainerSources(config.sources, tempFiles, tempDir, errors)
+  const sqliteDbDumps = await dumpSqliteSources(config.sources, tempFiles, tempDir, errors)
+  const sqliteContainerDbDumps = await dumpSqliteContainerSources(config.sources, tempFiles, tempDir, errors)
   paths.push(...dbDumps, ...containerDbDumps, ...sqliteDbDumps, ...sqliteContainerDbDumps)
 
   return { paths, containers }
