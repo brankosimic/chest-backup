@@ -1,34 +1,16 @@
 import type { Config, Destination } from "../types/config"
 import type { StoreResult, BackupProgressCallback } from "../types/index"
-import { getLatestChecksumLocal, storeLocal } from "./local"
-import { connectClient, getLatestChecksumSftp, storeSftp, enforceRetentionSftp } from "./sftp"
+import type { FileStat } from "../types/manifest"
+import { storeLocalIncremental } from "./local"
+import { storeSftpIncremental } from "./sftp"
 import { enforceRetention } from "../backup/retention"
+import { enforceRetentionSftp } from "./sftp-retention"
 import { logger } from "../utils/logger"
 
-const getLatestChecksum = async (dest: Destination): Promise<string | null> => {
-  if (dest.type === "local") return getLatestChecksumLocal(dest)
-
-  const { default: SFTPClient } = await import("ssh2-sftp-client")
-  const sftp = new SFTPClient()
+const handleDestination = async (files: FileStat[], toDelete: string[], dest: Destination): Promise<StoreResult> => {
   try {
-    await connectClient(sftp, dest)
-    return await getLatestChecksumSftp(sftp, dest)
-  } catch (err) {
-    logger.warn({ err: String(err) }, "checksum lookup failed for SFTP destination")
-    return null
-  } finally {
-    await sftp.end()
-  }
-}
-
-const handleDestination = async (
-  archivePath: string,
-  checksumFile: string | undefined,
-  dest: Destination,
-): Promise<StoreResult> => {
-  try {
-    if (dest.type === "local") return await storeLocal(archivePath, checksumFile, dest)
-    return await storeSftp(archivePath, checksumFile, dest)
+    if (dest.type === "local") return await storeLocalIncremental(files, toDelete, dest)
+    return await storeSftpIncremental(files, toDelete, dest)
   } catch (err) {
     logger.error({ dest: dest.path, err }, "destination store failed")
     return { success: false, error: String(err) }
@@ -36,34 +18,30 @@ const handleDestination = async (
 }
 
 const storeToDestination = async (
-  archivePath: string,
-  checksumFile: string | undefined,
-  checksumValue: string | undefined,
+  files: FileStat[],
+  toDelete: string[],
+  unchanged: number,
   dest: Destination,
-  retention: number,
+  config: Config,
   errors: string[],
   onProgress?: BackupProgressCallback,
 ): Promise<StoreResult> => {
-  if (checksumValue) {
-    const latest = await getLatestChecksum(dest)
-
-    if (latest === checksumValue) {
-      logger.info({ dest: dest.path }, "destination already has identical archive, skipping")
-      onProgress?.({
-        phase: "destination-done",
-        destName: dest.name,
-        destPath: dest.path,
-        destType: dest.type,
-        message: "skipped",
-      })
-      return { success: true, skipped: true, skippedReason: "identical", destId: dest.id, destLabel: dest.type }
-    }
+  if (!files.length && !toDelete.length) {
+    logger.info({ dest: dest.name ?? dest.path, unchanged }, "destination already up to date, skipping")
+    onProgress?.({
+      phase: "destination-done",
+      destName: dest.name,
+      destPath: dest.path,
+      destType: dest.type,
+      message: "skipped",
+    })
+    return { success: true, skipped: true, skippedReason: "no-changes", destId: dest.id, destLabel: dest.type, uploaded: [], deleted: [] }
   }
 
   onProgress?.({ phase: "destination-start", destName: dest.name, destPath: dest.path, destType: dest.type })
 
   const start = Date.now()
-  const result = await handleDestination(archivePath, checksumFile, dest)
+  const result = await handleDestination(files, toDelete, dest)
   result.durationMs = Date.now() - start
   if (dest.id) result.destId = dest.id
   result.destLabel = dest.type
@@ -78,9 +56,9 @@ const storeToDestination = async (
     })
     try {
       if (dest.type === "local") {
-        enforceRetention(dest, "chest-backup", retention)
+        enforceRetention(dest, config.retention, config.tempDir ?? "/tmp")
       } else {
-        await enforceRetentionSftp(dest, "chest-backup", retention)
+        await enforceRetentionSftp(dest, config.retention, config.tempDir ?? "/tmp")
       }
     } catch (err) {
       errors.push(`Retention enforcement failed for ${dest.path}: ${String(err)}`)
@@ -98,41 +76,4 @@ const storeToDestination = async (
   return result
 }
 
-const dispatchToDestinations = async (
-  archivePath: string,
-  checksumFile: string | undefined,
-  checksumValue: string | undefined,
-  config: Config,
-  errors: string[],
-  onProgress?: BackupProgressCallback,
-): Promise<StoreResult[]> => {
-  const active = config.destinations.filter((d) => !d.skip)
-  const skipped = config.destinations.filter((d) => d.skip)
-
-  skipped.forEach((dest) => {
-    logger.info({ dest: dest.path, type: dest.type }, "destination skipped per config")
-  })
-
-  const sequential = active.filter((d) => !d.parallel)
-  const parallel = active.filter((d) => d.parallel)
-  const results: StoreResult[] = []
-
-  for (const dest of sequential) {
-    results.push(
-      await storeToDestination(archivePath, checksumFile, checksumValue, dest, config.retention, errors, onProgress),
-    )
-  }
-
-  if (parallel.length) {
-    const parallelResults = await Promise.all(
-      parallel.map((dest) =>
-        storeToDestination(archivePath, checksumFile, checksumValue, dest, config.retention, errors, onProgress),
-      ),
-    )
-    results.push(...parallelResults)
-  }
-
-  return results
-}
-
-export { handleDestination, storeToDestination, dispatchToDestinations }
+export { handleDestination, storeToDestination }

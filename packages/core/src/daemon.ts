@@ -77,10 +77,13 @@ const emitAfterBackup = (
 
   const status = allSkipped ? DaemonStatus.Idle : result.success ? DaemonStatus.Success : DaemonStatus.Error
 
+  const changed = result.filesChanged ?? 0
+  const total = result.filesBackedUp ?? 0
+
   const message = allSkipped
     ? "Skipped — No changes"
     : result.success
-      ? `Completed — ${result.archiveName ?? ""}`
+      ? `Completed — ${String(changed)}/${String(total)} files changed`
       : `Failed — ${result.errors[0] ?? "unknown error"}`
 
   onStateChange?.(status, message)
@@ -89,11 +92,8 @@ const emitAfterBackup = (
   else if (allSkipped)
     onNotify?.("Backup Skipped", "All destinations already have the latest backup — no changes needed")
   else if (someSkipped)
-    onNotify?.(
-      "Backup Successful",
-      `Archive: ${result.archiveName ?? "unknown"} (some destinations skipped — identical)`,
-    )
-  else onNotify?.("Backup Successful", `Archive: ${result.archiveName ?? "unknown"}`)
+    onNotify?.("Backup Successful", `${String(changed)}/${String(total)} files changed (some destinations skipped)`)
+  else onNotify?.("Backup Successful", `${String(changed)}/${String(total)} files changed`)
 }
 
 export { DaemonStatus, createDaemon, startDaemon, type DaemonOptions, type DaemonHandle }

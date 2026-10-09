@@ -1,64 +1,82 @@
-import { readFileSync, readdirSync } from "node:fs"
-import { cp, mkdir } from "node:fs/promises"
-import { dirname, join } from "node:path"
+import { cp, mkdir, rm } from "node:fs/promises"
+import { dirname } from "node:path"
 import type { Destination } from "../types/config"
+import type { FileStat } from "../types/manifest"
 import type { StoreResult } from "../types/index"
-import { ARCHIVE_PATTERN, parseTimestampFromName } from "../backup/retention"
+import type { DeleteOutcome, FileUploadResult, UploadOutcome } from "../types/destination"
+import { UploadOutcomeKind } from "../types/destination"
 import { logger } from "../utils/logger"
+import { errorCode, partitionByOutcome, speedFrom } from "../utils/upload"
+import { mirrorPathFor } from "../utils/mirror"
 
-const copyChecksum = async (checksumFile: string, destDir: string): Promise<void> => {
-  const shaName = checksumFile.split("/").pop()
-  if (!shaName) return
-  await cp(checksumFile, join(destDir, shaName))
+const copyFile = async (file: FileStat, destDir: string): Promise<void> => {
+  const target = mirrorPathFor(destDir, file.path)
+  await mkdir(dirname(target), { recursive: true })
+  await cp(file.path, target)
 }
 
-const getLatestChecksumLocal = (dest: Destination): string | null => {
-  let files: string[]
+const uploadFileSafe = async (file: FileStat, destDir: string): Promise<FileUploadResult> => {
   try {
-    files = readdirSync(dest.path).filter((f) => ARCHIVE_PATTERN.test(f))
-  } catch {
-    return null
+    await copyFile(file, destDir)
+    return { path: file.path, outcome: UploadOutcomeKind.Uploaded }
+  } catch (err) {
+    if (errorCode(err) === "ENOENT") {
+      logger.warn({ src: file.path }, "source file vanished before copy, skipping")
+      return { path: file.path, outcome: UploadOutcomeKind.Vanished }
+    }
+    logger.error({ src: file.path, err }, "local copy failed")
+    return { path: file.path, outcome: UploadOutcomeKind.Failed }
   }
+}
 
-  if (!files.length) return null
-
-  files.sort((a, b) => {
-    const tsA = parseTimestampFromName(a)
-    const tsB = parseTimestampFromName(b)
-    if (!tsA || !tsB) return 0
-    return tsB.localeCompare(tsA)
-  })
-
-  const latest = files[0]
-  if (!latest) return null
-
-  const shaPath = join(dest.path, `${latest}.sha256`)
+const deleteFileSafe = async (destDir: string, relativePath: string): Promise<string | null> => {
   try {
-    const content = readFileSync(shaPath, "utf8")
-    return content.split(/\s+/)[0] ?? null
-  } catch {
+    await rm(mirrorPathFor(destDir, relativePath))
+    return relativePath
+  } catch (err) {
+    logger.debug({ relativePath, err }, "file not found during incremental cleanup")
     return null
   }
 }
 
-const storeLocal = async (archivePath: string, checksumFile: string | undefined, dest: Destination): Promise<StoreResult> => {
-  const destDir = dirname(dest.path)
+const uploadFiles = async (files: FileStat[], destDir: string): Promise<UploadOutcome> => {
+  const startTime = Date.now()
+  const results = await Promise.all(files.map((f) => uploadFileSafe(f, destDir)))
+  const uploadedFiles = results.filter((r) => r.outcome === UploadOutcomeKind.Uploaded).map((r) => r.path)
+  const sizeByPath = new Map(files.map((f) => [f.path, f.size]))
+  const totalUploaded = uploadedFiles.reduce((acc, path) => acc + (sizeByPath.get(path) ?? 0), 0)
+
+  return { ...partitionByOutcome(results), totalUploaded, totalDuration: Date.now() - startTime }
+}
+
+const deleteFiles = async (toDelete: string[], destDir: string): Promise<DeleteOutcome> => {
+  const results = await Promise.all(toDelete.map((rel) => deleteFileSafe(destDir, rel)))
+  const deleted = results.filter((r): r is string => r !== null)
+
+  return { deleted, failed: toDelete.length - deleted.length }
+}
+
+const storeLocalIncremental = async (files: FileStat[], toDelete: string[], dest: Destination): Promise<StoreResult> => {
+  const destDir = dest.path
   await mkdir(destDir, { recursive: true })
 
-  const archiveName = archivePath.split("/").pop()
-  if (!archiveName) return { success: false, error: "Invalid archive path" }
+  const upload = await uploadFiles(files, destDir)
+  const removal = await deleteFiles(toDelete, destDir)
+  const speed = speedFrom(upload.totalUploaded, upload.totalDuration)
 
-  const destPath = join(dest.path, archiveName)
+  logger.info(
+    { dest: dest.name ?? dest.path, uploaded: upload.uploaded.length, deleted: removal.deleted.length, failed: upload.failed.length },
+    "local incremental sync complete",
+  )
 
-  await cp(archivePath, destPath)
-  logger.info({ from: archivePath, to: destPath }, "archive copied to local destination")
-
-  if (checksumFile) {
-    await copyChecksum(checksumFile, dest.path)
-    logger.info({ from: checksumFile }, "checksum copied to local destination")
+  return {
+    success: upload.failed.length === 0,
+    uploaded: upload.uploaded,
+    deleted: removal.deleted,
+    failedCount: upload.failed.length,
+    vanishedCount: upload.vanished.length,
+    speed,
   }
-
-  return { success: true }
 }
 
-export { getLatestChecksumLocal, storeLocal }
+export { storeLocalIncremental }

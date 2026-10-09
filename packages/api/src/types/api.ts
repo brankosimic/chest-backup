@@ -15,6 +15,11 @@ interface DestinationUsage {
   available: boolean
 }
 
+interface LocalUsage {
+  totalSize: number
+  fileCount: number
+}
+
 interface BackupStats {
   total: number
   success: number
@@ -33,4 +38,4 @@ interface Retention {
   globalRetention: number
 }
 
-export type { PaginatedResult, BackupStats, DestinationUsage, Result, CpuTimes, Retention }
+export type { PaginatedResult, BackupStats, DestinationUsage, LocalUsage, Result, CpuTimes, Retention }

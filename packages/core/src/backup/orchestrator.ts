@@ -1,14 +1,66 @@
-import { mkdirSync, unlinkSync, statSync } from "node:fs"
-import type { Config } from "../types/config"
-import type { BackupResult, VerifyResult } from "../types/index"
-import { formatTimestamp, createArchive } from "./archiver"
-import { verifyArchive } from "./verify"
+import { mkdirSync, unlinkSync } from "node:fs"
+import type { Config, Destination } from "../types/config"
+import type { BackupResult, BackupSummary, DestOutcome, BackupProgressCallback } from "../types/index"
+import type { FileStat } from "../types/manifest"
+import { formatTimestamp } from "./archiver"
 import { resolveSources } from "./sources"
 import { stopBackupContainers, startBackupContainers } from "../docker/manager"
-import { dispatchToDestinations } from "../destinations/types"
+import { storeToDestination } from "../destinations/types"
 import { sendStartedNotification, sendCompletedNotification } from "../notification/discord"
+import { prepareIncremental, persistManifest, uploadedFrom } from "./incremental"
+import { sweepStaleTempFiles } from "./temp-sweep"
 import { logger } from "../utils/logger"
-import type { BackupProgressCallback } from "../types/index"
+
+const processDestination = async (
+  config: Config,
+  dest: Destination,
+  files: string[],
+  errors: string[],
+  onProgress?: BackupProgressCallback,
+): Promise<DestOutcome> => {
+  const { diff, manifest } = prepareIncremental(config, dest, files)
+
+  if (!diff.toUpload.length && !diff.toDelete.length) {
+    const result = { success: true, skipped: true, skippedReason: "no-changes", destId: dest.id, destLabel: dest.type, uploaded: [], deleted: [] }
+    return { result, uploaded: [] }
+  }
+
+  const result = await storeToDestination(diff.toUpload, diff.toDelete, diff.unchanged, dest, config, errors, onProgress)
+
+  if (result.skipped) return { result, uploaded: [] }
+
+  const uploaded = uploadedFrom(diff, result)
+  persistManifest(config, dest, manifest, uploaded, result.deleted ?? [])
+
+  return { result, uploaded }
+}
+
+const processSequential = async (
+  dests: Destination[],
+  config: Config,
+  files: string[],
+  errors: string[],
+  onProgress?: BackupProgressCallback,
+): Promise<DestOutcome[]> => {
+  const outcomes: DestOutcome[] = []
+
+  for (const dest of dests) {
+    outcomes.push(await processDestination(config, dest, files, errors, onProgress))
+  }
+
+  return outcomes
+}
+
+const summariseOutcomes = (outcomes: DestOutcome[]): BackupSummary => {
+  const completed = outcomes.filter((o) => !o.result.skipped)
+
+  if (!completed.length) return { filesChanged: 0, totalUploadedBytes: 0 }
+
+  const reference = completed.reduce((a, b) => (a.uploaded.length <= b.uploaded.length ? a : b))
+  const uploadedBytes = reference.uploaded.reduce((acc, f: FileStat) => acc + f.size, 0)
+
+  return { filesChanged: reference.uploaded.length, totalUploadedBytes: uploadedBytes }
+}
 
 const executeBackup = async (
   config: Config,
@@ -26,63 +78,61 @@ const executeBackup = async (
 
   const tempDir = config.tempDir ?? "/tmp"
   mkdirSync(tempDir, { recursive: true })
+  sweepStaleTempFiles(config)
 
-  let archivePath: string | null | undefined
+  let files: string[] = []
   try {
     const resolved = await resolveSources(config, timestamp, tempFiles, errors)
-    const sources = resolved.paths
+    files = resolved.paths
 
-    if (!sources.length) {
-      logger.error({ timestamp }, "no sources to archive")
-      errors.push("No sources to archive")
+    if (!files.length) {
+      logger.error({ timestamp }, "no sources to back up")
+      errors.push("No sources to back up")
       return { success: false, timestamp, durationMs: 0, destinationResults: [], errors }
     }
-
-    archivePath = await createArchive(timestamp, sources, [], tempDir, tempFiles)
-    tempFiles.push(archivePath)
   } finally {
-    // Restart containers ASAP — archive is complete, minimize downtime
     await startBackupContainers(containers, errors)
   }
 
-  if (!archivePath) {
-    return { success: false, timestamp, durationMs: 0, destinationResults: [], errors }
+  onProgress?.({ phase: "archiving" })
+
+  const active = config.destinations.filter((d) => !d.skip)
+  const sequential = active.filter((d) => !d.parallel)
+  const parallel = active.filter((d) => d.parallel)
+
+  const outcomes: DestOutcome[] = []
+  outcomes.push(...(await processSequential(sequential, config, files, errors, onProgress)))
+
+  if (parallel.length) {
+    const parallelOutcomes = await Promise.all(parallel.map((dest) => processDestination(config, dest, files, errors, onProgress)))
+    outcomes.push(...parallelOutcomes)
   }
 
-  // Verification runs with containers already back up — non-critical nice-to-have
-  let verification: VerifyResult | undefined
-  try {
-    verification = await verifyArchive(archivePath)
-    tempFiles.push(verification.checksumFile)
-  } catch (err) {
-    logger.error({ err }, "archive verification failed")
-    errors.push(`Archive verification failed: ${String(err)}`)
-  }
-
-  const archiveSize = statSync(archivePath).size
-  onProgress?.({ phase: "archiving", archiveSize })
-
-  const destinationResults = await dispatchToDestinations(
-    archivePath,
-    verification?.checksumFile,
-    verification?.checksum,
-    config,
-    errors,
-    onProgress,
-  )
+  const destinationResults = outcomes.map((o) => o.result)
   const allOk = destinationResults.every((r) => r.success)
+  const summary = summariseOutcomes(outcomes)
   const success = allOk && errors.length === 0
 
   return {
     success,
     timestamp,
-    archiveName: archivePath.split("/").pop() ?? "unknown",
-    archiveSize,
     durationMs: 0,
     destinationResults,
     errors,
-    verification,
+    filesBackedUp: files.length,
+    filesChanged: summary.filesChanged,
+    totalUploadedBytes: summary.totalUploadedBytes,
   }
+}
+
+const cleanupTempFiles = (tempFiles: string[]): void => {
+  tempFiles.forEach((file) => {
+    try {
+      unlinkSync(file)
+    } catch (err) {
+      logger.debug({ file, err }, "temp file cleanup failed")
+    }
+  })
 }
 
 const runBackup = async (config: Config, onProgress?: BackupProgressCallback): Promise<BackupResult> => {
@@ -109,16 +159,10 @@ const runBackup = async (config: Config, onProgress?: BackupProgressCallback): P
       errors: [String(err)],
     }
     await sendCompletedNotification(config, failedResult)
-    logger.info({ success: false, durationMs: failedResult.durationMs, timestamp }, "backup finished")
+    logger.info({ success: failedResult.success, durationMs: failedResult.durationMs, timestamp }, "backup finished")
     return failedResult
   } finally {
-    for (const file of tempFiles) {
-      try {
-        unlinkSync(file)
-      } catch {
-        logger.debug({ file }, "temp file cleanup failed")
-      }
-    }
+    cleanupTempFiles(tempFiles)
   }
 }
 

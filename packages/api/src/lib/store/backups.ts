@@ -6,7 +6,7 @@ import { findDestinationById } from "./entities"
 import type { PaginatedResult, BackupStats, DestinationUsage } from "../../types/api"
 import { scanSftpUsage } from "@core/destinations/sftp"
 import type { Destination } from "@core/types/config"
-import { withTimeout } from "../utils"
+import { scanLocalUsage, withTimeout } from "../utils"
 
 let backupCache: BackupRecord[] | null = null
 
@@ -92,16 +92,15 @@ const buildDestUsage = async (
     try {
       const dir = dest.path
       if (!existsSync(dir)) return null
-      const files = readdirSync(dir).filter((f) => f.endsWith(".tar.gz") && !f.endsWith(".sha256"))
-      const totalSize = files.reduce((acc, f) => acc + statSync(resolve(dir, f)).size, 0)
-      return { type: "local", name, path: dir, totalSize, fileCount: files.length, avgDurationMs, available: true }
+      const usage = scanLocalUsage(dir)
+      return { type: "local", name, path: dir, totalSize: usage.totalSize, fileCount: usage.fileCount, avgDurationMs, available: true }
     } catch {
       console.warn("failed to scan local destination", dest.path)
       return null
     }
   }
 
-  const usage = await withTimeout(scanSftpUsage(dest), 8000, null)
+  const usage = await withTimeout(scanSftpUsage(dest), 30_000, null)
   if (!usage) return null
   return {
     type: "sftp",

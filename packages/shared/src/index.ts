@@ -63,6 +63,9 @@ interface BackupRecord {
   durationMs: number
   destinationResults: StoreResult[]
   errors: string[]
+  filesBackedUp?: number
+  filesChanged?: number
+  totalUploadedBytes?: number
 }
 
 interface StoreResult {
@@ -74,6 +77,10 @@ interface StoreResult {
   speed?: number
   skipped?: boolean
   skippedReason?: string
+  uploaded?: string[]
+  deleted?: string[]
+  failedCount?: number
+  vanishedCount?: number
 }
 
 interface LogEntry {

@@ -10,11 +10,17 @@ import type {
   DiscordConfig,
   NotificationsConfig,
 } from "./config"
-import type { DestinationHandler, StoreResult, BackupProgressEvent, BackupProgressCallback } from "./destination"
+import type { StoreResult, BackupProgressEvent, BackupProgressCallback } from "./destination"
+import type { FileStat } from "./manifest"
 
-interface CollectedSources {
-  sources: string[]
-  dbDumps: string[]
+interface DestOutcome {
+  result: StoreResult
+  uploaded: FileStat[]
+}
+
+interface BackupSummary {
+  filesChanged: number
+  totalUploadedBytes: number
 }
 
 interface VerifyResult {
@@ -32,6 +38,9 @@ interface BackupResult {
   destinationResults: StoreResult[]
   errors: string[]
   verification?: VerifyResult
+  filesBackedUp?: number
+  filesChanged?: number
+  totalUploadedBytes?: number
 }
 
 export type {
@@ -45,10 +54,10 @@ export type {
   Destination,
   DiscordConfig,
   NotificationsConfig,
-  DestinationHandler,
+  DestOutcome,
+  BackupSummary,
   StoreResult,
   VerifyResult,
-  CollectedSources,
   BackupResult,
   BackupProgressEvent,
   BackupProgressCallback,

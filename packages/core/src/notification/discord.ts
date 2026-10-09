@@ -1,4 +1,4 @@
-import type { BackupResult } from "../types/index"
+import type { BackupResult, StoreResult } from "../types/index"
 import type { Config } from "../types/config"
 import type { DiscordEmbed, DiscordPayload, EmbedStatus } from "../types/notification"
 import { logger } from "../utils/logger"
@@ -26,20 +26,28 @@ const formatSpeed = (bytesPerSec: number): string => {
   return `${(kb / 1024).toFixed(1)}MB/s`
 }
 
+const describeFailures = (d: StoreResult): string | null => {
+  const parts: string[] = []
+  if (d.failedCount) parts.push(`${String(d.failedCount)} failed`)
+  if (d.vanishedCount) parts.push(`${String(d.vanishedCount)} vanished`)
+  return parts.length ? ` (${parts.join(", ")})` : null
+}
+
 const calcEmbedStatus = (result: BackupResult): EmbedStatus => {
   const successCount = result.destinationResults.filter((r) => r.success && !r.skipped).length
   const skippedCount = result.destinationResults.filter((r) => r.skipped).length
   const failCount = result.destinationResults.length - successCount - skippedCount
+  const changed = result.filesChanged ?? 0
 
   let color: number
   let title: string
 
-  if (result.success && skippedCount === result.destinationResults.length) {
+  if (result.success && changed === 0) {
     color = 0x3498db
     title = "Backup Skipped — No Changes"
   } else if (result.success) {
     color = 0x00ff00
-    title = "Backup Successful"
+    title = `Backup Successful — ${String(changed)} files updated`
   } else if (successCount > 0 || skippedCount > 0) {
     color = 0xffa500
     title = "Backup Partial Success"
@@ -59,19 +67,22 @@ const buildEmbedFields = (
 ): DiscordEmbed["fields"] => {
   const fields: DiscordEmbed["fields"] = []
 
-  if (result.archiveName) fields.push({ name: "Archive", value: result.archiveName, inline: true })
-  if (result.archiveSize) fields.push({ name: "Size", value: formatSize(result.archiveSize), inline: true })
+  const total = result.filesBackedUp ?? 0
+  const changed = result.filesChanged ?? 0
+  const unchanged = total - changed
+  const uploadedBytes = result.totalUploadedBytes ?? 0
 
-  if (result.verification) {
-    const passed = result.verification.integrity ? "Pass" : "Fail"
-    fields.push({ name: "Verification", value: `Integrity: ${passed}`, inline: false })
+  if (total > 0) {
+    fields.push({ name: "Files", value: `${String(changed)} changed / ${String(unchanged)} unchanged (${String(total)} total)`, inline: false })
   }
-
+  if (uploadedBytes > 0) {
+    fields.push({ name: "Uploaded", value: formatSize(uploadedBytes), inline: true })
+  }
   fields.push({ name: "Duration", value: formatDuration(result.durationMs), inline: true })
 
   const destParts: string[] = []
   if (successCount) destParts.push(`${String(successCount)} succeeded`)
-  if (skippedCount) destParts.push(`${String(skippedCount)} skipped (identical)`)
+  if (skippedCount) destParts.push(`${String(skippedCount)} skipped (no changes)`)
   if (failCount) destParts.push(`${String(failCount)} failed`)
   fields.push({ name: "Destinations", value: destParts.join(", ") || "none", inline: false })
 
@@ -79,15 +90,18 @@ const buildEmbedFields = (
     if (d.skipped) {
       fields.push({
         name: d.destLabel ?? "Destination",
-        value: `Skipped — ${d.skippedReason ?? "identical"}`,
+        value: `Skipped — ${d.skippedReason ?? "no changes"}`,
         inline: true,
       })
       return
     }
+    const uploadedCount = d.uploaded?.length
+    const uploadedStr = uploadedCount === undefined ? "" : ` — ${String(uploadedCount)} files`
     const speedStr = d.speed !== undefined ? ` | ${formatSpeed(d.speed)}` : ""
+    const failureStr = describeFailures(d)
     fields.push({
       name: d.destLabel ?? "Destination",
-      value: `${d.error ? "Failed" : "OK"}${d.durationMs !== undefined ? ` (${formatDuration(d.durationMs)})` : ""}${speedStr}`,
+      value: `${d.error ? "Failed" : "OK"}${d.durationMs !== undefined ? ` (${formatDuration(d.durationMs)})` : ""}${uploadedStr}${failureStr ?? ""}${speedStr}`,
       inline: true,
     })
   })
