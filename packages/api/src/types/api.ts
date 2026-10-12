@@ -1,3 +1,5 @@
+import { RetentionMode } from "@core/types/config"
+
 interface PaginatedResult<T> {
   data: T[]
   total: number
@@ -36,6 +38,7 @@ interface CpuTimes {
 
 interface Retention {
   globalRetention: number
+  retentionMode: RetentionMode
 }
 
 export type { PaginatedResult, BackupStats, DestinationUsage, LocalUsage, Result, CpuTimes, Retention }

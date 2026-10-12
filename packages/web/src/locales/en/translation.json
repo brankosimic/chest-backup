@@ -218,8 +218,15 @@
     "nextRun": "Next Run",
     "presets": "Presets",
     "retention": "Retention",
-    "globalRetention": "Global Retention (backups)",
-    "retentionDays": "Number of backups to keep"
+    "retentionMode": "Retention Mode",
+    "retentionModeDescription": "How often a new snapshot folder is created on each destination",
+    "globalRetention": "Number of Snapshots to Keep",
+    "retentionDays": "Number of snapshots to keep",
+    "retentionModeMonths": "Monthly",
+    "retentionModeWeeks": "Weekly",
+    "retentionModeForever": "Keep Forever",
+    "retentionModeMonthsUnit": "Number of monthly snapshots to keep",
+    "retentionModeWeeksUnit": "Number of weekly snapshots to keep"
   },
   "status": {
     "running": "Running",

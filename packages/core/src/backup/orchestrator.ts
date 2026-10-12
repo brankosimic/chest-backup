@@ -8,7 +8,7 @@ import { stopBackupContainers, startBackupContainers } from "../docker/manager"
 import { storeToDestination } from "../destinations/types"
 import { sendStartedNotification, sendCompletedNotification } from "../notification/discord"
 import { prepareIncremental, persistManifest, uploadedFrom } from "./incremental"
-import { monthKeyFor } from "./months"
+import { periodKeyFor } from "./periods"
 import { sweepStaleTempFiles } from "./temp-sweep"
 import { logger } from "../utils/logger"
 
@@ -17,22 +17,22 @@ const processDestination = async (
   dest: Destination,
   files: string[],
   errors: string[],
-  monthKey: string,
+  periodKey: string,
   onProgress?: BackupProgressCallback,
 ): Promise<DestOutcome> => {
-  const { diff, manifest } = await prepareIncremental(config, dest, files, monthKey)
+  const { diff, manifest } = await prepareIncremental(config, dest, files, periodKey)
 
   if (!diff.toUpload.length && !diff.toDelete.length) {
     const result = { success: true, skipped: true, skippedReason: "no-changes", destId: dest.id, destLabel: dest.type, uploaded: [], deleted: [] }
     return { result, uploaded: [] }
   }
 
-  const result = await storeToDestination(diff.toUpload, diff.toDelete, diff.unchanged, dest, config, errors, monthKey, onProgress)
+  const result = await storeToDestination(diff.toUpload, diff.toDelete, diff.unchanged, dest, config, errors, periodKey, onProgress)
 
   if (result.skipped) return { result, uploaded: [] }
 
   const uploaded = uploadedFrom(diff, result)
-  persistManifest(config, dest, manifest, uploaded, result.deleted ?? [], monthKey)
+  persistManifest(config, dest, manifest, uploaded, result.deleted ?? [], periodKey)
 
   return { result, uploaded }
 }
@@ -42,13 +42,13 @@ const processSequential = async (
   config: Config,
   files: string[],
   errors: string[],
-  monthKey: string,
+  periodKey: string,
   onProgress?: BackupProgressCallback,
 ): Promise<DestOutcome[]> => {
   const outcomes: DestOutcome[] = []
 
   for (const dest of dests) {
-    outcomes.push(await processDestination(config, dest, files, errors, monthKey, onProgress))
+    outcomes.push(await processDestination(config, dest, files, errors, periodKey, onProgress))
   }
 
   return outcomes
@@ -68,6 +68,7 @@ const summariseOutcomes = (outcomes: DestOutcome[]): BackupSummary => {
 const executeBackup = async (
   config: Config,
   timestamp: string,
+  runDate: Date,
   errors: string[],
   tempFiles: string[],
   onProgress?: BackupProgressCallback,
@@ -83,7 +84,7 @@ const executeBackup = async (
   mkdirSync(tempDir, { recursive: true })
   sweepStaleTempFiles(config)
 
-  const monthKey = monthKeyFor(timestamp)
+  const periodKey = periodKeyFor(config.retentionMode, timestamp, runDate)
 
   let files: string[] = []
   try {
@@ -106,10 +107,10 @@ const executeBackup = async (
   const parallel = active.filter((d) => d.parallel)
 
   const outcomes: DestOutcome[] = []
-  outcomes.push(...(await processSequential(sequential, config, files, errors, monthKey, onProgress)))
+  outcomes.push(...(await processSequential(sequential, config, files, errors, periodKey, onProgress)))
 
   if (parallel.length) {
-    const parallelOutcomes = await Promise.all(parallel.map((dest) => processDestination(config, dest, files, errors, monthKey, onProgress)))
+    const parallelOutcomes = await Promise.all(parallel.map((dest) => processDestination(config, dest, files, errors, periodKey, onProgress)))
     outcomes.push(...parallelOutcomes)
   }
 
@@ -142,7 +143,8 @@ const cleanupTempFiles = (tempFiles: string[]): void => {
 
 const runBackup = async (config: Config, onProgress?: BackupProgressCallback): Promise<BackupResult> => {
   const startTime = Date.now()
-  const timestamp = formatTimestamp(new Date())
+  const runDate = new Date()
+  const timestamp = formatTimestamp(runDate)
   const errors: string[] = []
   const tempFiles: string[] = []
 
@@ -150,7 +152,7 @@ const runBackup = async (config: Config, onProgress?: BackupProgressCallback): P
   logger.info({ timestamp }, "backup started")
 
   try {
-    const result = await executeBackup(config, timestamp, errors, tempFiles, onProgress)
+    const result = await executeBackup(config, timestamp, runDate, errors, tempFiles, onProgress)
     result.durationMs = Date.now() - startTime
     await sendCompletedNotification(config, result)
     logger.info({ success: result.success, durationMs: result.durationMs, timestamp }, "backup finished")

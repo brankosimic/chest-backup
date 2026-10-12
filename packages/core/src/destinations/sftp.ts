@@ -157,7 +157,7 @@ const deleteFiles = async (sftp: SFTPClient, toDelete: string[], base: string): 
   return { deleted, failed: toDelete.length - deleted.length }
 }
 
-const storeSftpIncremental = async (files: FileStat[], toDelete: string[], dest: Destination, monthKey: string): Promise<StoreResult> => {
+const storeSftpIncremental = async (files: FileStat[], toDelete: string[], dest: Destination, periodKey: string): Promise<StoreResult> => {
   if (!dest.host || !dest.user) return { success: false, error: "SFTP destination missing host or user" }
 
   const sftp = new SFTPClient()
@@ -166,7 +166,7 @@ const storeSftpIncremental = async (files: FileStat[], toDelete: string[], dest:
     await connectClient(sftp, dest)
     await ensureRemoteDir(sftp, dest.path)
 
-    const base = mirrorPathFor(normalizeBase(dest.path), monthKey)
+    const base = mirrorPathFor(normalizeBase(dest.path), periodKey)
     await ensureRemoteDir(sftp, base)
     const upload = await uploadFiles(sftp, files, base)
     const removal = await deleteFiles(sftp, toDelete, base)

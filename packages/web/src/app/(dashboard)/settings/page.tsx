@@ -11,12 +11,24 @@ import { Switch } from "@/components/ui/switch"
 import { Header } from "@/components/layout/header"
 import { formatDate } from "@/lib/utils"
 import { useSchedule, useUpdateSchedule, useRetention, useUpdateRetention } from "@/hooks/use-queries"
+import type { RetentionSettings } from "@/types/mutations"
 
 const cronPresets = [
   { label: "schedule.hourly", value: "0 * * * *" },
   { label: "schedule.daily", value: "0 3 * * *" },
   { label: "schedule.weekly", value: "0 2 * * 0" },
 ]
+
+const retentionModes = [
+  { label: "settings.retentionModeMonths", value: "months" },
+  { label: "settings.retentionModeWeeks", value: "weeks" },
+  { label: "settings.retentionModeForever", value: "forever" },
+] as const
+
+const retentionUnitKeys: Record<string, string> = {
+  months: "settings.retentionModeMonthsUnit",
+  weeks: "settings.retentionModeWeeksUnit",
+}
 
 export default function SettingsPage() {
   const { t, i18n } = useTranslation()
@@ -31,6 +43,7 @@ export default function SettingsPage() {
   const { data: retentionData } = useRetention()
   const updateRetentionMutation = useUpdateRetention()
   const [globalRetention, setGlobalRetention] = useState(7)
+  const [retentionMode, setRetentionMode] = useState<RetentionSettings["retentionMode"]>("months")
 
   useEffect(() => {
     if (scheduleData) {
@@ -42,6 +55,7 @@ export default function SettingsPage() {
   useEffect(() => {
     if (retentionData) {
       setGlobalRetention(retentionData.globalRetention)
+      setRetentionMode(retentionData.retentionMode)
     }
   }, [retentionData])
 
@@ -59,7 +73,7 @@ export default function SettingsPage() {
   }
 
   const handleSaveRetention = () => {
-    updateRetentionMutation.mutate({ globalRetention })
+    updateRetentionMutation.mutate({ globalRetention, retentionMode })
   }
 
   return (
@@ -173,17 +187,38 @@ export default function SettingsPage() {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <Label>{t("settings.globalRetention")}</Label>
-            <Input
-              type="number"
-              min={1}
-              value={globalRetention}
+            <Label>{t("settings.retentionMode")}</Label>
+            <Select
+              value={retentionMode}
               onChange={(e) => {
-                setGlobalRetention(Number(e.target.value))
+                setRetentionMode(e.target.value as RetentionSettings["retentionMode"])
               }}
-            />
-            <p className="text-xs text-muted-foreground">{t("settings.retentionDays")}</p>
+            >
+              {retentionModes.map((mode) => (
+                <option key={mode.value} value={mode.value}>
+                  {t(mode.label)}
+                </option>
+              ))}
+            </Select>
+            <p className="text-xs text-muted-foreground">{t("settings.retentionModeDescription")}</p>
           </div>
+
+          {retentionMode !== "forever" && (
+            <div className="space-y-2">
+              <Label>{t("settings.globalRetention")}</Label>
+              <Input
+                type="number"
+                min={1}
+                value={globalRetention}
+                onChange={(e) => {
+                  setGlobalRetention(Number(e.target.value))
+                }}
+              />
+              <p className="text-xs text-muted-foreground">
+                {t(retentionUnitKeys[retentionMode] ?? "settings.retentionDays")}
+              </p>
+            </div>
+          )}
 
           <Button onClick={handleSaveRetention} disabled={updateRetentionMutation.isPending} className="w-full">
             {updateRetentionMutation.isPending ? t("common.loading") : t("common.save")}

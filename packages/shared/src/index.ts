@@ -27,7 +27,6 @@ interface Destination {
   user?: string
   password?: string
   privateKey?: string
-  retention?: number
   parallel?: boolean
   timeout?: number
   skip?: boolean
@@ -40,11 +39,6 @@ interface Schedule {
   enabled: boolean
   lastRun?: string
   nextRun?: string
-}
-
-interface RetentionConfig {
-  globalRetention: number
-  destinations: { id: string; retention: number }[]
 }
 
 interface NotificationConfig {
@@ -121,7 +115,6 @@ export type {
   Source,
   Destination,
   Schedule,
-  RetentionConfig,
   NotificationConfig,
   BackupRecord,
   StoreResult,

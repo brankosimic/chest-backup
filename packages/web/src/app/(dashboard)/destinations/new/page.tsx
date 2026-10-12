@@ -27,7 +27,6 @@ const NewDestinationPage = () => {
   const [user, setUser] = useState("")
   const [password, setPassword] = useState("")
   const [privateKey, setPrivateKey] = useState("")
-  const [retention, setRetention] = useState<number | undefined>(undefined)
   const [parallel, setParallel] = useState(false)
   const [timeout, setTimeout_] = useState<number | undefined>(undefined)
   const [skip, setSkip] = useState(false)
@@ -44,7 +43,6 @@ const NewDestinationPage = () => {
       if (timeout !== undefined) body.timeout = timeout
     }
 
-    if (retention !== undefined) body.retention = retention
     body.parallel = parallel
     body.skip = skip
 
@@ -129,16 +127,6 @@ const NewDestinationPage = () => {
                 }}
               />
             )}
-
-            <div className={styles.fieldGroup}>
-              <Label htmlFor="retention">{t("destinations.retention")}</Label>
-              <Input
-                id="retention"
-                type="number"
-                value={retention ?? ""}
-                onChange={(e) => { setRetention(e.target.value ? Number(e.target.value) : undefined); }}
-              />
-            </div>
 
             <div className={styles.toggleRow}>
               <span className={styles.toggleLabel}>{t("destinations.parallel")}</span>

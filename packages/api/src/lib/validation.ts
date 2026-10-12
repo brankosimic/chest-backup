@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { RetentionMode } from "@core/types/config"
 
 const PathSourceSchema = z.object({
   type: z.literal("path"),
@@ -57,7 +58,6 @@ const DestinationSchema = z.object({
   user: z.string().optional(),
   password: z.string().optional(),
   privateKey: z.string().optional(),
-  retention: z.number().int().positive("Retention must be positive").optional(),
   parallel: z.boolean().optional(),
   timeout: z.number().int().positive("Timeout must be positive").optional(),
   skip: z.boolean().optional(),
@@ -70,6 +70,7 @@ const ScheduleSchema = z.object({
 
 const RetentionSchema = z.object({
   globalRetention: z.number().int().positive("Global retention must be positive"),
+  retentionMode: z.enum(RetentionMode).default(RetentionMode.Monthly),
 })
 
 const NotificationsSchema = z.object({

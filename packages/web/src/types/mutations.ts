@@ -8,8 +8,20 @@ interface ScheduleUpdateData {
   enabled: boolean
 }
 
+interface RetentionMode {
+  Monthly: "months"
+  Weekly: "weeks"
+  Forever: "forever"
+}
+
+interface RetentionSettings {
+  globalRetention: number
+  retentionMode: RetentionMode[keyof RetentionMode]
+}
+
 interface RetentionUpdateData {
   globalRetention: number
+  retentionMode: RetentionSettings["retentionMode"]
 }
 
 interface NotificationUpdateData {
@@ -19,4 +31,4 @@ interface NotificationUpdateData {
   }
 }
 
-export type { SourceMutationData, ScheduleUpdateData, RetentionUpdateData, NotificationUpdateData }
+export type { SourceMutationData, ScheduleUpdateData, RetentionMode, RetentionSettings, RetentionUpdateData, NotificationUpdateData }

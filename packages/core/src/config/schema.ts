@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { RetentionMode } from "../types/config"
 
 const PathSourceSchema = z.object({
   type: z.literal("path"),
@@ -76,6 +77,7 @@ const NotificationsConfigSchema = z.object({
 const ConfigSchema = z.object({
   schedule: z.string().optional(),
   retention: z.number().int().positive().default(7),
+  retentionMode: z.enum(RetentionMode).default(RetentionMode.Monthly),
   tempDir: z.string().optional().default("/tmp"),
   paths: z.array(z.string().min(1)).default([]),
   sqlite: z.array(z.string().min(1)).default([]),

@@ -1,16 +1,17 @@
 import { readdirSync, rmSync } from "node:fs"
 import { join } from "node:path"
 import type { Destination } from "../types/config"
+import { RetentionMode } from "../types/config"
 import { logger } from "../utils/logger"
 import { normalizeBase } from "../utils/mirror"
-import { isMonthKey, selectExpiredMonthKeys } from "./months"
+import { isPeriodKey, selectExpiredPeriodKeys } from "./periods"
 
-const MIN_RETENTION_MONTHS = 1
+const MIN_RETENTION_PERIODS = 1
 
-const listMonthFolders = (base: string): string[] => {
+const listPeriodFolders = (base: string, mode: RetentionMode): string[] => {
   try {
     return readdirSync(base, { withFileTypes: true })
-      .filter((entry) => entry.isDirectory() && isMonthKey(entry.name))
+      .filter((entry) => entry.isDirectory() && isPeriodKey(mode, entry.name))
       .map((entry) => entry.name)
   } catch (err) {
     logger.debug({ base, err }, "retention root scan unreadable")
@@ -18,30 +19,32 @@ const listMonthFolders = (base: string): string[] => {
   }
 }
 
-const removeMonthFolder = (base: string, monthKey: string): void => {
-  const dir = join(base, monthKey)
+const removePeriodFolder = (base: string, periodKey: string): void => {
+  const dir = join(base, periodKey)
   try {
     rmSync(dir, { recursive: true, force: true })
-    logger.info({ dir }, "deleted expired month snapshot for retention")
+    logger.info({ dir }, "deleted expired snapshot folder for retention")
   } catch (err) {
-    logger.error({ dir, err }, "failed to delete expired month snapshot")
+    logger.error({ dir, err }, "failed to delete expired snapshot folder")
   }
 }
 
-// Retention counts calendar-month snapshot folders, not individual files. The
-// destination mirrors the source tree inside each folder, so there is nothing
-// to age out mid-month — only whole months roll off once they fall outside the
-// retention window.
-const enforceRetention = (destination: Destination, globalRetention: number, monthKey: string): void => {
-  const retention = Math.max(destination.retention ?? globalRetention, MIN_RETENTION_MONTHS)
+const enforceRetention = (destination: Destination, globalRetention: number, mode: RetentionMode, periodKey: string): void => {
   const base = normalizeBase(destination.path)
-  const expired = selectExpiredMonthKeys(listMonthFolders(base), retention, monthKey)
+
+  if (mode === RetentionMode.Forever) {
+    logger.debug({ dest: destination.path, periodKey }, "retention disabled, keeping all snapshot folders")
+    return
+  }
+
+  const retention = Math.max(globalRetention, MIN_RETENTION_PERIODS)
+  const expired = selectExpiredPeriodKeys(listPeriodFolders(base, mode), retention, periodKey, (name) => isPeriodKey(mode, name))
 
   expired.forEach((key) => {
-    removeMonthFolder(base, key)
+    removePeriodFolder(base, key)
   })
 
-  logger.debug({ dest: destination.path, retention, monthKey, expired }, "retention enforcement complete")
+  logger.debug({ dest: destination.path, retention, mode, periodKey, expired }, "retention enforcement complete")
 }
 
-export { enforceRetention, listMonthFolders }
+export { enforceRetention, listPeriodFolders }

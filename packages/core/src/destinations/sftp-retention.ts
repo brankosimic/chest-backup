@@ -1,24 +1,23 @@
 import SFTPClient from "ssh2-sftp-client"
 import type { Destination } from "../types/config"
+import { RetentionMode } from "../types/config"
 import { logger } from "../utils/logger"
 import { connectClient } from "./sftp"
 import { normalizeBase } from "../utils/mirror"
-import { isMonthKey, selectExpiredMonthKeys } from "../backup/months"
+import { isPeriodKey, selectExpiredPeriodKeys } from "../backup/periods"
 
-const MIN_RETENTION_MONTHS = 1
+const MIN_RETENTION_PERIODS = 1
 
-const listMonthFolders = async (sftp: SFTPClient, base: string): Promise<string[]> => {
+const listPeriodFolders = async (sftp: SFTPClient, base: string, mode: RetentionMode): Promise<string[]> => {
   try {
     const entries = await sftp.list(base)
-    return entries.filter((e) => e.type === "d" && isMonthKey(e.name)).map((e) => e.name)
+    return entries.filter((e) => e.type === "d" && isPeriodKey(mode, e.name)).map((e) => e.name)
   } catch (err) {
     logger.debug({ base, err }, "SFTP retention scan unreadable")
     return []
   }
 }
 
-// Deleting over SFTP is bottom-up: files must go before their directories can be
-// removed, and children have to be visited before their parent.
 const removeTree = async (sftp: SFTPClient, dir: string): Promise<void> => {
   const entries = await sftp.list(dir)
   const files = entries.filter((e) => e.type === "-").map((e) => `${dir}/${e.name}`)
@@ -29,22 +28,30 @@ const removeTree = async (sftp: SFTPClient, dir: string): Promise<void> => {
   await sftp.rmdir(dir)
 }
 
-const removeMonthFolder = async (sftp: SFTPClient, base: string, monthKey: string): Promise<void> => {
-  const dir = `${base}/${monthKey}`
+const removePeriodFolder = async (sftp: SFTPClient, base: string, periodKey: string): Promise<void> => {
+  const dir = `${base}/${periodKey}`
   try {
     await removeTree(sftp, dir)
-    logger.info({ dir }, "deleted expired month snapshot via SFTP for retention")
+    logger.info({ dir }, "deleted expired snapshot folder via SFTP for retention")
   } catch (err) {
-    logger.error({ dir, err }, "failed to delete expired month snapshot via SFTP")
+    logger.error({ dir, err }, "failed to delete expired snapshot folder via SFTP")
   }
 }
 
-// Mirrors the local rule: retention counts calendar-month snapshot folders and
-// nothing is aged out mid-month.
-const enforceRetentionSftp = async (dest: Destination, globalRetention: number, monthKey: string): Promise<void> => {
+const enforceRetentionSftp = async (
+  dest: Destination,
+  globalRetention: number,
+  mode: RetentionMode,
+  periodKey: string,
+): Promise<void> => {
   if (!dest.host || !dest.user) return
 
-  const retention = Math.max(dest.retention ?? globalRetention, MIN_RETENTION_MONTHS)
+  if (mode === RetentionMode.Forever) {
+    logger.debug({ dest: dest.path, periodKey }, "retention disabled, keeping all snapshot folders")
+    return
+  }
+
+  const retention = Math.max(globalRetention, MIN_RETENTION_PERIODS)
   const sftp = new SFTPClient()
 
   try {
@@ -54,8 +61,10 @@ const enforceRetentionSftp = async (dest: Destination, globalRetention: number, 
     const exists = await sftp.exists(base)
     if (!exists) return
 
-    const expired = selectExpiredMonthKeys(await listMonthFolders(sftp, base), retention, monthKey)
-    for (const key of expired) await removeMonthFolder(sftp, base, key)
+    const expired = selectExpiredPeriodKeys(await listPeriodFolders(sftp, base, mode), retention, periodKey, (name) =>
+      isPeriodKey(mode, name),
+    )
+    for (const key of expired) await removePeriodFolder(sftp, base, key)
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
     logger.warn({ path: dest.path, error: msg }, "SFTP retention failed")

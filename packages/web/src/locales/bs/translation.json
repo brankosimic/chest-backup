@@ -218,8 +218,15 @@
     "nextRun": "Sljedeće pokretanje",
     "presets": "Predlošci",
     "retention": "Zadržavanje",
-    "globalRetention": "Globalno zadržavanje (backups)",
-    "retentionDays": "Broj backup-ova za zadržavanje"
+    "retentionMode": "Način zadržavanja",
+    "retentionModeDescription": "Koliko često se kreira nova folder snimka na svakom odredištu",
+    "globalRetention": "Broj snimki za zadržati",
+    "retentionDays": "Broj snimki za zadržavanje",
+    "retentionModeMonths": "Mjesečno",
+    "retentionModeWeeks": "Sedmično",
+    "retentionModeForever": "Zadrži zauvijek",
+    "retentionModeMonthsUnit": "Broj mjesečnih snimki za zadržavanje",
+    "retentionModeWeeksUnit": "Broj sedmičnih snimki za zadržavanje"
   },
   "status": {
     "running": "U toku",

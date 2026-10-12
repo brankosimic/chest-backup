@@ -6,10 +6,8 @@ import { logger } from "../utils/logger"
 
 const MANIFEST_DIR = ".chest-manifests"
 
-// One manifest per destination per month: each month folder is an independent
-// snapshot, so its diff baseline starts empty when the month rolls over.
-const manifestPathFor = (config: Config, destId: string, monthKey: string): string =>
-  join(config.tempDir ?? "/tmp", MANIFEST_DIR, destId, `${monthKey}.json`)
+const manifestPathFor = (config: Config, destId: string, periodKey: string): string =>
+  join(config.tempDir ?? "/tmp", MANIFEST_DIR, destId, `${periodKey}.json`)
 
 const loadManifest = (path: string): Manifest => {
   if (!existsSync(path)) return {}
@@ -46,8 +44,6 @@ const statFile = (filePath: string): FileStat | null => {
 const buildFileStats = (files: string[]): FileStat[] =>
   files.map((f) => statFile(f)).filter((s): s is FileStat => s !== null)
 
-// A matching mtime rules a file out cheaply. Digests only run when the metadata
-// moved but the size still agrees — which is exactly what dump artefacts do.
 const computeDiff = async (current: FileStat[], manifest: Manifest, digestOf: DigestFn): Promise<DiffResult> => {
   const currentPaths = new Set(current.map((f) => f.relativePath))
   const toUpload: FileStat[] = []

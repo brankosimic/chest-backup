@@ -108,15 +108,6 @@ const DestinationEditPage = () => {
             />
           )}
 
-          <div className={styles.fieldGroup}>
-            <Label>{t("destinations.retention")}</Label>
-            <Input
-              type="number"
-              value={form.retention as number}
-              onChange={(e) => { setForm({ ...form, retention: Number(e.target.value) }); }}
-            />
-          </div>
-
           <div className={styles.toggleRow}>
             <span className={styles.toggleLabel}>{t("destinations.parallel")}</span>
             <Switch

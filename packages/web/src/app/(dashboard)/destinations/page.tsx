@@ -65,7 +65,6 @@ export default function DestinationsPage() {
                         <p className="text-muted-foreground">User: {dest.user}</p>
                       </>
                     )}
-                    <p className="text-muted-foreground">Retention: {dest.retention ?? "-"} backups</p>
                     {dest.parallel !== undefined && (
                       <p className="text-muted-foreground">Parallel: {dest.parallel ? "Yes" : "No"}</p>
                     )}

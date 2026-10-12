@@ -1,4 +1,5 @@
 import type { ContainerVolume, BackupRunProgress, DestinationUsage } from "../types/backup"
+import type { RetentionSettings } from "../types/mutations"
 import type { Source, Destination, BackupRecord, ApiResponse } from "@chest-backup/shared"
 
 const BASE_URL = ""
@@ -52,9 +53,9 @@ const fetchSchedule = () =>
 const updateSchedule = (data: { schedule: string; enabled: boolean }) =>
   apiFetch<{ schedule: string; enabled: boolean }>("/api/schedule", { method: "PUT", body: JSON.stringify(data) })
 
-const fetchRetention = () => apiFetch<{ globalRetention: number }>("/api/retention")
-const updateRetention = (data: { globalRetention: number }) =>
-  apiFetch<{ globalRetention: number }>("/api/retention", { method: "PUT", body: JSON.stringify(data) })
+const fetchRetention = () => apiFetch<RetentionSettings>("/api/retention")
+const updateRetention = (data: RetentionSettings) =>
+  apiFetch<RetentionSettings>("/api/retention", { method: "PUT", body: JSON.stringify(data) })
 
 const fetchNotifications = () => apiFetch<{ discord?: { webhookUrl: string; enabled: boolean } }>("/api/notifications")
 const updateNotifications = (data: { discord?: { webhookUrl: string; enabled: boolean } }) =>

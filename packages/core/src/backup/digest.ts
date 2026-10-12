@@ -3,14 +3,6 @@ import { createReadStream } from "node:fs"
 import type { DigestFn } from "../types/manifest"
 import { logger } from "../utils/logger"
 
-// Dump tools embed per-run metadata in their output, so two dumps of an unchanged
-// database still differ byte-for-byte and defeat a plain checksum. Both formats we
-// emit are normalised before hashing so the comparison reflects content only:
-//
-//   - pg_dump custom archives stamp the creation date into a fixed header
-//   - SQLite stamps its change counter and writer version into a fixed header
-//   - plain-text pg_dumpall (PostgreSQL 17+) wraps sections in random
-//     \restrict / \unrestrict nonces, which are masked line by line
 const VOLATILE_HEADERS = [
   { magic: "PGDMP", skip: 32 },
   { magic: "SQLite format 3\u0000", skip: 100 },
@@ -37,15 +29,12 @@ const readHead = async (filePath: string): Promise<string> => {
 
 const magicSkipBytes = (head: string): number => VOLATILE_HEADERS.find((h) => head.startsWith(h.magic))?.skip ?? 0
 
-// Raw bytes, untouched, so hashing stays byte-exact for binary payloads.
 const hashBytes = async (filePath: string, skip: number): Promise<string> => {
   const hash = createHash("sha256")
   for await (const chunk of openChunks(filePath, skip)) hash.update(chunk)
   return hash.digest("hex")
 }
 
-// A trailing partial line is carried into the next chunk so a nonce is never split
-// across two reads and slip through unnormalised.
 const maskNonces = (hash: ReturnType<typeof createHash>, filePath: string): Promise<string> => {
   let carry = ""
 

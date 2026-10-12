@@ -24,17 +24,11 @@ const dumpSqliteDatabase = async (dbPath: string, outputPath: string): Promise<v
   const sqlite3 = getSqlite3Path()
   logger.info({ dbPath, outputPath, sqlite3 }, "starting sqlite database backup")
 
-  // Use .backup command for a consistent snapshot without exclusive lock requirement
   await $`${sqlite3} ${dbPath} ".backup ${outputPath}"`.quiet()
 
   logger.info({ outputPath }, "sqlite database backup completed")
 }
 
-// Stable names keep the manifest key constant. A per-run UUID here meant the
-// manifest could never match a dump against its previous copy, so unchanged
-// databases were re-uploaded on every single run. The parent directory is part of
-// the name because distinct volumes commonly hold identically named databases
-// (every *arr ships a logs.db), and a shared name would overwrite one with another.
 const dumpName = (source: SqliteSource | SqliteContainerSource): string => {
   if (source.type === "sqlite-container") return `sqlite-backup-${slugify(`${source.containerName}-${basename(source.dbPath)}`)}`
   return `sqlite-backup-${slugify(`${parentSlug(source.path)}-${basename(source.path)}`)}`

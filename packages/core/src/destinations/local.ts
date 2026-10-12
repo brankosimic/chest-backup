@@ -56,8 +56,8 @@ const deleteFiles = async (toDelete: string[], destDir: string): Promise<DeleteO
   return { deleted, failed: toDelete.length - deleted.length }
 }
 
-const storeLocalIncremental = async (files: FileStat[], toDelete: string[], dest: Destination, monthKey: string): Promise<StoreResult> => {
-  const destDir = mirrorPathFor(normalizeBase(dest.path), monthKey)
+const storeLocalIncremental = async (files: FileStat[], toDelete: string[], dest: Destination, periodKey: string): Promise<StoreResult> => {
+  const destDir = mirrorPathFor(normalizeBase(dest.path), periodKey)
   await mkdir(destDir, { recursive: true })
 
   const upload = await uploadFiles(files, destDir)

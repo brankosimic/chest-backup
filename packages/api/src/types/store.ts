@@ -1,3 +1,5 @@
+import { RetentionMode } from "@core/types/config"
+
 interface CachedConfig {
   config: ConfigFile
   mtime: number
@@ -7,6 +9,7 @@ interface CachedConfig {
 interface ConfigFile {
   schedule?: string
   retention?: number
+  retentionMode?: RetentionMode
   tempDir?: string
   sources: Array<Record<string, unknown>>
   destinations: Array<{
@@ -19,4 +22,4 @@ interface ConfigFile {
   }
 }
 
-export type { CachedConfig, ConfigFile }
+export { RetentionMode, type CachedConfig, type ConfigFile }

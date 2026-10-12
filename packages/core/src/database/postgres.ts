@@ -56,8 +56,6 @@ const dumpHostDatabase = async (connString: string, dbName: string | undefined, 
   logger.info({ outputPath, serverVersion }, "host database dump completed")
 }
 
-// The host path always runs pg_dumpall, so the dump covers every database on the
-// server and is named after the server rather than a single database.
 const hostDumpName = (source: PostgresSource): string =>
   `db-dump-${slugify(`${source.host}-${String(source.port)}`)}.dump`
 

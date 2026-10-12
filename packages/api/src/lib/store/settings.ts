@@ -1,5 +1,6 @@
 import type { Retention } from "../../types/api"
 import type { Schedule, NotificationConfig } from "@chest-backup/shared"
+import { RetentionMode } from "@core/types/config"
 import { getConfig, writeConfig } from "./config"
 
 const getSchedule = (): Schedule => {
@@ -16,12 +17,13 @@ const updateSchedule = (data: Partial<Schedule>): Schedule => {
 
 const getRetention = (): Retention => {
   const { config } = getConfig()
-  return { globalRetention: config.retention ?? 7 }
+  return { globalRetention: config.retention ?? 7, retentionMode: config.retentionMode ?? RetentionMode.Monthly }
 }
 
 const updateRetention = (data: Retention): Retention => {
   const { config } = getConfig()
   config.retention = data.globalRetention
+  config.retentionMode = data.retentionMode
   writeConfig(config)
   return getRetention()
 }

@@ -1,3 +1,9 @@
+enum RetentionMode {
+  Monthly = "months",
+  Weekly = "weeks",
+  Forever = "forever",
+}
+
 type PathSource = {
   type: "path"
   path: string
@@ -59,7 +65,6 @@ interface Destination {
   user?: string
   password?: string
   privateKey?: string
-  retention?: number
   parallel?: boolean
   timeout?: number
   skip?: boolean
@@ -76,6 +81,7 @@ interface NotificationsConfig {
 interface ConfigFile {
   schedule?: string
   retention: number
+  retentionMode: RetentionMode
   tempDir?: string
   paths?: string[]
   sqlite?: string[]
@@ -89,18 +95,19 @@ type Config = Omit<ConfigFile, "paths" | "sqlite"> & {
   sqlite: string[]
 }
 
-export type {
-  Config,
-  ConfigFile,
-  Source,
-  PathSource,
-  PostgresSource,
-  PostgresContainerSource,
-  ContainerVolumeSource,
-  SqliteSource,
-  SqliteContainerSource,
-  Destination,
-  ParsedConnString,
-  DiscordConfig,
-  NotificationsConfig,
+export {
+  RetentionMode,
+  type Config,
+  type ConfigFile,
+  type Source,
+  type PathSource,
+  type PostgresSource,
+  type PostgresContainerSource,
+  type ContainerVolumeSource,
+  type SqliteSource,
+  type SqliteContainerSource,
+  type Destination,
+  type ParsedConnString,
+  type DiscordConfig,
+  type NotificationsConfig,
 }
