@@ -7,7 +7,7 @@ import type { DeleteOutcome, FileUploadResult, UploadOutcome } from "../types/de
 import { UploadOutcomeKind } from "../types/destination"
 import { logger } from "../utils/logger"
 import { errorCode, partitionByOutcome, speedFrom } from "../utils/upload"
-import { mirrorPathFor } from "../utils/mirror"
+import { mirrorPathFor, normalizeBase } from "../utils/mirror"
 
 const copyFile = async (file: FileStat, destDir: string): Promise<void> => {
   const target = mirrorPathFor(destDir, file.path)
@@ -56,8 +56,8 @@ const deleteFiles = async (toDelete: string[], destDir: string): Promise<DeleteO
   return { deleted, failed: toDelete.length - deleted.length }
 }
 
-const storeLocalIncremental = async (files: FileStat[], toDelete: string[], dest: Destination): Promise<StoreResult> => {
-  const destDir = dest.path
+const storeLocalIncremental = async (files: FileStat[], toDelete: string[], dest: Destination, monthKey: string): Promise<StoreResult> => {
+  const destDir = mirrorPathFor(normalizeBase(dest.path), monthKey)
   await mkdir(destDir, { recursive: true })
 
   const upload = await uploadFiles(files, destDir)

@@ -7,10 +7,10 @@ import { enforceRetention } from "../backup/retention"
 import { enforceRetentionSftp } from "./sftp-retention"
 import { logger } from "../utils/logger"
 
-const handleDestination = async (files: FileStat[], toDelete: string[], dest: Destination): Promise<StoreResult> => {
+const handleDestination = async (files: FileStat[], toDelete: string[], dest: Destination, monthKey: string): Promise<StoreResult> => {
   try {
-    if (dest.type === "local") return await storeLocalIncremental(files, toDelete, dest)
-    return await storeSftpIncremental(files, toDelete, dest)
+    if (dest.type === "local") return await storeLocalIncremental(files, toDelete, dest, monthKey)
+    return await storeSftpIncremental(files, toDelete, dest, monthKey)
   } catch (err) {
     logger.error({ dest: dest.path, err }, "destination store failed")
     return { success: false, error: String(err) }
@@ -24,6 +24,7 @@ const storeToDestination = async (
   dest: Destination,
   config: Config,
   errors: string[],
+  monthKey: string,
   onProgress?: BackupProgressCallback,
 ): Promise<StoreResult> => {
   if (!files.length && !toDelete.length) {
@@ -41,7 +42,7 @@ const storeToDestination = async (
   onProgress?.({ phase: "destination-start", destName: dest.name, destPath: dest.path, destType: dest.type })
 
   const start = Date.now()
-  const result = await handleDestination(files, toDelete, dest)
+  const result = await handleDestination(files, toDelete, dest, monthKey)
   result.durationMs = Date.now() - start
   if (dest.id) result.destId = dest.id
   result.destLabel = dest.type
@@ -56,9 +57,9 @@ const storeToDestination = async (
     })
     try {
       if (dest.type === "local") {
-        enforceRetention(dest, config.retention)
+        enforceRetention(dest, config.retention, monthKey)
       } else {
-        await enforceRetentionSftp(dest, config.retention)
+        await enforceRetentionSftp(dest, config.retention, monthKey)
       }
     } catch (err) {
       errors.push(`Retention enforcement failed for ${dest.path}: ${String(err)}`)

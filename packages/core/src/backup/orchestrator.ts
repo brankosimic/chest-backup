@@ -8,6 +8,7 @@ import { stopBackupContainers, startBackupContainers } from "../docker/manager"
 import { storeToDestination } from "../destinations/types"
 import { sendStartedNotification, sendCompletedNotification } from "../notification/discord"
 import { prepareIncremental, persistManifest, uploadedFrom } from "./incremental"
+import { monthKeyFor } from "./months"
 import { sweepStaleTempFiles } from "./temp-sweep"
 import { logger } from "../utils/logger"
 
@@ -16,21 +17,22 @@ const processDestination = async (
   dest: Destination,
   files: string[],
   errors: string[],
+  monthKey: string,
   onProgress?: BackupProgressCallback,
 ): Promise<DestOutcome> => {
-  const { diff, manifest } = await prepareIncremental(config, dest, files)
+  const { diff, manifest } = await prepareIncremental(config, dest, files, monthKey)
 
   if (!diff.toUpload.length && !diff.toDelete.length) {
     const result = { success: true, skipped: true, skippedReason: "no-changes", destId: dest.id, destLabel: dest.type, uploaded: [], deleted: [] }
     return { result, uploaded: [] }
   }
 
-  const result = await storeToDestination(diff.toUpload, diff.toDelete, diff.unchanged, dest, config, errors, onProgress)
+  const result = await storeToDestination(diff.toUpload, diff.toDelete, diff.unchanged, dest, config, errors, monthKey, onProgress)
 
   if (result.skipped) return { result, uploaded: [] }
 
   const uploaded = uploadedFrom(diff, result)
-  persistManifest(config, dest, manifest, uploaded, result.deleted ?? [])
+  persistManifest(config, dest, manifest, uploaded, result.deleted ?? [], monthKey)
 
   return { result, uploaded }
 }
@@ -40,12 +42,13 @@ const processSequential = async (
   config: Config,
   files: string[],
   errors: string[],
+  monthKey: string,
   onProgress?: BackupProgressCallback,
 ): Promise<DestOutcome[]> => {
   const outcomes: DestOutcome[] = []
 
   for (const dest of dests) {
-    outcomes.push(await processDestination(config, dest, files, errors, onProgress))
+    outcomes.push(await processDestination(config, dest, files, errors, monthKey, onProgress))
   }
 
   return outcomes
@@ -80,6 +83,8 @@ const executeBackup = async (
   mkdirSync(tempDir, { recursive: true })
   sweepStaleTempFiles(config)
 
+  const monthKey = monthKeyFor(timestamp)
+
   let files: string[] = []
   try {
     const resolved = await resolveSources(config, tempFiles, errors)
@@ -101,10 +106,10 @@ const executeBackup = async (
   const parallel = active.filter((d) => d.parallel)
 
   const outcomes: DestOutcome[] = []
-  outcomes.push(...(await processSequential(sequential, config, files, errors, onProgress)))
+  outcomes.push(...(await processSequential(sequential, config, files, errors, monthKey, onProgress)))
 
   if (parallel.length) {
-    const parallelOutcomes = await Promise.all(parallel.map((dest) => processDestination(config, dest, files, errors, onProgress)))
+    const parallelOutcomes = await Promise.all(parallel.map((dest) => processDestination(config, dest, files, errors, monthKey, onProgress)))
     outcomes.push(...parallelOutcomes)
   }
 

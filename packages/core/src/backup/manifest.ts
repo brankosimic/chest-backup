@@ -6,8 +6,10 @@ import { logger } from "../utils/logger"
 
 const MANIFEST_DIR = ".chest-manifests"
 
-const manifestPathFor = (config: Config, destId: string): string =>
-  join(config.tempDir ?? "/tmp", MANIFEST_DIR, `${destId}.json`)
+// One manifest per destination per month: each month folder is an independent
+// snapshot, so its diff baseline starts empty when the month rolls over.
+const manifestPathFor = (config: Config, destId: string, monthKey: string): string =>
+  join(config.tempDir ?? "/tmp", MANIFEST_DIR, destId, `${monthKey}.json`)
 
 const loadManifest = (path: string): Manifest => {
   if (!existsSync(path)) return {}
