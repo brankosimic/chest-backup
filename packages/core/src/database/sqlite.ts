@@ -13,6 +13,8 @@ const slugify = (value: string): string =>
 
 const basename = (value: string): string => value.split("/").pop() ?? "database"
 
+const parentSlug = (value: string): string => slugify(value.split("/").slice(-2, -1)[0] ?? "")
+
 const getSqlite3Path = (): string => {
   const candidates = ["/usr/bin/sqlite3", "/usr/local/bin/sqlite3"]
   return candidates.find(existsSync) ?? "sqlite3"
@@ -30,9 +32,13 @@ const dumpSqliteDatabase = async (dbPath: string, outputPath: string): Promise<v
 
 // Stable names keep the manifest key constant. A per-run UUID here meant the
 // manifest could never match a dump against its previous copy, so unchanged
-// databases were re-uploaded on every single run.
-const dumpName = (source: SqliteSource | SqliteContainerSource): string =>
-  `sqlite-backup-${slugify(source.type === "sqlite" ? basename(source.path) : `${source.containerName}-${basename(source.dbPath)}`)}`
+// databases were re-uploaded on every single run. The parent directory is part of
+// the name because distinct volumes commonly hold identically named databases
+// (every *arr ships a logs.db), and a shared name would overwrite one with another.
+const dumpName = (source: SqliteSource | SqliteContainerSource): string => {
+  if (source.type === "sqlite-container") return `sqlite-backup-${slugify(`${source.containerName}-${basename(source.dbPath)}`)}`
+  return `sqlite-backup-${slugify(`${parentSlug(source.path)}-${basename(source.path)}`)}`
+}
 
 const dumpSqliteSources = async (sources: Source[], tempFiles: string[], tempDir: string, errors: string[]): Promise<string[]> => {
   const sqliteSources = sources.filter((s): s is SqliteSource => s.type === "sqlite")
