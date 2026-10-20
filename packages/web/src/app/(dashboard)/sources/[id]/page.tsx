@@ -82,8 +82,8 @@ const SourceEditPage = () => {
     try {
       await updateMutation.mutateAsync({ id, data: buildUpdateBody(type, form) })
       void navigate("/sources")
-    } catch {
-      alert(t("common.saveError"))
+    } catch (err) {
+      alert(err instanceof Error ? err.message : t("common.saveError"))
     }
   }
 

@@ -1,3 +1,4 @@
+import type { ReactNode } from "react"
 import type { Source } from "@chest-backup/shared"
 import type { TreeNode, PathTrieNode } from "@/types/sources"
 import { Folder, Database, Container, File, FolderOpen, HardDrive } from "lucide-react"
@@ -54,10 +55,17 @@ const insertOne = (root: PathTrieNode, s: Source): void => {
   walkOrCreate(root, segments).source = s
 }
 
+const sourceIconForFile = (isFile: boolean | undefined): ReactNode =>
+  isFile ? (
+    <File className="h-4 w-4 text-muted-foreground shrink-0" />
+  ) : (
+    <Folder className="h-4 w-4 text-muted-foreground shrink-0" />
+  )
+
 const leafTreeNode = (seg: string, source: Source): TreeNode => ({
   id: source.id,
   label: seg,
-  icon: <File className="h-4 w-4 text-muted-foreground shrink-0" />,
+  icon: sourceIconForFile(source.isFile),
   source,
 })
 
@@ -71,7 +79,7 @@ const dirTreeNode = (seg: string, fullPath: string, children: TreeNode[]): TreeN
 const fileTreeNode = (seg: string, fullPath: string, source?: Source): TreeNode => ({
   id: source?.id ?? `path-${fullPath}`,
   label: seg,
-  icon: <Folder className="h-4 w-4 text-muted-foreground shrink-0" />,
+  icon: sourceIconForFile(source?.isFile),
   source,
 })
 
@@ -107,6 +115,12 @@ const buildPathTree = (sources: Source[]): TreeNode[] => {
   return toTreeNodes(root, "")
 }
 
+const baseName = (path: string): string => {
+  const trimmed = path.replace(/\/+$/, "")
+  const idx = trimmed.lastIndexOf("/")
+  return idx >= 0 ? trimmed.slice(idx + 1) : trimmed
+}
+
 const sourceTitle = (source: Source): string => {
   switch (source.type) {
     case SourceType.Path:
@@ -118,7 +132,7 @@ const sourceTitle = (source: Source): string => {
     case SourceType.ContainerVolume:
       return source.containerName ?? source.volumePath ?? ""
     case SourceType.Sqlite:
-      return source.path ?? ""
+      return baseName(source.path ?? "")
     case SourceType.SqliteContainer:
       return source.containerName ?? ""
     default:
@@ -136,6 +150,12 @@ const containerVolumeDetailLines = (source: Source, t: (key: string) => string):
   return lines
 }
 
+const parentDir = (path: string): string => {
+  const trimmed = path.replace(/\/+$/, "")
+  const idx = trimmed.lastIndexOf("/")
+  return idx > 0 ? trimmed.slice(0, idx) : ""
+}
+
 const sourceDetailLines = (source: Source, t: (key: string) => string): string[] => {
   switch (source.type) {
     case SourceType.Postgres:
@@ -144,8 +164,10 @@ const sourceDetailLines = (source: Source, t: (key: string) => string): string[]
       return [`${t("sources.database")}: ${source.database ?? ""}`]
     case SourceType.ContainerVolume:
       return containerVolumeDetailLines(source, t)
-    case SourceType.Sqlite:
-      return [source.path ?? ""]
+    case SourceType.Sqlite: {
+      const dir = parentDir(source.path ?? "")
+      return dir ? [`${t("sources.directory")}: ${dir}`] : []
+    }
     case SourceType.SqliteContainer:
       return [`${t("sources.container")}: ${source.containerName ?? ""}`]
     default:

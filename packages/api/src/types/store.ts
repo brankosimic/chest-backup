@@ -11,7 +11,9 @@ interface ConfigFile {
   retention?: number
   retentionMode?: RetentionMode
   tempDir?: string
-  sources: Array<Record<string, unknown>>
+  paths?: string[]
+  sqlite?: string[]
+  sources?: Array<Record<string, unknown>>
   destinations: Array<{
     type: string
     path: string

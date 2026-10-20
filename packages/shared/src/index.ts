@@ -2,6 +2,7 @@ interface Source {
   id: string
   type: "path" | "postgres" | "postgres-container" | "container-volume" | "sqlite" | "sqlite-container"
   path?: string
+  isFile?: boolean
   host?: string
   port?: number
   user?: string

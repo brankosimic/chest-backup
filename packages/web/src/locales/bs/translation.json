@@ -72,6 +72,7 @@
     "password": "Lozinka",
     "database": "Baza podataka",
     "databasePath": "Putanja baze podataka",
+    "directory": "Direktorij",
     "containerName": "Naziv kontejnera",
     "name": "Naziv",
     "containers": "Kontejneri",

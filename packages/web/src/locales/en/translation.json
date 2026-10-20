@@ -72,6 +72,7 @@
     "password": "Password",
     "database": "Database",
     "databasePath": "Database Path",
+    "directory": "Directory",
     "containerName": "Container Name",
     "name": "Name",
     "containers": "Containers",

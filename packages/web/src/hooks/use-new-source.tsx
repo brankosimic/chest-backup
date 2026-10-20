@@ -120,8 +120,8 @@ const NewSourceFormProvider = ({ children }: { children: ReactNode }) => {
       .then(() => {
         void navigate("/sources")
       })
-      .catch(() => {
-        alert(t("sources.createError"))
+      .catch((err: unknown) => {
+        alert(err instanceof Error ? err.message : t("sources.createError"))
       })
   }
 
