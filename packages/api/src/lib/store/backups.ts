@@ -9,25 +9,30 @@ import type { Destination } from "@core/types/config"
 import { scanLocalUsage, withTimeout } from "../utils"
 
 let backupCache: BackupRecord[] | null = null
+let backupCacheMtimeMs = 0
 
 const readBackupHistory = (): BackupRecord[] => {
-  if (backupCache) return backupCache
   if (!existsSync(DATA_DIR)) mkdirSync(DATA_DIR, { recursive: true })
   if (!existsSync(BACKUP_HISTORY_PATH)) {
     const records = seedFromArchiveDir()
     writeFileSync(BACKUP_HISTORY_PATH, JSON.stringify(records, null, 2))
     backupCache = records
+    backupCacheMtimeMs = statSync(BACKUP_HISTORY_PATH).mtimeMs
     return records
   }
+  const mtimeMs = statSync(BACKUP_HISTORY_PATH).mtimeMs
+  if (backupCache && backupCacheMtimeMs === mtimeMs) return backupCache
   const raw = readFileSync(BACKUP_HISTORY_PATH, "utf-8")
   const records = JSON.parse(raw) as BackupRecord[]
   backupCache = records
+  backupCacheMtimeMs = mtimeMs
   return records
 }
 
 const writeBackupHistory = (records: BackupRecord[]): void => {
   if (!existsSync(DATA_DIR)) mkdirSync(DATA_DIR, { recursive: true })
   writeFileSync(BACKUP_HISTORY_PATH, JSON.stringify(records, null, 2))
+  backupCacheMtimeMs = statSync(BACKUP_HISTORY_PATH).mtimeMs
 }
 
 const invalidateBackupCache = (): void => {
