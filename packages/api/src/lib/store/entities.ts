@@ -1,6 +1,7 @@
 import { existsSync, statSync } from "node:fs"
 import type { Source, Destination } from "@chest-backup/shared"
-import type { ConfigFile } from "../../types/store"
+import type { ConfigFile, SourceEntry, SourceWriteResult } from "../../types/store"
+import { FlatSourceType, SourceOrigin, SourceWriteError } from "../../types/store"
 import { getConfig, writeConfig, stableId, now } from "./config"
 
 const detectPathType = (path: string): boolean => {
@@ -12,18 +13,9 @@ const detectPathType = (path: string): boolean => {
   }
 }
 
-type SourceOrigin = "paths" | "sqlite" | "sources"
-
-interface SourceEntry {
-  id: string
-  origin: SourceOrigin
-  index: number
-  item: Record<string, unknown>
-}
-
 const sourceKey = (item: Record<string, unknown>): Record<string, unknown> => {
   const type = item.type as string
-  if (type === "path" || type === "sqlite") return { type, path: item.path }
+  if (type === FlatSourceType.Path || type === FlatSourceType.Sqlite) return { type, path: item.path }
   return item
 }
 
@@ -39,8 +31,9 @@ const sourceFromConfigItem = (origin: SourceOrigin, item: Record<string, unknown
     updatedAt: now(),
   } as Source
 
-  if (source.type === "path" && !("isFile" in source) && "path" in source) {
-    ;(source as { isFile?: boolean }).isFile = detectPathType(source.path as string)
+  const path = source.path
+  if (source.type === FlatSourceType.Path && source.isFile === undefined && path !== undefined) {
+    source.isFile = detectPathType(path)
   }
 
   return source
@@ -48,22 +41,22 @@ const sourceFromConfigItem = (origin: SourceOrigin, item: Record<string, unknown
 
 const collectSourceEntries = (config: ConfigFile): SourceEntry[] => {
   const pathEntries = (config.paths ?? []).map((path, index) => ({
-    id: sourceId("paths", { type: "path", path }),
-    origin: "paths" as const,
+    id: sourceId(SourceOrigin.Paths, { type: FlatSourceType.Path, path }),
+    origin: SourceOrigin.Paths,
     index,
-    item: { type: "path", path },
+    item: { type: FlatSourceType.Path, path },
   }))
 
   const sqliteEntries = (config.sqlite ?? []).map((path, index) => ({
-    id: sourceId("sqlite", { type: "sqlite", path }),
-    origin: "sqlite" as const,
+    id: sourceId(SourceOrigin.Sqlite, { type: FlatSourceType.Sqlite, path }),
+    origin: SourceOrigin.Sqlite,
     index,
-    item: { type: "sqlite", path },
+    item: { type: FlatSourceType.Sqlite, path },
   }))
 
   const sourceEntries = (config.sources ?? []).map((item, index) => ({
-    id: sourceId("sources", item),
-    origin: "sources" as const,
+    id: sourceId(SourceOrigin.Sources, item),
+    origin: SourceOrigin.Sources,
     index,
     item,
   }))
@@ -83,13 +76,13 @@ const findSourceById = (id: string): Source | undefined => {
 }
 
 const removeSourceEntry = (config: ConfigFile, entry: SourceEntry): void => {
-  if (entry.origin === "paths") {
+  if (entry.origin === SourceOrigin.Paths) {
     const paths = [...(config.paths ?? [])]
     paths.splice(entry.index, 1)
     config.paths = paths
     return
   }
-  if (entry.origin === "sqlite") {
+  if (entry.origin === SourceOrigin.Sqlite) {
     const sqlite = [...(config.sqlite ?? [])]
     sqlite.splice(entry.index, 1)
     config.sqlite = sqlite
@@ -101,17 +94,17 @@ const removeSourceEntry = (config: ConfigFile, entry: SourceEntry): void => {
 }
 
 const containerForType = (type: string): SourceOrigin => {
-  if (type === "path") return "paths"
-  if (type === "sqlite") return "sqlite"
-  return "sources"
+  if (type === FlatSourceType.Path) return SourceOrigin.Paths
+  if (type === FlatSourceType.Sqlite) return SourceOrigin.Sqlite
+  return SourceOrigin.Sources
 }
 
 const insertSourceItem = (config: ConfigFile, origin: SourceOrigin, item: Record<string, unknown>): void => {
-  if (origin === "paths") {
+  if (origin === SourceOrigin.Paths) {
     config.paths = [...(config.paths ?? []), String(item.path)]
     return
   }
-  if (origin === "sqlite") {
+  if (origin === SourceOrigin.Sqlite) {
     config.sqlite = [...(config.sqlite ?? []), String(item.path)]
     return
   }
@@ -119,76 +112,87 @@ const insertSourceItem = (config: ConfigFile, origin: SourceOrigin, item: Record
 }
 
 const isDuplicate = (config: ConfigFile, origin: SourceOrigin, path: string, skipIndex: number): boolean => {
-  if (origin === "paths") return (config.paths ?? []).some((p, i) => i !== skipIndex && p === path)
-  if (origin === "sqlite") return (config.sqlite ?? []).some((p, i) => i !== skipIndex && p === path)
+  if (origin === SourceOrigin.Paths) return (config.paths ?? []).some((p, i) => i !== skipIndex && p === path)
+  if (origin === SourceOrigin.Sqlite) return (config.sqlite ?? []).some((p, i) => i !== skipIndex && p === path)
   return false
 }
 
-class DuplicateSourceError extends Error {
-  constructor(path: string) {
-    super(`Source already exists: ${path}`)
-    this.name = "DuplicateSourceError"
-  }
-}
-
-const createSource = (data: Record<string, unknown>): Source => {
+const createSource = (data: Record<string, unknown>): SourceWriteResult => {
   const { config } = getConfig()
   const type = String(data.type)
-  const item = type === "path" || type === "sqlite" ? { type, path: String(data.path) } : { ...data }
+  const item =
+    type === FlatSourceType.Path || type === FlatSourceType.Sqlite ? { type, path: String(data.path) } : { ...data }
   const origin = containerForType(type)
 
-  if (origin !== "sources" && isDuplicate(config, origin, String(item.path), -1)) {
-    throw new DuplicateSourceError(String(item.path))
+  if (origin !== SourceOrigin.Sources && isDuplicate(config, origin, String(item.path), -1)) {
+    return { ok: false, error: SourceWriteError.Duplicate }
   }
 
   insertSourceItem(config, origin, item)
   writeConfig(config)
-  return sourceFromConfigItem(origin, item)
+  return { ok: true, source: sourceFromConfigItem(origin, item) }
 }
 
-const updateSource = (id: string, data: Partial<Source>): Source | undefined => {
+const buildNextItem = (entry: SourceEntry, data: Partial<Source>): Record<string, unknown> => {
+  const currentType = String(entry.item.type)
+  const nextType = data.type ?? currentType
+
+  if (nextType === FlatSourceType.Path || nextType === FlatSourceType.Sqlite) {
+    return { type: nextType, path: String(data.path ?? entry.item.path) }
+  }
+  if (nextType !== currentType) return { ...data, type: nextType }
+  return { ...entry.item, ...data }
+}
+
+const replaceSourceItem = (config: ConfigFile, origin: SourceOrigin, index: number, item: Record<string, unknown>): void => {
+  if (origin === SourceOrigin.Paths) {
+    const paths = [...(config.paths ?? [])]
+    paths[index] = String(item.path)
+    config.paths = paths
+    return
+  }
+  if (origin === SourceOrigin.Sqlite) {
+    const sqlite = [...(config.sqlite ?? [])]
+    sqlite[index] = String(item.path)
+    config.sqlite = sqlite
+    return
+  }
+  const sources = [...(config.sources ?? [])]
+  sources[index] = item
+  config.sources = sources
+}
+
+const applySourceUpdate = (
+  config: ConfigFile,
+  entry: SourceEntry,
+  target: SourceOrigin,
+  item: Record<string, unknown>,
+): void => {
+  if (target === entry.origin) {
+    replaceSourceItem(config, target, entry.index, item)
+    return
+  }
+  removeSourceEntry(config, entry)
+  insertSourceItem(config, target, item)
+}
+
+const updateSource = (id: string, data: Partial<Source>): SourceWriteResult => {
   const { config } = getConfig()
   const entry = collectSourceEntries(config).find((e) => e.id === id)
-  if (!entry) return undefined
+  if (!entry) return { ok: false, error: SourceWriteError.NotFound }
 
-  const currentType = String(entry.item.type)
-  const nextType = data.type !== undefined ? data.type : currentType
-  const typeChanged = nextType !== currentType
+  const nextItem = buildNextItem(entry, data)
+  const typeChanged = String(nextItem.type) !== String(entry.item.type)
+  const target = typeChanged ? containerForType(String(nextItem.type)) : entry.origin
+  const skipIndex = target === entry.origin ? entry.index : -1
 
-  const nextItem: Record<string, unknown> =
-    nextType === "path" || nextType === "sqlite"
-      ? { type: nextType, path: String(data.path ?? entry.item.path) }
-      : typeChanged
-        ? { ...data, type: nextType }
-        : { ...entry.item, ...data }
-
-  const target = typeChanged ? containerForType(nextType) : entry.origin
-
-  if (target !== "sources" && isDuplicate(config, target, String(nextItem.path), target === entry.origin ? entry.index : -1)) {
-    throw new DuplicateSourceError(String(nextItem.path))
+  if (target !== SourceOrigin.Sources && isDuplicate(config, target, String(nextItem.path), skipIndex)) {
+    return { ok: false, error: SourceWriteError.Duplicate }
   }
 
-  if (target === entry.origin) {
-    if (target === "paths") {
-      const paths = [...(config.paths ?? [])]
-      paths[entry.index] = String(nextItem.path)
-      config.paths = paths
-    } else if (target === "sqlite") {
-      const sqlite = [...(config.sqlite ?? [])]
-      sqlite[entry.index] = String(nextItem.path)
-      config.sqlite = sqlite
-    } else {
-      const sources = [...(config.sources ?? [])]
-      sources[entry.index] = nextItem
-      config.sources = sources
-    }
-  } else {
-    removeSourceEntry(config, entry)
-    insertSourceItem(config, target, nextItem)
-  }
-
+  applySourceUpdate(config, entry, target, nextItem)
   writeConfig(config)
-  return sourceFromConfigItem(target, nextItem)
+  return { ok: true, source: sourceFromConfigItem(target, nextItem) }
 }
 
 const deleteSource = (id: string): boolean => {
@@ -252,5 +256,4 @@ export {
   createDestination,
   updateDestination,
   deleteDestination,
-  DuplicateSourceError,
 }

@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, type ReactNode, type Su
 import { useNavigate } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { useCreateSource } from "@/hooks/use-queries"
+import { isDuplicateSourceError } from "@/lib/api-client"
 import type { NewSourceFormValue } from "@/types/sources"
 import { useDockerContainers } from "./use-docker-containers"
 import { usePostgresDatabases } from "./use-postgres-databases"
@@ -121,7 +122,7 @@ const NewSourceFormProvider = ({ children }: { children: ReactNode }) => {
         void navigate("/sources")
       })
       .catch((err: unknown) => {
-        alert(err instanceof Error ? err.message : t("sources.createError"))
+        alert(isDuplicateSourceError(err) ? t("sources.duplicateSource") : t("sources.createError"))
       })
   }
 

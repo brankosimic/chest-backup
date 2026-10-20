@@ -8,6 +8,7 @@ import { Select } from "@/components/ui/select"
 import { Header } from "@/components/layout/header"
 import { EditSourceFields } from "@/components/sources/fields/edit-source-fields"
 import { useSource, useUpdateSource } from "@/hooks/use-queries"
+import { isDuplicateSourceError } from "@/lib/api-client"
 import { useDockerContainers } from "@/hooks/use-docker-containers"
 import { useContainerVolumes } from "@/hooks/use-container-volumes"
 import { getSourceTypeDefault, parseIncludePatterns, SourceType } from "@/lib/sources"
@@ -83,7 +84,7 @@ const SourceEditPage = () => {
       await updateMutation.mutateAsync({ id, data: buildUpdateBody(type, form) })
       void navigate("/sources")
     } catch (err) {
-      alert(err instanceof Error ? err.message : t("common.saveError"))
+      alert(isDuplicateSourceError(err) ? t("sources.duplicateSource") : t("common.saveError"))
     }
   }
 

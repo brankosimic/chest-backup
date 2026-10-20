@@ -1,3 +1,8 @@
+enum SourceErrorCode {
+  Duplicate = "duplicate_source",
+  NotFound = "source_not_found",
+}
+
 interface Source {
   id: string
   type: "path" | "postgres" | "postgres-container" | "container-volume" | "sqlite" | "sqlite-container"
@@ -105,6 +110,7 @@ interface ApiResponse<T> {
   data?: T
   error?: string
   message?: string
+  code?: string
 }
 
 // --- Utility types for frontend use (subset without server-only fields) ---
@@ -112,17 +118,18 @@ interface ApiResponse<T> {
 type WebSource = Omit<Source, "createdAt" | "updatedAt">
 type WebDestination = Omit<Destination, "createdAt" | "updatedAt">
 
-export type {
-  Source,
-  Destination,
-  Schedule,
-  NotificationConfig,
-  BackupRecord,
-  StoreResult,
-  LogEntry,
-  ResourceUsage,
-  SystemInfo,
-  ApiResponse,
-  WebSource,
-  WebDestination,
+export {
+  SourceErrorCode,
+  type Source,
+  type Destination,
+  type Schedule,
+  type NotificationConfig,
+  type BackupRecord,
+  type StoreResult,
+  type LogEntry,
+  type ResourceUsage,
+  type SystemInfo,
+  type ApiResponse,
+  type WebSource,
+  type WebDestination,
 }

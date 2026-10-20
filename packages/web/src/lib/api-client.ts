@@ -1,6 +1,7 @@
 import type { ContainerVolume, BackupRunProgress, DestinationUsage } from "../types/backup"
 import type { RetentionSettings } from "../types/mutations"
 import type { Source, Destination, BackupRecord, ApiResponse } from "@chest-backup/shared"
+import { SourceErrorCode } from "@chest-backup/shared"
 
 const BASE_URL = ""
 
@@ -8,6 +9,12 @@ const getAuthHeader = (): string | undefined => {
   const stored = localStorage.getItem("auth")
   return stored ? `Basic ${stored}` : undefined
 }
+
+const toApiError = (body: { error?: string; message?: string; code?: string } | null, status: number): Error =>
+  Object.assign(new Error(body?.message ?? body?.error ?? `API error ${String(status)}`), { code: body?.code })
+
+const isDuplicateSourceError = (err: unknown): boolean =>
+  err instanceof Error && "code" in err && err.code === SourceErrorCode.Duplicate
 
 const apiFetch = async <T>(path: string, init?: RequestInit): Promise<T> => {
   const auth = getAuthHeader()
@@ -20,13 +27,13 @@ const apiFetch = async <T>(path: string, init?: RequestInit): Promise<T> => {
   })
 
   if (!response.ok) {
-    const body = (await response.json().catch(() => null)) as { error?: string; message?: string } | null
-    throw new Error(body?.message ?? body?.error ?? `API error ${String(response.status)}`)
+    const body = (await response.json().catch(() => null)) as { error?: string; message?: string; code?: string } | null
+    throw toApiError(body, response.status)
   }
 
   const json = (await response.json()) as ApiResponse<T>
   if (!json.success || json.data === undefined) {
-    throw new Error(json.error ?? "Unexpected API response")
+    throw toApiError(json, response.status)
   }
   return json.data
 }
@@ -137,6 +144,7 @@ const fetchPostgresDatabases = (data: {
 
 export {
   apiFetch,
+  isDuplicateSourceError,
   fetchSources,
   fetchSource,
   createSource,

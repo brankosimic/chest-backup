@@ -105,6 +105,7 @@
     "fetchingDatabases": "Fetching databases...",
     "fetchDatabasesError": "Failed to fetch databases",
     "createError": "Failed to create source",
+    "duplicateSource": "This path is already configured as a source",
     "containersError": "Failed to list containers",
     "pathPlaceholderEdit": "/data/documents",
     "sqlitePathPlaceholder": "/data/app/data.db",

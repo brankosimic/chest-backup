@@ -2,8 +2,8 @@ import type { PostgresQuery, PostgresQueryResult, DockerMount, ContainerVolume }
 import { $ } from "bun"
 import { Hono } from "hono"
 import { SourceSchema, PostgresDatabasesSchema } from "../lib/validation"
-import { createSource, getSources, updateSource, deleteSource, findSourceById, DuplicateSourceError } from "../lib/store"
-import { validateBody, notFound } from "../lib/routes"
+import { createSource, getSources, updateSource, deleteSource, findSourceById } from "../lib/store"
+import { notFound, sourceWriteError, validateBody } from "../lib/routes"
 
 const sources = new Hono()
 
@@ -52,15 +52,9 @@ sources.get("/", (c) => {
 sources.post("/", async (c) => {
   const result = await validateBody(SourceSchema, c)
   if (!result.ok) return result.error
-  try {
-    const source = createSource(result.data)
-    return c.json({ success: true, data: source }, 201)
-  } catch (err) {
-    if (err instanceof DuplicateSourceError) {
-      return c.json({ success: false, error: "Duplicate source", message: err.message }, 409)
-    }
-    throw err
-  }
+  const created = createSource(result.data)
+  if (!created.ok) return sourceWriteError(c, created.error)
+  return c.json({ success: true, data: created.source }, 201)
 })
 
 sources.get("/containers", async (c) => {
@@ -114,16 +108,9 @@ sources.put("/:id", async (c) => {
   const id = c.req.param("id")
   const result = await validateBody(SourceSchema, c)
   if (!result.ok) return result.error
-  try {
-    const updated = updateSource(id, result.data)
-    if (!updated) return notFound(c, "Source")
-    return c.json({ success: true, data: updated })
-  } catch (err) {
-    if (err instanceof DuplicateSourceError) {
-      return c.json({ success: false, error: "Duplicate source", message: err.message }, 409)
-    }
-    throw err
-  }
+  const updated = updateSource(id, result.data)
+  if (!updated.ok) return sourceWriteError(c, updated.error)
+  return c.json({ success: true, data: updated.source })
 })
 
 sources.delete("/:id", (c) => {

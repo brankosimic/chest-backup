@@ -1,7 +1,7 @@
 import type { PaginatedResult, BackupStats } from "../../types/api"
 import { seedLogsFromHistory, parseTimestamp, addLogEntry, getLogs, pushLog } from "./logs"
 import { getSystem } from "./system"
-import { getSources, findSourceById, createSource, updateSource, deleteSource, DuplicateSourceError } from "./entities"
+import { getSources, findSourceById, createSource, updateSource, deleteSource } from "./entities"
 import {
   getDestinations,
   findDestinationById,
@@ -31,7 +31,6 @@ export {
   createSource,
   deleteDestination,
   deleteSource,
-  DuplicateSourceError,
   findDestinationById,
   findSourceById,
   getBackups,

@@ -2,6 +2,7 @@ import type { ReactNode } from "react"
 import type { Source } from "@chest-backup/shared"
 import type { TreeNode, PathTrieNode } from "@/types/sources"
 import { Folder, Database, Container, File, FolderOpen, HardDrive } from "lucide-react"
+import * as styles from "./sources.styles"
 
 const SourceType = {
   Path: "path",
@@ -19,19 +20,19 @@ const SOURCE_TYPES: string[] = Object.values(SourceType)
 const sourceIcon = (type: string) => {
   switch (type) {
     case SourceType.Path:
-      return <Folder className="h-5 w-5 text-blue-500 shrink-0" />
+      return <Folder className={styles.pathIcon} />
     case SourceType.Postgres:
-      return <Database className="h-5 w-5 text-purple-500 shrink-0" />
+      return <Database className={styles.postgresIcon} />
     case SourceType.PostgresContainer:
-      return <Container className="h-5 w-5 text-amber-500 shrink-0" />
+      return <Container className={styles.postgresContainerIcon} />
     case SourceType.ContainerVolume:
-      return <HardDrive className="h-5 w-5 text-green-500 shrink-0" />
+      return <HardDrive className={styles.containerVolumeIcon} />
     case SourceType.Sqlite:
-      return <Database className="h-5 w-5 text-teal-500 shrink-0" />
+      return <Database className={styles.sqliteIcon} />
     case SourceType.SqliteContainer:
-      return <Container className="h-5 w-5 text-cyan-500 shrink-0" />
+      return <Container className={styles.sqliteContainerIcon} />
     default:
-      return <Folder className="h-5 w-5 text-muted-foreground shrink-0" />
+      return <Folder className={styles.fallbackIcon} />
   }
 }
 
@@ -56,11 +57,7 @@ const insertOne = (root: PathTrieNode, s: Source): void => {
 }
 
 const sourceIconForFile = (isFile: boolean | undefined): ReactNode =>
-  isFile ? (
-    <File className="h-4 w-4 text-muted-foreground shrink-0" />
-  ) : (
-    <Folder className="h-4 w-4 text-muted-foreground shrink-0" />
-  )
+  isFile ? <File className={styles.fileIcon} /> : <Folder className={styles.folderIcon} />
 
 const leafTreeNode = (seg: string, source: Source): TreeNode => ({
   id: source.id,
@@ -72,7 +69,7 @@ const leafTreeNode = (seg: string, source: Source): TreeNode => ({
 const dirTreeNode = (seg: string, fullPath: string, children: TreeNode[]): TreeNode => ({
   id: `dir-${fullPath}`,
   label: seg,
-  icon: <FolderOpen className="h-4 w-4 text-amber-500 shrink-0" />,
+  icon: <FolderOpen className={styles.folderOpenIcon} />,
   children,
 })
 
