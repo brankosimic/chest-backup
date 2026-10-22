@@ -81,6 +81,7 @@ const ConfigSchema = z.object({
   tempDir: z.string().optional().default("/tmp"),
   paths: z.array(z.string().min(1)).default([]),
   sqlite: z.array(z.string().min(1)).default([]),
+  exclude: z.array(z.string().min(1)).default([]),
   sources: z.array(SourceSchema).default([]),
   destinations: z.array(DestinationSchema).default([]),
   notifications: NotificationsConfigSchema.optional(),

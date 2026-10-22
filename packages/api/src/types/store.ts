@@ -14,6 +14,7 @@ interface ConfigFile {
   tempDir?: string
   paths?: string[]
   sqlite?: string[]
+  exclude?: string[]
   sources?: Array<Record<string, unknown>>
   destinations: Array<{
     type: string

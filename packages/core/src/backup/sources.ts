@@ -12,6 +12,7 @@ import type {
 import { logger } from "../utils/logger"
 import { dumpPostgresContainerSources, dumpPostgresSources } from "../database/postgres"
 import { dumpSqliteSources, dumpSqliteContainerSources } from "../database/sqlite"
+import { createExcludeFilter } from "../utils/exclude"
 
 const isDbSource = (s: Source): s is PostgresSource | PostgresContainerSource | SqliteSource | SqliteContainerSource =>
   ["postgres", "postgres-container", "sqlite", "sqlite-container"].includes(s.type)
@@ -76,9 +77,16 @@ const resolveSourcePaths = (source: Source, errors: string[]): string[] => {
   return [source.path]
 }
 
-const resolvePaths = (sources: Source[], errors: string[]): string[] => [
-  ...new Set(sources.flatMap((s) => resolveSourcePaths(s, errors))),
-]
+const resolvePaths = (sources: Source[], errors: string[], exclude: string[] = []): string[] => {
+  const resolved = [...new Set(sources.flatMap((s) => resolveSourcePaths(s, errors)))]
+  const isExcluded = createExcludeFilter(exclude)
+  const included = resolved.filter((path) => !isExcluded(path))
+
+  const excluded = resolved.length - included.length
+  if (excluded) logger.info({ excluded, patterns: exclude }, "paths excluded by exclude patterns")
+
+  return included
+}
 
 const resolveContainers = (sources: Source[]): string[] =>
   sources
@@ -91,7 +99,7 @@ const resolveSources = async (
   tempFiles: string[],
   errors: string[],
 ): Promise<{ paths: string[]; containers: string[] }> => {
-  const paths = resolvePaths(config.sources, errors)
+  const paths = resolvePaths(config.sources, errors, config.exclude)
   const containers = resolveContainers(config.sources)
   const tempDir = config.tempDir ?? "/tmp"
 

@@ -3,6 +3,7 @@ import { dirname, join } from "node:path"
 import type { Config } from "../types/config"
 import type { DigestFn, DiffResult, FileStat, Manifest, ManifestEntry } from "../types/manifest"
 import { logger } from "../utils/logger"
+import { createExcludeFilter } from "../utils/exclude"
 
 const MANIFEST_DIR = ".chest-manifests"
 
@@ -44,8 +45,14 @@ const statFile = (filePath: string): FileStat | null => {
 const buildFileStats = (files: string[]): FileStat[] =>
   files.map((f) => statFile(f)).filter((s): s is FileStat => s !== null)
 
-const computeDiff = async (current: FileStat[], manifest: Manifest, digestOf: DigestFn): Promise<DiffResult> => {
+const computeDiff = async (
+  current: FileStat[],
+  manifest: Manifest,
+  digestOf: DigestFn,
+  exclude: string[] = [],
+): Promise<DiffResult> => {
   const currentPaths = new Set(current.map((f) => f.relativePath))
+  const isExcluded = createExcludeFilter(exclude)
   const toUpload: FileStat[] = []
   let unchanged = 0
 
@@ -65,7 +72,7 @@ const computeDiff = async (current: FileStat[], manifest: Manifest, digestOf: Di
     toUpload.push(digest ? { ...file, digest } : file)
   }
 
-  const toDelete = Object.keys(manifest).filter((p) => !currentPaths.has(p))
+  const toDelete = Object.keys(manifest).filter((p) => !currentPaths.has(p) && !isExcluded(p))
 
   return { toUpload, toDelete, unchanged }
 }

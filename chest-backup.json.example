@@ -1,6 +1,7 @@
 {
   "schedule": "0 3 * * *",
   "retention": 7,
+  "exclude": ["**/cdn-cache/**", "*.log"],
   "sources": [
     { "type": "path", "path": "/data/documents" },
     { "type": "path", "path": "/data/config.yaml", "isFile": true },

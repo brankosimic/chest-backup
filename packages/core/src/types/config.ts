@@ -85,14 +85,16 @@ interface ConfigFile {
   tempDir?: string
   paths?: string[]
   sqlite?: string[]
+  exclude?: string[]
   sources: Source[]
   destinations: Destination[]
   notifications?: NotificationsConfig
 }
 
-type Config = Omit<ConfigFile, "paths" | "sqlite"> & {
+type Config = Omit<ConfigFile, "paths" | "sqlite" | "exclude"> & {
   paths: string[]
   sqlite: string[]
+  exclude: string[]
 }
 
 export {

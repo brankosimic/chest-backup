@@ -140,6 +140,11 @@ Switch between modes by disabling one and enabling the other. The `mode` field i
       "include": ["config", "logs"]        // optional — subpaths within the volume
     }
   ],
+  "exclude": [                             // glob patterns skipped during backup (optional)
+    "**/cdn-cache/**",                     // any path segment named cdn-cache
+    "/data/documents/drafts/**",           // absolute path prefix
+    "*.log"                                // matches the file name only
+  ],
   "destinations": [                        // where to store backups
     {
       "type": "local",
@@ -168,6 +173,21 @@ Switch between modes by disabling one and enabling the other. The `mode` field i
   }
 }
 ```
+
+### Exclude Patterns
+
+`exclude` lists glob patterns whose matching files are skipped when sources are resolved:
+
+| Pattern | Matches |
+|---|---|
+| `**/cdn-cache/**` | every file under any directory named `cdn-cache` |
+| `**/cdn-cache` | same — a trailing literal segment also matches the directory contents |
+| `/data/documents/drafts/**` | absolute path prefix |
+| `/data/documents/drafts` | literal absolute path and everything under it |
+| `*.log` | file name only, at any depth |
+| `node_modules` | any path segment named `node_modules` |
+
+Excluded files are never uploaded and never deleted from a destination.
 
 ### CLI Flags
 

@@ -15,7 +15,7 @@ const prepareIncremental = async (config: Config, dest: Destination, files: stri
   const destId = dest.id ?? dest.path
   const mp = manifestPathFor(config, destId, periodKey)
   const manifest = loadManifest(mp)
-  const diff = await computeDiff(current, manifest, digestFile)
+  const diff = await computeDiff(current, manifest, digestFile, config.exclude)
   const toUpload = await stampDigests(diff.toUpload, digestFile)
 
   logger.info(
