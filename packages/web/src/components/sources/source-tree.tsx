@@ -2,6 +2,7 @@ import { createContext, useContext } from "react"
 import { Trash2, ChevronRight } from "lucide-react"
 import { formatDate } from "@/lib/utils"
 import { sourceIcon, sourceTitle, sourceDetailLines } from "@/lib/sources"
+import { Badge } from "@/components/ui/badge"
 import type { TreeContextValue, TreeNodeRowProps, SourceRowProps } from "@/types/sources"
 import { cn } from "@/lib/utils"
 import * as styles from "./source-tree.styles"
@@ -18,6 +19,7 @@ const TreeNodeRow = ({ node, depth }: TreeNodeRowProps) => {
   const ctx = useTree()
   const hasChildren = !!node.children?.length
   const isExpanded = ctx.expanded.has(node.id)
+  const skipped = node.source?.path ? ctx.excludedByPath.get(node.source.path) : undefined
 
   const handleClick = () => {
     if (hasChildren) ctx.onToggle(node.id)
@@ -36,6 +38,11 @@ const TreeNodeRow = ({ node, depth }: TreeNodeRowProps) => {
         </span>
         {node.icon}
         <span className={styles.label}>{node.label}</span>
+        {skipped !== undefined && (
+          <Badge className={styles.skippedBadge} variant="warning" title={ctx.t("sources.skippedFiles")}>
+            &minus;{skipped}
+          </Badge>
+        )}
         {node.children && <span className={styles.count}>{node.children.length}</span>}
         {node.source && (
           <div className={styles.meta}>

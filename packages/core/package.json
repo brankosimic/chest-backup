@@ -10,6 +10,7 @@
   },
   "scripts": {},
   "dependencies": {
+    "@chest-backup/shared": "workspace:*",
     "cron-parser": "^5.10.2",
     "pino": "^10.4.0",
     "pino-pretty": "^13.2.0",

@@ -14,9 +14,12 @@ import {
   updateSchedule,
   getRetention,
   updateRetention,
+  getExclude,
+  updateExclude,
   getNotifications,
   updateNotifications,
 } from "./settings"
+import { getSourceExclusions } from "./exclusions"
 import { getBackups, getBackupById, getBackupStats, getDestinationUsage, addBackupRecord, invalidateBackupCache } from "./backups"
 import { persistBackupResult } from "./backup-result"
 
@@ -38,9 +41,11 @@ export {
   getBackupStats,
   getDestinationUsage,
   getDestinations,
+  getExclude,
   getNotifications,
   getRetention,
   getSchedule,
+  getSourceExclusions,
   getSources,
   getSystem,
   invalidateBackupCache,
@@ -48,6 +53,7 @@ export {
   persistBackupResult,
   pushLog,
   updateDestination,
+  updateExclude,
   updateNotifications,
   updateRetention,
   updateSchedule,

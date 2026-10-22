@@ -11,5 +11,20 @@ const deleteButton =
   "rounded p-1 text-muted-foreground opacity-0 transition-all hover:text-destructive group-hover:opacity-100"
 const detailText = "text-xs text-muted-foreground"
 const trashIcon = "h-3.5 w-3.5"
+const skippedBadge = "shrink-0"
 
-export { row, iconSlot, spacer, chevron, label, info, title, count, meta, deleteButton, detailText, trashIcon }
+export {
+  row,
+  iconSlot,
+  spacer,
+  chevron,
+  label,
+  info,
+  title,
+  count,
+  meta,
+  deleteButton,
+  detailText,
+  trashIcon,
+  skippedBadge,
+}

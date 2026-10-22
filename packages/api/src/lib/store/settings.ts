@@ -1,7 +1,9 @@
 import type { Retention } from "../../types/api"
+import type { ExcludeSettings } from "../../types/api"
 import type { Schedule, NotificationConfig } from "@chest-backup/shared"
 import { RetentionMode } from "@core/types/config"
 import { getConfig, writeConfig } from "./config"
+import { invalidateSourceExclusions } from "./exclusions"
 
 const getSchedule = (): Schedule => {
   const { config } = getConfig()
@@ -28,8 +30,17 @@ const updateRetention = (data: Retention): Retention => {
   return getRetention()
 }
 
-const getNotifications = (): NotificationConfig => {
+const getExclude = (): ExcludeSettings => ({ patterns: getConfig().config.exclude ?? [] })
+
+const updateExclude = (data: ExcludeSettings): ExcludeSettings => {
   const { config } = getConfig()
+  config.exclude = data.patterns
+  writeConfig(config)
+  invalidateSourceExclusions()
+  return getExclude()
+}
+
+const getNotifications = (): NotificationConfig => {  const { config } = getConfig()
   const discordConfig = config.notifications?.discord
   return {
     discord: discordConfig ? { webhookUrl: discordConfig.webhookUrl ?? "", enabled: true } : undefined,
@@ -46,4 +57,13 @@ const updateNotifications = (data: Partial<NotificationConfig>): NotificationCon
   return getNotifications()
 }
 
-export { getSchedule, updateSchedule, getRetention, updateRetention, getNotifications, updateNotifications }
+export {
+  getSchedule,
+  updateSchedule,
+  getRetention,
+  updateRetention,
+  getExclude,
+  updateExclude,
+  getNotifications,
+  updateNotifications,
+}

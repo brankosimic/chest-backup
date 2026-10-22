@@ -8,6 +8,7 @@ export interface TreeContextValue {
   onDelete: (id: string, e: MouseEvent) => void
   onNavigate: (path: string) => void
   t: (key: string) => string
+  excludedByPath: Map<string, number>
 }
 
 export interface TreeNode {
@@ -34,6 +35,17 @@ export interface SourceSection {
   count: number
   dirTree: TreeNode[]
   flatItems: Source[]
+}
+
+export interface SourceExclusion {
+  path: string
+  total: number
+  excluded: number
+}
+
+export interface SourceExclusions {
+  patterns: string[]
+  sources: SourceExclusion[]
 }
 
 export interface PathTrieNode {

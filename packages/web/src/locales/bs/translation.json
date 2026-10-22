@@ -18,7 +18,8 @@
     "actions": "Akcije",
     "pending": "Na čekanju",
     "saveError": "Greška pri spremanju",
-    "unknown": "Nepoznato"
+    "unknown": "Nepoznato",
+    "remove": "Ukloni"
   },
   "nav": {
     "dashboard": "Naslovna",
@@ -110,7 +111,8 @@
     "pathPlaceholderEdit": "/data/documents",
     "sqlitePathPlaceholder": "/data/app/data.db",
     "dbPathPlaceholder": "/config/app.db",
-    "includePatternsExample": "logs/*\nconfig/*\ndata/**/*.db"
+    "includePatternsExample": "logs/*\nconfig/*\ndata/**/*.db",
+    "skippedFiles": "Fajlovi preskočeni uzorcima izuzimanja"
   },
   "destinations": {
     "title": "Odredišta",
@@ -228,7 +230,15 @@
     "retentionModeWeeks": "Sedmično",
     "retentionModeForever": "Zadrži zauvijek",
     "retentionModeMonthsUnit": "Broj mjesečnih snimki za zadržavanje",
-    "retentionModeWeeksUnit": "Broj sedmičnih snimki za zadržavanje"
+    "retentionModeWeeksUnit": "Broj sedmičnih snimki za zadržavanje",
+    "exclusions": "Izuzeci",
+    "exclusionsDescription": "Glob uzorci za fajlove koji se nikada ne backupuju",
+    "excludePatterns": "Uzorci",
+    "excludePatternPlaceholder": "**/cdn-cache/**",
+    "excludePatternAdd": "Dodaj",
+    "excludePatternHint": "Podržava globove direktorijuma (**/cache/**), apsolutne puteve (/data/drafts) i imena fajlova (*.log). Izuzeti fajlovi se nikada ne učitavaju niti brišu sa destinacije.",
+    "excludePatternsEmpty": "Nema uzoraka izuzimanja — svi fajlovi se backupuju.",
+    "exclusionsSkipped": "Trenutno se preskače {{count}} fajlova"
   },
   "status": {
     "running": "U toku",

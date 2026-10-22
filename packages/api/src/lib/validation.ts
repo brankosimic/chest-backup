@@ -73,6 +73,10 @@ const RetentionSchema = z.object({
   retentionMode: z.enum(RetentionMode).default(RetentionMode.Monthly),
 })
 
+const ExcludeSchema = z.object({
+  patterns: z.array(z.string().min(1)).default([]),
+})
+
 const NotificationsSchema = z.object({
   discord: z
     .object({
@@ -96,6 +100,7 @@ const PostgresDatabasesSchema = z.object({
 export {
   ContainerVolumeSourceSchema,
   DestinationSchema,
+  ExcludeSchema,
   NotificationsSchema,
   PathSourceSchema,
   PostgresContainerSourceSchema,

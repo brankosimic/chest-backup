@@ -1,5 +1,6 @@
 import type { ContainerVolume, BackupRunProgress, DestinationUsage } from "../types/backup"
-import type { RetentionSettings } from "../types/mutations"
+import type { RetentionSettings, ExcludeUpdateData, ExcludeSettings } from "../types/mutations"
+import type { SourceExclusions } from "../types/sources"
 import type { Source, Destination, BackupRecord, ApiResponse } from "@chest-backup/shared"
 import { SourceErrorCode } from "@chest-backup/shared"
 
@@ -64,6 +65,10 @@ const fetchRetention = () => apiFetch<RetentionSettings>("/api/retention")
 const updateRetention = (data: RetentionSettings) =>
   apiFetch<RetentionSettings>("/api/retention", { method: "PUT", body: JSON.stringify(data) })
 
+const fetchExclude = () => apiFetch<ExcludeSettings>("/api/exclude")
+const updateExclude = (data: ExcludeUpdateData) =>
+  apiFetch<ExcludeSettings>("/api/exclude", { method: "PUT", body: JSON.stringify(data) })
+
 const fetchNotifications = () => apiFetch<{ discord?: { webhookUrl: string; enabled: boolean } }>("/api/notifications")
 const updateNotifications = (data: { discord?: { webhookUrl: string; enabled: boolean } }) =>
   apiFetch<{ discord?: { webhookUrl: string; enabled: boolean } }>("/api/notifications", {
@@ -123,6 +128,8 @@ const testNotification = (webhookUrl: string) =>
     body: JSON.stringify({ webhookUrl }),
   })
 
+const fetchSourceExclusions = () => apiFetch<SourceExclusions>("/api/sources/exclusions")
+
 const fetchDockerContainers = () => apiFetch<string[]>("/api/sources/containers")
 
 const fetchContainerVolumes = (containerName: string) =>
@@ -162,6 +169,9 @@ export {
   updateRetention,
   fetchNotifications,
   updateNotifications,
+  fetchExclude,
+  updateExclude,
+  fetchSourceExclusions,
   fetchBackups,
   fetchBackupStats,
   triggerBackup,

@@ -18,7 +18,8 @@
     "actions": "Actions",
     "pending": "Pending",
     "saveError": "Failed to save",
-    "unknown": "Unknown"
+    "unknown": "Unknown",
+    "remove": "Remove"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -110,7 +111,8 @@
     "pathPlaceholderEdit": "/data/documents",
     "sqlitePathPlaceholder": "/data/app/data.db",
     "dbPathPlaceholder": "/config/app.db",
-    "includePatternsExample": "logs/*\nconfig/*\ndata/**/*.db"
+    "includePatternsExample": "logs/*\nconfig/*\ndata/**/*.db",
+    "skippedFiles": "Files skipped by exclude patterns"
   },
   "destinations": {
     "title": "Destinations",
@@ -228,7 +230,15 @@
     "retentionModeWeeks": "Weekly",
     "retentionModeForever": "Keep Forever",
     "retentionModeMonthsUnit": "Number of monthly snapshots to keep",
-    "retentionModeWeeksUnit": "Number of weekly snapshots to keep"
+    "retentionModeWeeksUnit": "Number of weekly snapshots to keep",
+    "exclusions": "Exclusions",
+    "exclusionsDescription": "Glob patterns for files that should never be backed up",
+    "excludePatterns": "Patterns",
+    "excludePatternPlaceholder": "**/cdn-cache/**",
+    "excludePatternAdd": "Add",
+    "excludePatternHint": "Supports directory globs (**/cache/**), absolute paths (/data/drafts) and file names (*.log). Excluded files are never uploaded and never deleted from a destination.",
+    "excludePatternsEmpty": "No exclusion patterns — every file is backed up.",
+    "exclusionsSkipped": "{{count}} files are currently skipped"
   },
   "status": {
     "running": "Running",

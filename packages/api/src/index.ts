@@ -6,6 +6,7 @@ import { errorHandling } from "./middleware/error"
 import { host as HOST, port as PORT } from "./env"
 import { backups } from "./routes/backups"
 import { destinations } from "./routes/destinations"
+import { exclude } from "./routes/exclude"
 import { logs } from "./routes/logs"
 import { notifications } from "./routes/notifications"
 import { retention } from "./routes/retention"
@@ -31,6 +32,7 @@ app.route("/api/sources", sources)
 app.route("/api/destinations", destinations)
 app.route("/api/schedule", schedule)
 app.route("/api/retention", retention)
+app.route("/api/exclude", exclude)
 app.route("/api/notifications", notifications)
 app.route("/api/backups", backups)
 app.route("/api/logs", logs)

@@ -1,3 +1,8 @@
 type PathMatcher = (filePath: string) => boolean
 
-export type { PathMatcher }
+interface SourceFileSummary {
+  total: number
+  excluded: number
+}
+
+export type { PathMatcher, SourceFileSummary }

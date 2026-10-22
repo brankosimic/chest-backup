@@ -1,5 +1,6 @@
 import { Glob } from "bun"
-import type { PathMatcher } from "../types/exclude"
+import { existsSync, statSync } from "node:fs"
+import type { PathMatcher, SourceFileSummary } from "../types/exclude"
 import { logger } from "./logger"
 
 const WILDCARD_CHARS = /[*?[\]{}]/
@@ -40,4 +41,31 @@ const createExcludeFilter = (patterns: string[]): PathMatcher => {
   return (filePath: string): boolean => matchers.some((matcher) => matcher(filePath))
 }
 
-export { createExcludeFilter }
+const isFile = (filePath: string): boolean => {
+  try {
+    return statSync(filePath).isFile()
+  } catch {
+    return false
+  }
+}
+
+const listFilesRecursive = (dirPath: string): string[] =>
+  [...new Glob(`${dirPath}/**/*`).scanSync({ absolute: true })].filter((file) => existsSync(file) && isFile(file))
+
+const collectSourceFiles = (sourcePath: string): string[] => {
+  if (existsSync(sourcePath)) {
+    if (isFile(sourcePath)) return [sourcePath]
+    if (statSync(sourcePath).isDirectory()) return listFilesRecursive(sourcePath)
+  }
+
+  return [...new Glob(sourcePath).scanSync({ absolute: true })].filter((file) => existsSync(file) && isFile(file))
+}
+
+const summarizeSourceFiles = (sourcePath: string, patterns: string[]): SourceFileSummary => {
+  const files = collectSourceFiles(sourcePath)
+  const isExcluded = createExcludeFilter(patterns)
+
+  return { total: files.length, excluded: files.filter((file) => isExcluded(file)).length }
+}
+
+export { createExcludeFilter, summarizeSourceFiles }

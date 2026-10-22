@@ -2,7 +2,7 @@ import type { PostgresQuery, PostgresQueryResult, DockerMount, ContainerVolume }
 import { $ } from "bun"
 import { Hono } from "hono"
 import { SourceSchema, PostgresDatabasesSchema } from "../lib/validation"
-import { createSource, getSources, updateSource, deleteSource, findSourceById } from "../lib/store"
+import { createSource, getSources, updateSource, deleteSource, findSourceById, getSourceExclusions } from "../lib/store"
 import { notFound, sourceWriteError, validateBody } from "../lib/routes"
 
 const sources = new Hono()
@@ -46,6 +46,11 @@ const fetchPostgresDatabases = async (data: PostgresQuery): Promise<PostgresQuer
 
 sources.get("/", (c) => {
   const data = getSources()
+  return c.json({ success: true, data })
+})
+
+sources.get("/exclusions", (c) => {
+  const data = getSourceExclusions()
   return c.json({ success: true, data })
 })
 

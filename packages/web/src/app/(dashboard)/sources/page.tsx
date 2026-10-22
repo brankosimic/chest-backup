@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { Header } from "@/components/layout/header"
 import { Plus } from "lucide-react"
-import { useSources, useDeleteSource } from "@/hooks/use-queries"
+import { useSources, useDeleteSource, useSourceExclusions } from "@/hooks/use-queries"
 import type { Source } from "@chest-backup/shared"
 import type { TreeNode, SourceSection } from "@/types/sources"
 import { sourceIcon, sourceTypeLabelKey, buildPathTree, SOURCE_TYPES, SourceType } from "@/lib/sources"
@@ -46,6 +46,7 @@ const SourcesPage = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { data: sources, isLoading, isError, refetch } = useSources()
+  const { data: exclusions } = useSourceExclusions()
   const deleteSource = useDeleteSource()
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
 
@@ -90,6 +91,7 @@ const SourcesPage = () => {
     )
 
   const sections = buildSections(sources ?? [])
+  const excludedByPath = new Map((exclusions?.sources ?? []).map((source) => [source.path, source.excluded]))
 
   return (
     <div className={styles.page}>
@@ -129,6 +131,7 @@ const SourcesPage = () => {
                     onDelete: handleDelete,
                     onNavigate: (path) => void navigate(path),
                     t,
+                    excludedByPath,
                   }}
                 >
                   <div className={styles.treePanel}>
@@ -145,6 +148,7 @@ const SourcesPage = () => {
                     onDelete: handleDelete,
                     onNavigate: (path) => void navigate(path),
                     t,
+                    excludedByPath,
                   }}
                 >
                   <div className={styles.treePanel}>

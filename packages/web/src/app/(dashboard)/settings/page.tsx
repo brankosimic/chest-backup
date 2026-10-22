@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Select } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Header } from "@/components/layout/header"
+import { ExclusionsCard } from "@/components/settings/exclusions-card"
 import { formatDate } from "@/lib/utils"
 import { useSchedule, useUpdateSchedule, useRetention, useUpdateRetention } from "@/hooks/use-queries"
 import type { RetentionSettings } from "@/types/mutations"
@@ -180,6 +181,8 @@ export default function SettingsPage() {
           </Button>
         </CardContent>
       </Card>
+
+      <ExclusionsCard />
 
       <Card>
         <CardHeader>

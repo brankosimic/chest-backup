@@ -31,4 +31,21 @@ interface NotificationUpdateData {
   }
 }
 
-export type { SourceMutationData, ScheduleUpdateData, RetentionMode, RetentionSettings, RetentionUpdateData, NotificationUpdateData }
+interface ExcludeUpdateData {
+  patterns: string[]
+}
+
+interface ExcludeSettings {
+  patterns: string[]
+}
+
+export type {
+  SourceMutationData,
+  ScheduleUpdateData,
+  RetentionMode,
+  RetentionSettings,
+  RetentionUpdateData,
+  NotificationUpdateData,
+  ExcludeUpdateData,
+  ExcludeSettings,
+}

@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import type { ScheduleUpdateData, RetentionUpdateData, NotificationUpdateData } from "@/types/mutations"
+import type { ScheduleUpdateData, RetentionUpdateData, NotificationUpdateData, ExcludeUpdateData } from "@/types/mutations"
 import {
   fetchSchedule,
   updateSchedule,
@@ -8,6 +8,8 @@ import {
   fetchNotifications,
   updateNotifications,
   testNotification,
+  fetchExclude,
+  updateExclude,
 } from "@/lib/api-client"
 
 const useSchedule = () => useQuery({ queryKey: ["schedule"], queryFn: fetchSchedule })
@@ -54,6 +56,20 @@ const useUpdateNotifications = () => {
   })
 }
 
+const useExclude = () => useQuery({ queryKey: ["exclude"], queryFn: fetchExclude })
+
+const useUpdateExclude = () => {
+  const qc = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: ExcludeUpdateData) => updateExclude(data),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["exclude"] })
+      void qc.invalidateQueries({ queryKey: ["source-exclusions"] })
+    },
+  })
+}
+
 export {
   useSchedule,
   useUpdateSchedule,
@@ -62,4 +78,6 @@ export {
   useNotifications,
   useTestNotification,
   useUpdateNotifications,
+  useExclude,
+  useUpdateExclude,
 }

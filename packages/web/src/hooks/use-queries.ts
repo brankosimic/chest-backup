@@ -1,4 +1,4 @@
-import { useSources, useSource, useCreateSource, useUpdateSource, useDeleteSource } from "./queries/sources"
+import { useSources, useSource, useSourceExclusions, useCreateSource, useUpdateSource, useDeleteSource } from "./queries/sources"
 import {
   useDestinations,
   useDestinationUsage,
@@ -15,6 +15,8 @@ import {
   useNotifications,
   useUpdateNotifications,
   useTestNotification,
+  useExclude,
+  useUpdateExclude,
 } from "./queries/config"
 import { useBackups, useBackupStats, useBackupProgress, useTriggerBackup, useLogs } from "./queries/backups"
 import { useSystem } from "./queries/system"
@@ -22,6 +24,7 @@ import { useSystem } from "./queries/system"
 export {
   useSources,
   useSource,
+  useSourceExclusions,
   useCreateSource,
   useUpdateSource,
   useDeleteSource,
@@ -38,6 +41,8 @@ export {
   useNotifications,
   useUpdateNotifications,
   useTestNotification,
+  useExclude,
+  useUpdateExclude,
   useBackups,
   useBackupStats,
   useBackupProgress,

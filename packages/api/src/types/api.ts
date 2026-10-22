@@ -41,4 +41,30 @@ interface Retention {
   retentionMode: RetentionMode
 }
 
-export type { PaginatedResult, BackupStats, DestinationUsage, LocalUsage, Result, CpuTimes, Retention }
+interface ExcludeSettings {
+  patterns: string[]
+}
+
+interface SourceExclusion {
+  path: string
+  total: number
+  excluded: number
+}
+
+interface SourceExclusions {
+  patterns: string[]
+  sources: SourceExclusion[]
+}
+
+export type {
+  PaginatedResult,
+  BackupStats,
+  DestinationUsage,
+  LocalUsage,
+  Result,
+  CpuTimes,
+  Retention,
+  ExcludeSettings,
+  SourceExclusion,
+  SourceExclusions,
+}

@@ -69,6 +69,9 @@ importers:
 
   packages/core:
     dependencies:
+      '@chest-backup/shared':
+        specifier: workspace:*
+        version: link:../shared
       cron-parser:
         specifier: ^5.10.2
         version: 5.10.2
