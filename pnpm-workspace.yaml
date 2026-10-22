@@ -1,7 +1,7 @@
 packages:
   - packages/*
 
-onlyBuiltDependencies:
-  - cpu-features
-  - esbuild
-  - ssh2
+allowBuilds:
+  cpu-features: true
+  esbuild: true
+  ssh2: true
