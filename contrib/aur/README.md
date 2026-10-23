@@ -93,6 +93,4 @@ enabled so scheduled backups run at boot without a login.
 
 ## Notes
 
-- The API server is always started (required for the web UI and daemon).
-- The system tray icon starts automatically when a desktop session (X11/Wayland) is detected.
-- If running headless (no desktop), the daemon runs inside the API process — no tray needed.
+- The API server is always started (required for the web UI and daemon); the backup daemon runs inside it.

@@ -22,6 +22,6 @@
       "@core/*": ["./packages/core/src/*"]
     }
   },
-  "include": ["packages/core/src/**/*", "packages/daemon/src/**/*", "packages/api/src/**/*", "packages/tray/src/**/*", "packages/shared/src/**/*", "test/**/*"],
+  "include": ["packages/core/src/**/*", "packages/daemon/src/**/*", "packages/api/src/**/*", "packages/shared/src/**/*", "test/**/*"],
   "exclude": ["node_modules", "dist", ".next"]
 }

@@ -107,22 +107,6 @@ importers:
 
   packages/shared: {}
 
-  packages/tray:
-    dependencies:
-      '@chest-backup/core':
-        specifier: workspace:*
-        version: link:../core
-      '@trayjs/trayjs':
-        specifier: ^0.0.10
-        version: 0.0.10
-    devDependencies:
-      '@types/bun':
-        specifier: latest
-        version: 1.4.3
-      typescript:
-        specifier: npm:@typescript/typescript6@^6.0.2
-        version: '@typescript/typescript6@6.0.2'
-
   packages/web:
     dependencies:
       '@chest-backup/shared':
@@ -741,39 +725,6 @@ packages:
     peerDependenciesMeta:
       '@types/react':
         optional: true
-
-  '@trayjs/darwin-arm64@0.0.10':
-    resolution: {integrity: sha512-XDoD9AF/gR2PXXI3u+d+vh5aYxPQ4bBJ3vnc+DPK3Sr57mv3ABTyl0pHjShMU21rHH7KFeaRPmvTTsrxU9JBmA==}
-    cpu: [arm64]
-    os: [darwin]
-
-  '@trayjs/darwin-x64@0.0.10':
-    resolution: {integrity: sha512-CI72A1wWZ3CNhxAut509j7+DpbAsCwUghDXL8cQN5pJR0Nl3teDl+g/Q7f+BoouSxKUuNMZcS3kLcN35K9FMpQ==}
-    cpu: [x64]
-    os: [darwin]
-
-  '@trayjs/linux-arm64@0.0.10':
-    resolution: {integrity: sha512-Z/isxcicb+uaLPMshl5nMQvSHaqzCMmgt0BgWkfZchZ46CW/4Xk3MJt2m9fOlU/PxjN0AyZRroPE54m1rkPq1g==}
-    cpu: [arm64]
-    os: [linux]
-
-  '@trayjs/linux-x64@0.0.10':
-    resolution: {integrity: sha512-y4a3xcPFKXHVYxhd7oKkd28AVgWQv7HfG5jWQUVmpMIvIQFlHsR5XHeFpYhemR274a+GojmuSUy6efCfMqeUmQ==}
-    cpu: [x64]
-    os: [linux]
-
-  '@trayjs/trayjs@0.0.10':
-    resolution: {integrity: sha512-ece+6qdYuQTNzCo/dMw7BUU2fvoKz3L52mfIzJ5buhCY51wYlbCYqn0Ce58AnBTuHK9aGlfGX5VjjVKzqGf7cA==}
-
-  '@trayjs/win32-arm64@0.0.10':
-    resolution: {integrity: sha512-K/ejQGpbx2g5XTfssxROJxrfVMCPbuWkX00ntH2uvplboFbce7sobfbv9w5L55q6Scp2nIMbgPdUc8+vR0L3xg==}
-    cpu: [arm64]
-    os: [win32]
-
-  '@trayjs/win32-x64@0.0.10':
-    resolution: {integrity: sha512-hSzTOqYHXkARCfcyr7eHiJUrl+5RqTp0ZW44aatKZ5/vVSGuHSVMWN5ZteM8b/UiKPakTJLksENP10+gjkRBMg==}
-    cpu: [x64]
-    os: [win32]
 
   '@types/bun@1.4.3':
     resolution: {integrity: sha512-N67Pqy8JXbAY/j0tNraS3V5mubGvc6rrrNDmDCtZLlFzccbUJPDb0tvgUBC5q4m8ybkP93Jcn1QB+RYQ6PvBhw==}
@@ -2417,33 +2368,6 @@ snapshots:
       react: 19.3.1
     optionalDependencies:
       '@types/react': 19.3.0
-
-  '@trayjs/darwin-arm64@0.0.10':
-    optional: true
-
-  '@trayjs/darwin-x64@0.0.10':
-    optional: true
-
-  '@trayjs/linux-arm64@0.0.10':
-    optional: true
-
-  '@trayjs/linux-x64@0.0.10':
-    optional: true
-
-  '@trayjs/trayjs@0.0.10':
-    optionalDependencies:
-      '@trayjs/darwin-arm64': 0.0.10
-      '@trayjs/darwin-x64': 0.0.10
-      '@trayjs/linux-arm64': 0.0.10
-      '@trayjs/linux-x64': 0.0.10
-      '@trayjs/win32-arm64': 0.0.10
-      '@trayjs/win32-x64': 0.0.10
-
-  '@trayjs/win32-arm64@0.0.10':
-    optional: true
-
-  '@trayjs/win32-x64@0.0.10':
-    optional: true
 
   '@types/bun@1.4.3':
     dependencies:

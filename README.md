@@ -6,12 +6,12 @@ A full-stack backup management system — schedule and monitor backups of files,
 
 - **Sources** — file paths, SQLite (host or container), PostgreSQL (host or container), container volumes
 - **Destinations** — local filesystem and SFTP, with per-destination retention
-- **Scheduling** — cron-driven runs, plus manual runs from the dashboard, tray, or API
+- **Scheduling** — cron-driven runs, plus manual runs from the dashboard or API
 - **Activity screen** — every run and log line in one place, with live streaming
 - **Notifications** — Discord alerts on backup success/failure
 - **Dry-run mode** — validate configuration without running backups
 - **Environment variable interpolation** — reference secrets from `.env` in config
-- **Web dashboard, API server, and system tray** — all share the same backup engine
+- **Web dashboard and API server** — both share the same backup engine
 
 ## Architecture
 
@@ -19,7 +19,6 @@ A full-stack backup management system — schedule and monitor backups of files,
 packages/api    # Hono API server (Bun) — orchestration, scheduling, run history
 packages/core   # Backup engine — sources, destinations, incremental sync, retention
 packages/web    # React + Vite frontend — dashboard, activity, config editor
-packages/tray   # System tray integration (desktop only)
 packages/shared # Types shared across packages
 ```
 
@@ -40,15 +39,13 @@ pnpm start -- --dry-run    # validate config only
 
 ### Systemd user services
 
-Two units are provided — `chest-backup-headless.service` (servers/SSH) and `chest-backup.service` (desktop with tray). Link and enable one:
+A single unit is provided — `chest-backup.service`:
 
 ```bash
-systemctl --user link /usr/lib/systemd/user/chest-backup-headless.service
+systemctl --user link /usr/lib/systemd/user/chest-backup.service
 systemctl --user daemon-reload
-systemctl --user enable --now chest-backup-headless
+systemctl --user enable --now chest-backup
 ```
-
-The `mode` field in `chest-backup.json` also controls tray vs headless at runtime.
 
 ## Configuration
 
@@ -68,7 +65,6 @@ The `mode` field in `chest-backup.json` also controls tray vs headless at runtim
 |---|---|
 | `--config <path>` | Path to configuration file |
 | `--dry-run` | Validate config without running backups |
-| `--mode <headless\|tray\|auto>` | Override tray mode |
 | `--run-now` | Run a backup immediately |
 
 ## API

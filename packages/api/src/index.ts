@@ -105,7 +105,7 @@ const start = async (): Promise<void> => {
   })
 
   loadConfigForApi()
-  if (process.env.DAEMON_OWNER !== "tray") await loadAndStartDaemon()
+  await loadAndStartDaemon()
 }
 
 process.on("exit", () => {
