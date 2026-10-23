@@ -67,6 +67,11 @@ interface DestCardProps {
   destination: Destination
 }
 
+interface DiskSpace {
+  used: number
+  total: number
+}
+
 interface DestinationUsage {
   type: string
   name?: string
@@ -75,6 +80,7 @@ interface DestinationUsage {
   fileCount: number
   avgDurationMs: number
   available: boolean
+  diskSpace?: DiskSpace
 }
 
 interface StatTileProps {

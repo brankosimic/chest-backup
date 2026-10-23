@@ -16,6 +16,12 @@ const skeletonTextWide = "h-3 w-16 animate-pulse rounded bg-muted"
 const skeletonTextNarrow = "h-3 w-10 animate-pulse rounded bg-muted"
 const clockIcon = "h-3 w-3"
 const linkShell = "block"
+const diskGroup = "space-y-1"
+const row = "flex items-center justify-between text-xs"
+const rowLabel = "text-muted-foreground"
+const rowValue = "font-medium tabular-nums"
+const barTrack = "h-1.5 w-full overflow-hidden rounded-full bg-muted"
+const diskBar = "h-full rounded-full bg-primary transition-all"
 
 export {
   header,
@@ -36,4 +42,10 @@ export {
   skeletonTextNarrow,
   clockIcon,
   linkShell,
+  diskGroup,
+  row,
+  rowLabel,
+  rowValue,
+  barTrack,
+  diskBar,
 }

@@ -10,6 +10,7 @@ import type { BackupQuery } from "../../types/query"
 import { scanSftpUsage } from "@core/destinations/sftp"
 import type { Destination } from "@core/types/config"
 import { scanLocalUsage, withTimeout } from "../utils"
+import { getLocalDiskSpace, getSftpDiskSpace } from "./disk-space"
 
 /** How many finished runs are kept on disk. */
 const MAX_HISTORY_RECORDS = 500
@@ -325,6 +326,7 @@ const buildLocalUsage = (dest: Destination, avgDurationMs: number): DestinationU
       fileCount: usage.fileCount,
       avgDurationMs,
       available: true,
+      diskSpace: getLocalDiskSpace(dest.path),
     }
   } catch (err) {
     console.error("failed to scan local destination", dest.path, err)
@@ -333,7 +335,10 @@ const buildLocalUsage = (dest: Destination, avgDurationMs: number): DestinationU
 }
 
 const buildSftpUsage = async (dest: Destination, avgDurationMs: number): Promise<DestinationUsage | null> => {
-  const usage = await withTimeout(scanSftpUsage(dest), 30_000, null)
+  const [usage, diskSpace] = await Promise.all([
+    withTimeout(scanSftpUsage(dest), 30_000, null),
+    getSftpDiskSpace(dest),
+  ])
   if (!usage) return null
 
   return {
@@ -344,6 +349,7 @@ const buildSftpUsage = async (dest: Destination, avgDurationMs: number): Promise
     fileCount: usage.fileCount,
     avgDurationMs,
     available: true,
+    diskSpace,
   }
 }
 
@@ -368,6 +374,7 @@ const getDestinationUsage = async (id: string): Promise<DestinationUsage | null>
     fileCount: 0,
     avgDurationMs,
     available: false,
+    diskSpace: dest.type === DestinationType.Local ? getLocalDiskSpace(dest.path) : undefined,
   }
 }
 

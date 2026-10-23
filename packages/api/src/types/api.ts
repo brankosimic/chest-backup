@@ -7,6 +7,11 @@ interface PaginatedResult<T> {
   limit: number
 }
 
+interface DiskSpace {
+  used: number
+  total: number
+}
+
 interface DestinationUsage {
   type: string
   name?: string
@@ -15,6 +20,7 @@ interface DestinationUsage {
   fileCount: number
   avgDurationMs: number
   available: boolean
+  diskSpace?: DiskSpace
 }
 
 interface LocalUsage {
@@ -63,6 +69,7 @@ interface SourceExclusions {
 export type {
   PaginatedResult,
   BackupStats,
+  DiskSpace,
   DestinationUsage,
   LocalUsage,
   Result,
