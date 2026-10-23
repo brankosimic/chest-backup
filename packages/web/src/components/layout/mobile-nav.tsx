@@ -1,8 +1,11 @@
+"use client"
+
 import { useTranslation } from "react-i18next"
 import { useState } from "react"
 import { Link, useLocation } from "react-router-dom"
 import { cn } from "@/lib/utils"
 import { Menu, X, Box } from "lucide-react"
+import * as styles from "./mobile-nav.styles"
 
 interface NavItem {
   href: string
@@ -14,8 +17,7 @@ const navItems: NavItem[] = [
   { href: "/sources", label: "nav.sources" },
   { href: "/destinations", label: "nav.destinations" },
   { href: "/notifications", label: "nav.notifications" },
-  { href: "/history", label: "nav.history" },
-  { href: "/logs", label: "nav.logs" },
+  { href: "/activity", label: "nav.activity" },
   { href: "/settings", label: "nav.settings" },
 ]
 
@@ -26,55 +28,47 @@ const MobileNav = () => {
 
   return (
     <>
-      <button
-        onClick={() => {
-          setOpen((prev) => !prev)
-        }}
-        className="fixed left-4 top-4 z-50 flex h-10 w-10 items-center justify-center rounded-md border bg-background md:hidden"
-        aria-label="Toggle menu"
-      >
-        {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-      </button>
+      <header className={styles.bar}>
+        <button
+          type="button"
+          onClick={() => {
+            setOpen((prev) => !prev)
+          }}
+          className={styles.toggle}
+          aria-label={open ? t("common.close") : t("nav.menu")}
+          aria-expanded={open}
+        >
+          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </button>
+        <Link to="/dashboard" className={styles.brand}>
+          <Box className="h-5 w-5" />
+          Chest-Backup
+        </Link>
+      </header>
 
       {open && (
-        <div
-          className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm md:hidden"
-          onClick={() => {
-            setOpen(false)
-          }}
-        >
-          <div
-            className="fixed inset-y-0 left-0 w-64 border-r bg-background p-4 shadow-xl"
-            onClick={(e) => {
-              e.stopPropagation()
-            }}
-          >
-            <div className="mb-6 flex items-center gap-2 text-lg font-semibold">
-              <Box className="h-6 w-6" />
-              Chest-Backup
-            </div>
-            <nav className="space-y-1">
+        <div className={styles.overlay} onClick={() => { setOpen(false) }}>
+          <nav className={styles.drawer} onClick={(e) => { e.stopPropagation() }}>
+            <ul className="space-y-1">
               {navItems.map((item) => {
                 const isActive =
                   pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href))
                 return (
-                  <Link
-                    key={item.href}
-                    to={item.href}
-                    onClick={() => {
-                      setOpen(false)
-                    }}
-                    className={cn(
-                      "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                      isActive ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-muted",
-                    )}
-                  >
-                    {t(item.label)}
-                  </Link>
+                  <li key={item.href}>
+                    <Link
+                      to={item.href}
+                      onClick={() => {
+                        setOpen(false)
+                      }}
+                      className={cn(styles.item, isActive && styles.itemActive)}
+                    >
+                      {t(item.label)}
+                    </Link>
+                  </li>
                 )
               })}
-            </nav>
-          </div>
+            </ul>
+          </nav>
         </div>
       )}
     </>

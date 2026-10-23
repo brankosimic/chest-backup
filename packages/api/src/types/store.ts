@@ -1,5 +1,5 @@
 import { RetentionMode } from "@core/types/config"
-import type { Source } from "@chest-backup/shared"
+import type { DestinationType, Source } from "@chest-backup/shared"
 
 interface CachedConfig {
   config: ConfigFile
@@ -17,7 +17,7 @@ interface ConfigFile {
   exclude?: string[]
   sources?: Array<Record<string, unknown>>
   destinations: Array<{
-    type: string
+    type: DestinationType
     path: string
     [key: string]: unknown
   }>

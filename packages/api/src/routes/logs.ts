@@ -1,15 +1,20 @@
 import { Hono } from "hono"
-import { getLogs } from "../lib/store"
+import { getLogs, getLogStats, clearLogs } from "../lib/store"
+import { parseLogQuery } from "../lib/query"
 
 const logs = new Hono()
 
 logs.get("/", (c) => {
-  const level = c.req.query("level")
-  const search = c.req.query("search")
-  const page = Number(c.req.query("page")) || 1
-  const limit = Number(c.req.query("limit")) || 50
-  const data = getLogs(level, search, page, limit)
-  return c.json({ success: true, data })
+  return c.json({ success: true, data: getLogs(parseLogQuery(c)) })
+})
+
+logs.get("/stats", (c) => {
+  return c.json({ success: true, data: getLogStats() })
+})
+
+logs.delete("/", (c) => {
+  clearLogs()
+  return c.json({ success: true, data: { cleared: true } })
 })
 
 export { logs }

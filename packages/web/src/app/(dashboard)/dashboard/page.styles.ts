@@ -1,12 +1,8 @@
-const page = "mx-auto max-w-7xl"
-const statsGrid = "mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
-const cardsGrid = "grid gap-6 lg:grid-cols-2"
+const page = "mx-auto max-w-[100rem] space-y-6"
+const statsGrid = "grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+const destGrid = "grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
+const cardsGrid = "grid gap-6 lg:grid-cols-[1.4fr_1fr]"
 const list = "space-y-4"
-const backupRow = "flex items-center justify-between rounded-lg border p-3"
-const backupInfo = "min-w-0 flex-1"
-const backupTitle = "truncate text-sm font-medium"
-const mutedText = "text-xs text-muted-foreground"
-const backupMeta = "flex items-center gap-3 shrink-0"
 const row = "flex items-center justify-between"
 const rowLabel = "text-sm text-muted-foreground"
 const rowValue = "text-sm"
@@ -18,19 +14,14 @@ const diskBar = "h-full rounded-full bg-amber-500 transition-all"
 const footer = "mt-6 space-y-4"
 const spinnerContainer = "flex h-screen items-center justify-center"
 const spinner = "h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent"
-const emptyText = "text-center text-sm text-muted-foreground"
 const playIcon = "mr-2 h-4 w-4"
 
 export {
   page,
   statsGrid,
+  destGrid,
   cardsGrid,
   list,
-  backupRow,
-  backupInfo,
-  backupTitle,
-  mutedText,
-  backupMeta,
   row,
   rowLabel,
   rowValue,
@@ -42,6 +33,5 @@ export {
   footer,
   spinnerContainer,
   spinner,
-  emptyText,
   playIcon,
 }

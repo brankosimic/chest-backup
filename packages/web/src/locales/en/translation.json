@@ -19,18 +19,30 @@
     "pending": "Pending",
     "saveError": "Failed to save",
     "unknown": "Unknown",
-    "remove": "Remove"
+    "remove": "Remove",
+    "previous": "Previous",
+    "next": "Next",
+    "copy": "Copy",
+    "copied": "Copied",
+    "all": "All",
+    "yes": "Yes",
+    "no": "No",
+    "close": "Close",
+    "errorTitle": "Something went wrong",
+    "tryAgain": "Try again"
   },
   "nav": {
     "dashboard": "Dashboard",
     "sources": "Sources",
     "destinations": "Destinations",
     "notifications": "Notifications",
+    "activity": "Activity",
     "history": "History",
     "logs": "Logs",
     "settings": "Settings",
     "theme": "Toggle theme",
-    "language": "Language"
+    "language": "Language",
+    "menu": "Menu"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -40,6 +52,11 @@
     "avgDuration": "Avg. Duration",
     "storageUsed": "Storage Used",
     "recentBackups": "Recent Backups",
+    "recentActivity": "Recent Activity",
+    "viewAllActivity": "View all activity",
+    "noRunsYet": "No backup runs yet",
+    "lastRun": "Last run",
+    "nextRun": "Next run",
     "systemHealth": "System Health",
     "status": "Status",
     "uptime": "Uptime",
@@ -57,7 +74,9 @@
     "startingBackup": "Starting Backup",
     "preparingBackup": "Preparing backup...",
     "archivingSources": "Creating archive...",
-    "uploading": "Uploading"
+    "uploading": "Uploading",
+    "filesChanged": "Files changed",
+    "transferred": "Transferred"
   },
   "sources": {
     "title": "Sources",
@@ -124,7 +143,7 @@
     "path": "Path",
     "host": "Host",
     "port": "Port",
-    "user": "User",
+    "user": "User: {{user}}",
     "password": "Password",
     "destinationType": "Destination Type",
     "local": "Local",
@@ -135,7 +154,7 @@
     "sftpPassword": "SFTP Password",
     "privateKey": "Private Key",
     "retention": "Retention (backups)",
-    "parallel": "Parallel Upload",
+    "parallel": "Parallel",
     "timeout": "Timeout (seconds)",
     "skip": "Skip",
     "newDestination": "New Destination",
@@ -178,30 +197,100 @@
     "testSuccess": "Test notification sent successfully",
     "testError": "Failed to send test notification"
   },
-  "history": {
-    "title": "Backup History",
-    "subtitle": "View past backup runs",
-    "timestamp": "Timestamp",
-    "status": "Status",
-    "duration": "Duration",
-    "size": "Size",
-    "destinations": "Destinations",
-    "errors": "Errors",
-    "success": "Success",
-    "failed": "Failed",
-    "noHistory": "No backup history"
-  },
-  "logs": {
-    "title": "System Logs",
-    "subtitle": "View daemon logs",
-    "level": "Level",
-    "allLevels": "All Levels",
-    "debug": "Debug",
-    "info": "Info",
-    "warn": "Warning",
-    "error": "Error",
-    "fatal": "Fatal",
-    "noLogs": "No logs found"
+  "activity": {
+    "title": "Activity",
+    "subtitle": "Every backup run and log line, in one place",
+    "tabs": {
+      "runs": "Runs",
+      "logs": "Live Logs"
+    },
+    "liveRun": "Backup running — {{phase}}",
+    "phase": {
+      "queued": "queued",
+      "resolving": "collecting sources",
+      "archiving": "preparing files",
+      "uploading": "uploading",
+      "completed": "completed",
+      "failed": "failed"
+    },
+    "streamConnected": "Live stream connected",
+    "streamDisconnected": "Live stream disconnected",
+    "exportCsv": "Export CSV",
+    "activeFilters": "{{count}} filters active",
+    "resultCount": "Showing {{shown}} of {{total}} runs",
+    "pageOf": "Page {{page}} of {{total}}",
+    "followLive": "Following live",
+    "followPaused": "Follow live",
+    "clearLogs": "Clear stored logs",
+    "logCount": "{{count}} log entries",
+    "logsForRun": "live run attached",
+    "empty": {
+      "title": "No backup runs found",
+      "description": "Runs appear here as soon as the daemon completes one — or trigger one manually."
+    },
+    "summary": {
+      "runs": "Runs",
+      "success": "Success rate",
+      "problems": "Problems",
+      "skipped": "Skipped",
+      "avgDuration": "Avg. duration",
+      "transferred": "Transferred",
+      "partialHint": "{{partial}} partial, {{failed}} failed"
+    },
+    "filters": {
+      "search": "Search runs, errors, destinations…",
+      "searchLogs": "Search log messages…",
+      "allStatuses": "All statuses",
+      "allTriggers": "All triggers",
+      "allDestinations": "All destinations",
+      "allTime": "All time",
+      "last24h": "Last 24 hours",
+      "last7d": "Last 7 days",
+      "last30d": "Last 30 days",
+      "last90d": "Last 90 days",
+      "sortNewest": "Newest first",
+      "sortOldest": "Oldest first",
+      "sortDuration": "Longest first",
+      "sortSize": "Largest first",
+      "reset": "Reset"
+    },
+    "table": {
+      "status": "Status",
+      "when": "When",
+      "trigger": "Trigger",
+      "duration": "Duration",
+      "files": "Files",
+      "transferred": "Transferred",
+      "destinations": "Destinations",
+      "errors": "Errors"
+    },
+    "detail": {
+      "duration": "Duration",
+      "filesChanged": "Files changed",
+      "transferred": "Transferred",
+      "errors": "Errors",
+      "runInfo": "Run details",
+      "runId": "Run ID",
+      "startedAt": "Started",
+      "finishedAt": "Finished",
+      "trigger": "Trigger",
+      "archive": "Archive",
+      "destinations": "Destinations",
+      "noDestinations": "No destinations were contacted",
+      "uploaded": "Uploaded",
+      "deleted": "Deleted",
+      "failed": "Failed",
+      "skippedReason": "Skipped ({{reason}})",
+      "showFiles": "Show {{count}} files"
+    },
+    "logs": {
+      "empty": "No log entries yet",
+      "toggleMetadata": "Toggle metadata"
+    },
+    "trigger": {
+      "manual": "Manual",
+      "scheduled": "Scheduled"
+    }
   },
   "settings": {
     "title": "Settings",

@@ -13,11 +13,48 @@ import { retention } from "./routes/retention"
 import { schedule } from "./routes/schedule"
 import { sources } from "./routes/sources"
 import { system } from "./routes/system"
+import { events } from "./routes/events"
 
 import { loadConfigForApi, loadAndStartDaemon } from "./lib/api-config"
-import { seedLogsFromHistory, pushLog } from "./lib/store"
+import { addLogEntry, flushLogs } from "./lib/store"
+import { subscribeToLogs, currentRunId } from "@core/utils/logger"
+import { LogLevel } from "@chest-backup/shared"
+import type { LogRecord } from "@core/utils/logger"
 
 const WEB_DIST = process.env.WEB_DIST_PATH ?? resolve(import.meta.dirname, "../../web/dist")
+
+const RESERVED_KEYS = new Set(["level", "time", "msg", "pid", "hostname"])
+
+const PINO_LEVELS: Record<number, LogLevel> = {
+  10: LogLevel.Debug,
+  20: LogLevel.Debug,
+  30: LogLevel.Info,
+  40: LogLevel.Warn,
+  50: LogLevel.Error,
+  60: LogLevel.Fatal,
+}
+
+const toMetadata = (record: LogRecord): Record<string, unknown> =>
+  Object.entries(record)
+    .filter(([key]) => !RESERVED_KEYS.has(key))
+    .reduce<Record<string, unknown>>((metadata, [key, value]) => {
+      metadata[key] = value
+      return metadata
+    }, {})
+
+const captureEngineLogs = (): void => {
+  subscribeToLogs((record) => {
+    const runId = currentRunId()
+    addLogEntry({
+      id: "",
+      timestamp: new Date(record.time ?? Date.now()).toISOString(),
+      level: PINO_LEVELS[record.level] ?? LogLevel.Info,
+      message: record.msg ?? "",
+      ...(runId ? { runId } : {}),
+      metadata: toMetadata(record),
+    })
+  })
+}
 
 const app = new Hono()
 
@@ -36,6 +73,7 @@ app.route("/api/exclude", exclude)
 app.route("/api/notifications", notifications)
 app.route("/api/backups", backups)
 app.route("/api/logs", logs)
+app.route("/api/events", events)
 app.route("/api/system", system)
 
 app.use(
@@ -55,16 +93,23 @@ const start = async (): Promise<void> => {
     port: PORT,
   })
   console.log(`Chest-Backup API running on http://${HOST}:${String(PORT)}`)
-  seedLogsFromHistory()
-  pushLog({
+
+  captureEngineLogs()
+
+  addLogEntry({
     id: `log-start-${String(Date.now())}`,
     timestamp: new Date().toISOString(),
-    level: "info",
+    level: LogLevel.Info,
     message: "Chest-Backup API started",
     metadata: {},
   })
+
   loadConfigForApi()
   if (process.env.DAEMON_OWNER !== "tray") await loadAndStartDaemon()
 }
+
+process.on("exit", () => {
+  flushLogs()
+})
 
 await start()

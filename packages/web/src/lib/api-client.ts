@@ -1,7 +1,8 @@
 import type { ContainerVolume, BackupRunProgress, DestinationUsage } from "../types/backup"
 import type { RetentionSettings, ExcludeUpdateData, ExcludeSettings } from "../types/mutations"
 import type { SourceExclusions } from "../types/sources"
-import type { Source, Destination, BackupRecord, ApiResponse } from "@chest-backup/shared"
+import type { LogQuery, Paginated, RunQuery } from "../types/api"
+import type { Source, Destination, BackupRecord, ApiResponse, LogEntry, RunStats } from "@chest-backup/shared"
 import { SourceErrorCode } from "@chest-backup/shared"
 
 const BASE_URL = ""
@@ -76,41 +77,66 @@ const updateNotifications = (data: { discord?: { webhookUrl: string; enabled: bo
     body: JSON.stringify(data),
   })
 
-const fetchBackups = (page = 1, limit = 50) =>
-  apiFetch<{ data: BackupRecord[]; total: number; page: number; limit: number }>(
-    `/api/backups?page=${String(page)}&limit=${String(limit)}`,
+const toParams = (query: Record<string, string | number | null | undefined>): string => {
+  const params = new URLSearchParams()
+  Object.entries(query)
+    .filter(([, value]) => value !== undefined && value !== null && value !== "")
+    .forEach(([key, value]) => {
+      params.set(key, String(value))
+    })
+  const serialized = params.toString()
+  return serialized ? `?${serialized}` : ""
+}
+
+const fetchBackups = (query: RunQuery = {}) =>
+  apiFetch<Paginated<BackupRecord>>(
+    `/api/backups${toParams({
+      page: query.page ?? 1,
+      limit: query.limit ?? 20,
+      status: query.status,
+      trigger: query.trigger,
+      destinationId: query.destinationId,
+      search: query.search,
+      from: query.from,
+      to: query.to,
+      sort: query.sort,
+    })}`,
   )
 
-const fetchBackupStats = () =>
-  apiFetch<{
-    total: number
-    success: number
-    failed: number
-    avgDuration: number
-    totalSize: number
-    destinations: {
-      type: string
-      name?: string
-      path: string
-      totalSize: number
-      fileCount: number
-      avgDurationMs: number
-    }[]
-  }>("/api/backups/stats")
+const fetchBackupStats = (query: RunQuery = {}) =>
+  apiFetch<RunStats>(
+    `/api/backups/stats${toParams({
+      status: query.status,
+      trigger: query.trigger,
+      destinationId: query.destinationId,
+      search: query.search,
+      from: query.from,
+      to: query.to,
+    })}`,
+  )
 
-const triggerBackup = () => apiFetch<{ success: boolean; message: string }>("/api/backups/run", { method: "POST" })
+const triggerBackup = () =>
+  apiFetch<{ triggered: boolean; runId: string }>("/api/backups/run", { method: "POST" })
 
 const fetchBackupProgress = () => apiFetch<BackupRunProgress>("/api/backups/progress")
 
-const fetchLogs = (level?: string, search?: string, limit = 100) => {
-  const params = new URLSearchParams()
-  if (level && level !== "all") params.set("level", level)
-  if (search) params.set("search", search)
-  params.set("limit", String(limit))
-  return apiFetch<{ data: { id: string; timestamp: string; level: string; message: string }[]; total: number }>(
-    `/api/logs?${params.toString()}`,
+const fetchLogs = (query: LogQuery = {}) =>
+  apiFetch<Paginated<LogEntry>>(
+    `/api/logs${toParams({
+      level: query.level,
+      levels: query.levels?.length ? query.levels.join(",") : undefined,
+      search: query.search,
+      runId: query.runId,
+      since: query.since,
+      page: query.page ?? 1,
+      limit: query.limit ?? 200,
+    })}`,
   )
-}
+
+const fetchLogStats = () =>
+  apiFetch<{ total: number; debug: number; info: number; warn: number; error: number; fatal: number }>("/api/logs/stats")
+
+const clearStoredLogs = () => apiFetch<{ cleared: boolean }>("/api/logs", { method: "DELETE" })
 
 const fetchSystem = () =>
   apiFetch<{
@@ -167,19 +193,24 @@ export {
   updateSchedule,
   fetchRetention,
   updateRetention,
-  fetchNotifications,
-  updateNotifications,
   fetchExclude,
   updateExclude,
+  fetchNotifications,
+  updateNotifications,
   fetchSourceExclusions,
   fetchBackups,
   fetchBackupStats,
   triggerBackup,
   fetchBackupProgress,
   fetchLogs,
+  fetchLogStats,
+  clearStoredLogs,
   fetchSystem,
   testNotification,
   fetchDockerContainers,
   fetchContainerVolumes,
   fetchPostgresDatabases,
+  type Paginated,
+  type RunQuery,
+  type LogQuery,
 }

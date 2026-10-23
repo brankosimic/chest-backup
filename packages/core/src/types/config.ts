@@ -1,3 +1,5 @@
+import type { DestinationType } from "@chest-backup/shared"
+
 enum RetentionMode {
   Monthly = "months",
   Weekly = "weeks",
@@ -57,7 +59,7 @@ type Source =
 
 interface Destination {
   id?: string
-  type: "local" | "sftp"
+  type: DestinationType
   name?: string
   path: string
   host?: string

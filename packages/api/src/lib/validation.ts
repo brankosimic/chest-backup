@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { DestinationType } from "@chest-backup/shared"
 import { RetentionMode } from "@core/types/config"
 
 const PathSourceSchema = z.object({
@@ -51,7 +52,9 @@ const SourceSchema = z.discriminatedUnion("type", [
 ])
 
 const DestinationSchema = z.object({
-  type: z.enum(["local", "sftp"]),
+  id: z.string().optional(),
+  name: z.string().optional(),
+  type: z.enum(DestinationType),
   path: z.string().min(1, "Path is required"),
   host: z.string().optional(),
   port: z.number().int().positive("Port must be positive").optional(),

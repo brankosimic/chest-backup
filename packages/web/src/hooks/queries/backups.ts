@@ -1,12 +1,21 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { useQuery, useMutation, useQueryClient, useQueryClient as useQc } from "@tanstack/react-query"
 import type { Destination } from "@chest-backup/shared"
-import { fetchBackups, fetchBackupStats, fetchBackupProgress, triggerBackup, fetchLogs } from "@/lib/api-client"
+import {
+  fetchBackups,
+  fetchBackupStats,
+  fetchBackupProgress,
+  triggerBackup,
+  fetchLogs,
+  fetchLogStats,
+  clearStoredLogs,
+  type RunQuery,
+  type LogQuery,
+} from "@/lib/api-client"
 
-const useBackups = (page = 1, limit = 50) =>
-  useQuery({ queryKey: ["backups", page, limit], queryFn: () => fetchBackups(page, limit) })
+const useBackups = (query: RunQuery = {}) => useQuery({ queryKey: ["backups", query], queryFn: () => fetchBackups(query) })
 
-const useBackupStats = () =>
-  useQuery({ queryKey: ["backup-stats"], queryFn: fetchBackupStats, refetchInterval: 15_000 })
+const useBackupStats = (query: RunQuery = {}) =>
+  useQuery({ queryKey: ["backup-stats", query], queryFn: () => fetchBackupStats(query), refetchInterval: 15_000 })
 
 const useBackupProgress = () =>
   useQuery({
@@ -28,15 +37,21 @@ const useTriggerBackup = (destinations: Destination[]) => {
     mutationFn: triggerBackup,
     onMutate: () => {
       qc.setQueryData(["backup-progress"], {
-        status: "running",
+        runId: "pending",
+        status: "running" as const,
+        phase: "queued" as const,
+        trigger: "manual" as const,
         startedAt: new Date().toISOString(),
+        finishedAt: "",
         timestamp: "",
         destinations: destinations.map((d) => ({
+          id: d.id,
           name: d.name ?? d.path,
           path: d.path,
           type: d.type,
           status: "pending" as const,
         })),
+        errors: [],
       })
     },
     onSuccess: () => {
@@ -47,7 +62,28 @@ const useTriggerBackup = (destinations: Destination[]) => {
   })
 }
 
-const useLogs = (level?: string, search?: string) =>
-  useQuery({ queryKey: ["logs", level, search], queryFn: () => fetchLogs(level, search) })
+const useLogs = (query: LogQuery = {}) => useQuery({ queryKey: ["logs", query], queryFn: () => fetchLogs(query) })
 
-export { useBackups, useBackupStats, useBackupProgress, useTriggerBackup, useLogs }
+const useLogStats = () => useQuery({ queryKey: ["log-stats"], queryFn: fetchLogStats })
+
+const useClearLogs = () => {
+  const qc = useQc()
+
+  return useMutation({
+    mutationFn: clearStoredLogs,
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["logs"] })
+      void qc.invalidateQueries({ queryKey: ["log-stats"] })
+    },
+  })
+}
+
+export {
+  useBackups,
+  useBackupStats,
+  useBackupProgress,
+  useTriggerBackup,
+  useLogs,
+  useLogStats,
+  useClearLogs,
+}

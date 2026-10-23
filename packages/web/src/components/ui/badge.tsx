@@ -15,7 +15,7 @@ const badgeVariants: Record<string, string> = {
 
 const Badge = ({ className, variant = "default", ...props }: BadgeProps) => {
   return (
-    <div
+    <span
       className={cn(
         "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors",
         badgeVariants[variant],

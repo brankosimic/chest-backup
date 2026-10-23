@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge"
 import { Link } from "react-router-dom"
 import { AlertTriangle, Clock } from "lucide-react"
 import { formatSize, formatDuration, cn } from "@/lib/utils"
+import { DestinationType } from "@chest-backup/shared"
 import { useDestinationUsage } from "@/hooks/use-queries"
 import type { DestCardProps } from "@/types/backup"
 import * as styles from "./dest-card.styles"
@@ -21,8 +22,8 @@ const DestCard = ({ props }: { props: DestCardProps }) => {
           <CardTitle className={styles.title} title={props.destination.path}>
             {props.destination.name ?? props.destination.path}
           </CardTitle>
-          <Badge variant={props.destination.type === "local" ? "default" : "secondary"} className={styles.badge}>
-            {props.destination.type === "local" ? t("destinations.local") : t("destinations.sftp")}
+          <Badge variant={props.destination.type === DestinationType.Local ? "default" : "secondary"} className={styles.badge}>
+            {props.destination.type === DestinationType.Local ? t("destinations.local") : t("destinations.sftp")}
           </Badge>
         </CardHeader>
         <CardContent className={styles.content}>

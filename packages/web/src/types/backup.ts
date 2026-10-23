@@ -1,21 +1,58 @@
 import type { ReactNode } from "react"
-import type { Destination } from "@chest-backup/shared"
+import type { BackupRecord, Destination, DestinationType, RunStatus, RunTrigger } from "@chest-backup/shared"
+
+enum RunPhase {
+  Queued = "queued",
+  Resolving = "resolving",
+  Archiving = "archiving",
+  Uploading = "uploading",
+  Completed = "completed",
+  Failed = "failed",
+}
+
+enum DestRunStatus {
+  Pending = "pending",
+  Uploading = "uploading",
+  Done = "done",
+  Error = "error",
+  Skipped = "skipped",
+}
+
+enum StatTileTone {
+  Default = "default",
+  Success = "success",
+  Warning = "warning",
+  Destructive = "destructive",
+}
 
 interface DestProgress {
+  id?: string
   name: string
   path: string
-  type: string
-  status: "pending" | "uploading" | "done" | "error" | "skipped"
+  type: DestinationType
+  status: DestRunStatus
   speed?: number
   message?: string
+  durationMs?: number
+  startedAt?: string
+  finishedAt?: string
 }
 
 interface BackupRunProgress {
-  status: "idle" | "archiving" | "running" | "completed" | "failed"
+  runId: string
+  status: RunStatus
+  phase: RunPhase
+  trigger: RunTrigger
   startedAt: string
+  finishedAt?: string
   timestamp: string
   archiveSize?: number
   destinations: DestProgress[]
+  filesChanged?: number
+  filesBackedUp?: number
+  totalUploadedBytes?: number
+  durationMs?: number
+  errors: string[]
 }
 
 interface ContainerVolume {
@@ -40,10 +77,45 @@ interface DestinationUsage {
   available: boolean
 }
 
-interface StatCardProps {
+interface StatTileProps {
   title: string
-  icon: ReactNode
   value: string
+  hint?: string
+  icon?: ReactNode
+  tone?: StatTileTone
 }
 
-export type { ContainerVolume, BackupRunProgress, DestProgress, DestCardProps, DestinationUsage, StatCardProps }
+interface RecentActivityProps {
+  runs: BackupRecord[]
+  loading?: boolean
+  limit?: number
+}
+
+interface HealthStripProps {
+  runs: BackupRecord[]
+  className?: string
+}
+
+interface RunStatusBadgeProps {
+  status?: RunStatus
+  className?: string
+}
+
+interface TriggerBadgeProps {
+  trigger: RunTrigger
+  className?: string
+}
+
+export { RunPhase, DestRunStatus, StatTileTone }
+export type {
+  ContainerVolume,
+  BackupRunProgress,
+  DestProgress,
+  DestCardProps,
+  DestinationUsage,
+  StatTileProps,
+  RecentActivityProps,
+  HealthStripProps,
+  RunStatusBadgeProps,
+  TriggerBadgeProps,
+}

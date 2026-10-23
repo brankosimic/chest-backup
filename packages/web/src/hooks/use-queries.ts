@@ -18,8 +18,17 @@ import {
   useExclude,
   useUpdateExclude,
 } from "./queries/config"
-import { useBackups, useBackupStats, useBackupProgress, useTriggerBackup, useLogs } from "./queries/backups"
+import {
+  useBackups,
+  useBackupStats,
+  useBackupProgress,
+  useTriggerBackup,
+  useLogs,
+  useLogStats,
+  useClearLogs,
+} from "./queries/backups"
 import { useSystem } from "./queries/system"
+import { useEventStream } from "./use-event-stream"
 
 export {
   useSources,
@@ -48,5 +57,8 @@ export {
   useBackupProgress,
   useTriggerBackup,
   useLogs,
+  useLogStats,
+  useClearLogs,
   useSystem,
+  useEventStream,
 }

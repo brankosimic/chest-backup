@@ -3,6 +3,7 @@ import { Scheduler } from "./scheduler/cron"
 import { logger } from "./utils/logger"
 import { loadConfig } from "./config/loader"
 import type { BackupResult } from "./types/index"
+import { RunTrigger } from "@chest-backup/shared"
 import { DaemonStatus } from "./types/daemon"
 import type { DaemonOptions, DaemonHandle } from "./types/daemon"
 
@@ -18,30 +19,30 @@ const createDaemon = (
 
   const config = loadConfig(configPath)
   let isBackupRunning = false
-  const { onStateChange, onNotify } = options ?? {}
+  const { onStateChange, onNotify, onProgress } = options ?? {}
 
-  const runBackupIfIdle = async (): Promise<void> => {
+  const runBackupIfIdle = async (trigger: RunTrigger = RunTrigger.Scheduled): Promise<void> => {
     if (isBackupRunning) return
 
     isBackupRunning = true
     onStateChange?.(DaemonStatus.Running, "Backup in progress")
     onNotify?.("Backup Started", "Backup operation is in progress…")
 
-    const result = await runBackup(config)
+    const result = await runBackup(config, onProgress, { trigger })
     isBackupRunning = false
     emitAfterBackup(result, onStateChange, onNotify)
     logger.info({ success: result.success, durationMs: result.durationMs }, "backup completed")
     onBackupComplete?.(result)
   }
 
-  const scheduler = new Scheduler(config.schedule as string, runBackupIfIdle)
+  const scheduler = new Scheduler(config.schedule as string, () => runBackupIfIdle(RunTrigger.Scheduled))
   scheduler.start()
   logger.info({ schedule: config.schedule }, "daemon mode started")
   onStateChange?.(DaemonStatus.Idle, "Waiting for schedule")
   setupShutdownHandlers(scheduler)
 
   return {
-    runBackupNow: runBackupIfIdle,
+    runBackupNow: () => runBackupIfIdle(RunTrigger.Manual),
     stop: () => {
       scheduler.stop()
       process.exit(0)
@@ -57,12 +58,16 @@ const startDaemon = async (
   await new Promise(() => {})
 }
 
+const handleShutdown = (scheduler: Scheduler, sig: string): void => {
+  logger.info(`received ${sig}, shutting down`)
+  scheduler.stop()
+  process.exit(0)
+}
+
 const setupShutdownHandlers = (scheduler: Scheduler): void => {
   for (const sig of ["SIGTERM", "SIGINT"] as const) {
     process.on(sig, () => {
-      logger.info(`received ${sig}, shutting down`)
-      scheduler.stop()
-      process.exit(0)
+      handleShutdown(scheduler, sig)
     })
   }
 }

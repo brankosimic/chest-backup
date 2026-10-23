@@ -6,6 +6,7 @@ import { storeSftpIncremental } from "./sftp"
 import { enforceRetention } from "../backup/retention"
 import { enforceRetentionSftp } from "./sftp-retention"
 import { logger } from "../utils/logger"
+import { DestinationType } from "@chest-backup/shared"
 
 const handleDestination = async (
   files: FileStat[],
@@ -14,12 +15,83 @@ const handleDestination = async (
   periodKey: string,
 ): Promise<StoreResult> => {
   try {
-    if (dest.type === "local") return await storeLocalIncremental(files, toDelete, dest, periodKey)
+    if (dest.type === DestinationType.Local) return await storeLocalIncremental(files, toDelete, dest, periodKey)
     return await storeSftpIncremental(files, toDelete, dest, periodKey)
   } catch (err) {
     logger.error({ dest: dest.path, err }, "destination store failed")
     return { success: false, error: String(err) }
   }
+}
+
+const buildSkippedResult = (dest: Destination): StoreResult => ({
+  success: true,
+  skipped: true,
+  skippedReason: "no-changes",
+  destId: dest.id,
+  destName: dest.name,
+  destPath: dest.path,
+  destType: dest.type,
+  destLabel: dest.name ?? dest.path,
+  uploaded: [],
+  deleted: [],
+})
+
+const applyRetention = async (
+  dest: Destination,
+  config: Config,
+  periodKey: string,
+  errors: string[],
+): Promise<void> => {
+  try {
+    if (dest.type === DestinationType.Local) {
+      enforceRetention(dest, config.retention, config.retentionMode, periodKey)
+      return
+    }
+    await enforceRetentionSftp(dest, config.retention, config.retentionMode, periodKey)
+  } catch (err) {
+    errors.push(`Retention enforcement failed for ${dest.path}: ${String(err)}`)
+  }
+}
+
+const announceSkipped = (dest: Destination, onProgress?: BackupProgressCallback): void => {
+  onProgress?.({
+    phase: "destination-done",
+    destId: dest.id,
+    destName: dest.name,
+    destPath: dest.path,
+    destType: dest.type,
+    message: "skipped",
+  })
+}
+
+const announceFailure = (dest: Destination, result: StoreResult, onProgress?: BackupProgressCallback): void => {
+  onProgress?.({
+    phase: "destination-error",
+    destId: dest.id,
+    destName: dest.name,
+    destPath: dest.path,
+    destType: dest.type,
+    message: result.error,
+  })
+}
+
+const announceDone = (dest: Destination, result: StoreResult, onProgress?: BackupProgressCallback): void => {
+  onProgress?.({
+    phase: "destination-done",
+    destId: dest.id,
+    destName: dest.name,
+    destPath: dest.path,
+    destType: dest.type,
+    speed: result.speed,
+  })
+}
+
+const tagResult = (result: StoreResult, dest: Destination): void => {
+  if (dest.id) result.destId = dest.id
+  result.destName = dest.name
+  result.destPath = dest.path
+  result.destType = dest.type
+  result.destLabel = dest.name ?? dest.path
 }
 
 const storeToDestination = async (
@@ -34,51 +106,24 @@ const storeToDestination = async (
 ): Promise<StoreResult> => {
   if (!files.length && !toDelete.length) {
     logger.info({ dest: dest.name ?? dest.path, unchanged }, "destination already up to date, skipping")
-    onProgress?.({
-      phase: "destination-done",
-      destName: dest.name,
-      destPath: dest.path,
-      destType: dest.type,
-      message: "skipped",
-    })
-    return { success: true, skipped: true, skippedReason: "no-changes", destId: dest.id, destLabel: dest.type, uploaded: [], deleted: [] }
+    announceSkipped(dest, onProgress)
+    return buildSkippedResult(dest)
   }
 
-  onProgress?.({ phase: "destination-start", destName: dest.name, destPath: dest.path, destType: dest.type })
+  onProgress?.({ phase: "destination-start", destId: dest.id, destName: dest.name, destPath: dest.path, destType: dest.type })
 
   const start = Date.now()
   const result = await handleDestination(files, toDelete, dest, periodKey)
   result.durationMs = Date.now() - start
-  if (dest.id) result.destId = dest.id
-  result.destLabel = dest.type
+  tagResult(result, dest)
 
-  if (result.success) {
-    onProgress?.({
-      phase: "destination-done",
-      destName: dest.name,
-      destPath: dest.path,
-      destType: dest.type,
-      speed: result.speed,
-    })
-    try {
-      if (dest.type === "local") {
-        enforceRetention(dest, config.retention, config.retentionMode, periodKey)
-      } else {
-        await enforceRetentionSftp(dest, config.retention, config.retentionMode, periodKey)
-      }
-    } catch (err) {
-      errors.push(`Retention enforcement failed for ${dest.path}: ${String(err)}`)
-    }
-  } else {
-    onProgress?.({
-      phase: "destination-error",
-      destName: dest.name,
-      destPath: dest.path,
-      destType: dest.type,
-      message: result.error,
-    })
+  if (!result.success) {
+    announceFailure(dest, result, onProgress)
+    return result
   }
 
+  announceDone(dest, result, onProgress)
+  await applyRetention(dest, config, periodKey, errors)
   return result
 }
 

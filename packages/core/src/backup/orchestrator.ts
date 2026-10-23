@@ -1,6 +1,13 @@
 import { mkdirSync, unlinkSync } from "node:fs"
 import type { Config, Destination } from "../types/config"
-import type { BackupResult, BackupSummary, DestOutcome, BackupProgressCallback } from "../types/index"
+import type {
+  BackupResult,
+  BackupSummary,
+  DestOutcome,
+  BackupProgressCallback,
+  RunOptions,
+  StoreResult,
+} from "../types/index"
 import type { FileStat } from "../types/manifest"
 import { formatTimestamp } from "./archiver"
 import { resolveSources } from "./sources"
@@ -10,7 +17,31 @@ import { sendStartedNotification, sendCompletedNotification } from "../notificat
 import { prepareIncremental, persistManifest, uploadedFrom } from "./incremental"
 import { periodKeyFor } from "./periods"
 import { sweepStaleTempFiles } from "./temp-sweep"
-import { logger } from "../utils/logger"
+import { logger, withRunContext } from "../utils/logger"
+import { RunTrigger } from "@chest-backup/shared"
+
+interface RunContext {
+  runId: string
+  timestamp: string
+  startedAt: string
+  trigger: BackupResult["trigger"]
+}
+
+const buildSkippedResult = (dest: Destination): StoreResult => ({
+  success: true,
+  skipped: true,
+  skippedReason: "no-changes",
+  destId: dest.id,
+  destName: dest.name,
+  destPath: dest.path,
+  destType: dest.type,
+  destLabel: dest.name ?? dest.path,
+  uploaded: [],
+  deleted: [],
+})
+
+const createRunId = (): string =>
+  `run-${new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "")}-${Math.random().toString(36).slice(2, 8)}`
 
 const processDestination = async (
   config: Config,
@@ -23,8 +54,7 @@ const processDestination = async (
   const { diff, manifest } = await prepareIncremental(config, dest, files, periodKey)
 
   if (!diff.toUpload.length && !diff.toDelete.length) {
-    const result = { success: true, skipped: true, skippedReason: "no-changes", destId: dest.id, destLabel: dest.type, uploaded: [], deleted: [] }
-    return { result, uploaded: [] }
+    return { result: buildSkippedResult(dest), uploaded: [] }
   }
 
   const result = await storeToDestination(diff.toUpload, diff.toDelete, diff.unchanged, dest, config, errors, periodKey, onProgress)
@@ -65,10 +95,21 @@ const summariseOutcomes = (outcomes: DestOutcome[]): BackupSummary => {
   return { filesChanged: reference.uploaded.length, totalUploadedBytes: uploadedBytes }
 }
 
+const buildEmptyResult = (run: RunContext, errors: string[]): BackupResult => ({
+  success: false,
+  runId: run.runId,
+  timestamp: run.timestamp,
+  startedAt: run.startedAt,
+  finishedAt: new Date().toISOString(),
+  trigger: run.trigger,
+  durationMs: 0,
+  destinationResults: [],
+  errors,
+})
+
 const executeBackup = async (
   config: Config,
-  timestamp: string,
-  runDate: Date,
+  run: RunContext,
   errors: string[],
   tempFiles: string[],
   onProgress?: BackupProgressCallback,
@@ -84,7 +125,7 @@ const executeBackup = async (
   mkdirSync(tempDir, { recursive: true })
   sweepStaleTempFiles(config)
 
-  const periodKey = periodKeyFor(config.retentionMode, timestamp, runDate)
+  const periodKey = periodKeyFor(config.retentionMode, run.timestamp, new Date(run.startedAt))
 
   let files: string[] = []
   try {
@@ -92,15 +133,15 @@ const executeBackup = async (
     files = resolved.paths
 
     if (!files.length) {
-      logger.error({ timestamp }, "no sources to back up")
+      logger.error({ timestamp: run.timestamp }, "no sources to back up")
       errors.push("No sources to back up")
-      return { success: false, timestamp, durationMs: 0, destinationResults: [], errors }
+      return buildEmptyResult(run, errors)
     }
   } finally {
     await startBackupContainers(containers, errors)
   }
 
-  onProgress?.({ phase: "archiving" })
+  onProgress?.({ phase: "archiving", runId: run.runId, timestamp: run.timestamp })
 
   const active = config.destinations.filter((d) => !d.skip)
   const sequential = active.filter((d) => !d.parallel)
@@ -121,7 +162,11 @@ const executeBackup = async (
 
   return {
     success,
-    timestamp,
+    runId: run.runId,
+    timestamp: run.timestamp,
+    startedAt: run.startedAt,
+    finishedAt: new Date().toISOString(),
+    trigger: run.trigger,
     durationMs: 0,
     destinationResults,
     errors,
@@ -141,36 +186,60 @@ const cleanupTempFiles = (tempFiles: string[]): void => {
   })
 }
 
-const runBackup = async (config: Config, onProgress?: BackupProgressCallback): Promise<BackupResult> => {
+const executeRun = async (
+  config: Config,
+  run: RunContext,
+  onProgress?: BackupProgressCallback,
+): Promise<BackupResult> => {
   const startTime = Date.now()
-  const runDate = new Date()
-  const timestamp = formatTimestamp(runDate)
   const errors: string[] = []
   const tempFiles: string[] = []
 
-  await sendStartedNotification(config, timestamp)
-  logger.info({ timestamp }, "backup started")
+  onProgress?.({ phase: "run-start", runId: run.runId, timestamp: run.timestamp })
+
+  await sendStartedNotification(config, run.timestamp)
+  logger.info({ timestamp: run.timestamp }, "backup started")
 
   try {
-    const result = await executeBackup(config, timestamp, runDate, errors, tempFiles, onProgress)
+    const result = await executeBackup(config, run, errors, tempFiles, onProgress)
     result.durationMs = Date.now() - startTime
+    result.finishedAt = new Date().toISOString()
     await sendCompletedNotification(config, result)
-    logger.info({ success: result.success, durationMs: result.durationMs, timestamp }, "backup finished")
+    logger.info({ success: result.success, durationMs: result.durationMs, timestamp: run.timestamp }, "backup finished")
     return result
   } catch (err) {
     const failedResult: BackupResult = {
       success: false,
-      timestamp,
+      runId: run.runId,
+      timestamp: run.timestamp,
+      startedAt: run.startedAt,
+      finishedAt: new Date().toISOString(),
+      trigger: run.trigger,
       durationMs: Date.now() - startTime,
       destinationResults: [],
       errors: [String(err)],
     }
     await sendCompletedNotification(config, failedResult)
-    logger.info({ success: failedResult.success, durationMs: failedResult.durationMs, timestamp }, "backup finished")
+    logger.info({ success: false, durationMs: failedResult.durationMs, timestamp: run.timestamp }, "backup finished")
     return failedResult
   } finally {
     cleanupTempFiles(tempFiles)
   }
 }
 
-export { runBackup }
+const runBackup = async (
+  config: Config,
+  onProgress?: BackupProgressCallback,
+  options?: RunOptions,
+): Promise<BackupResult> => {
+  const run: RunContext = {
+    runId: options?.runId ?? createRunId(),
+    timestamp: formatTimestamp(new Date()),
+    startedAt: new Date().toISOString(),
+    trigger: options?.trigger ?? RunTrigger.Manual,
+  }
+
+  return withRunContext(run.runId, () => executeRun(config, run, onProgress))
+}
+
+export { runBackup, createRunId }

@@ -1,5 +1,5 @@
 import type { PaginatedResult, BackupStats } from "../../types/api"
-import { seedLogsFromHistory, parseTimestamp, addLogEntry, getLogs, pushLog } from "./logs"
+import { addLogEntry, getLogs, getLogStats, clearLogs, flushLogs, nextId } from "./logs"
 import { getSystem } from "./system"
 import { getSources, findSourceById, createSource, updateSource, deleteSource } from "./entities"
 import {
@@ -20,16 +20,25 @@ import {
   updateNotifications,
 } from "./settings"
 import { getSourceExclusions } from "./exclusions"
-import { getBackups, getBackupById, getBackupStats, getDestinationUsage, addBackupRecord, invalidateBackupCache } from "./backups"
+import {
+  getBackups,
+  getBackupById,
+  getBackupStats,
+  getDestinationUsage,
+  addBackupRecord,
+  invalidateBackupCache,
+} from "./backups"
 import { persistBackupResult } from "./backup-result"
 
 export {
   type PaginatedResult,
   type BackupStats,
-  seedLogsFromHistory,
   addBackupRecord,
   addLogEntry,
+  clearLogs,
   createDestination,
+  flushLogs,
+  getLogStats,
   getLogs,
   createSource,
   deleteDestination,
@@ -49,9 +58,8 @@ export {
   getSources,
   getSystem,
   invalidateBackupCache,
-  parseTimestamp,
+  nextId,
   persistBackupResult,
-  pushLog,
   updateDestination,
   updateExclude,
   updateNotifications,

@@ -204,11 +204,14 @@ const deleteSource = (id: string): boolean => {
   return true
 }
 
+const destinationId = (item: Record<string, unknown>): string =>
+  (item.id as string | undefined) ?? stableId(item)
+
 const destinationFromConfigItem = (item: Record<string, unknown>): Destination => ({
-  id: stableId(item),
   type: item.type as Destination["type"],
   path: item.path as string,
   ...item,
+  id: destinationId(item),
   createdAt: now(),
   updatedAt: now(),
 })
@@ -222,23 +225,25 @@ const findDestinationById = (id: string): Destination | undefined => getDestinat
 
 const createDestination = (data: Record<string, unknown>): Destination => {
   const { config } = getConfig()
-  config.destinations.push(data as ConfigFile["destinations"][number])
+  const item = { ...data, id: (data.id as string | undefined) ?? stableId(data) }
+  config.destinations.push(item as unknown as ConfigFile["destinations"][number])
   writeConfig(config)
-  return destinationFromConfigItem(data)
+  return destinationFromConfigItem(item)
 }
 
 const updateDestination = (id: string, data: Partial<Destination>): Destination | undefined => {
   const { config } = getConfig()
-  const index = config.destinations.findIndex((d) => stableId(d) === id)
+  const index = config.destinations.findIndex((d) => destinationId(d) === id)
   if (index === -1) return undefined
-  config.destinations[index] = { ...config.destinations[index], ...data }
+  const current = config.destinations[index]
+  config.destinations[index] = { ...current, ...data, id: current.id ?? id }
   writeConfig(config)
   return destinationFromConfigItem(config.destinations[index])
 }
 
 const deleteDestination = (id: string): boolean => {
   const { config } = getConfig()
-  const index = config.destinations.findIndex((d) => stableId(d) === id)
+  const index = config.destinations.findIndex((d) => destinationId(d) === id)
   if (index === -1) return false
   config.destinations.splice(index, 1)
   writeConfig(config)

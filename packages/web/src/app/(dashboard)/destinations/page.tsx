@@ -7,8 +7,9 @@ import { Header } from "@/components/layout/header"
 import { Plus } from "lucide-react"
 import { useDestinations } from "@/hooks/use-queries"
 import type { Destination } from "@chest-backup/shared"
+import { DestinationType } from "@chest-backup/shared"
 
-export default function DestinationsPage() {
+const DestinationsPage = () => {
   const { t } = useTranslation()
   const { data: destinations, isLoading } = useDestinations()
 
@@ -50,25 +51,27 @@ export default function DestinationsPage() {
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-base">{dest.name ?? dest.path}</CardTitle>
-                    <Badge variant={dest.type === "local" ? "default" : "secondary"}>
-                      {dest.type === "local" ? t("destinations.local") : "SFTP"}
+                    <Badge variant={dest.type === DestinationType.Local ? "default" : "secondary"}>
+                      {dest.type === DestinationType.Local ? t("destinations.local") : t("destinations.sftp")}
                     </Badge>
                   </div>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-1 text-sm">
-                    {dest.type === "sftp" && dest.host && (
+                    {dest.type === DestinationType.Sftp && dest.host && (
                       <>
                         <p className="text-muted-foreground">
                           {dest.host}:{dest.port}
                         </p>
-                        <p className="text-muted-foreground">User: {dest.user}</p>
+                        <p className="text-muted-foreground">{t("destinations.user", { user: dest.user })}</p>
                       </>
                     )}
                     {dest.parallel !== undefined && (
-                      <p className="text-muted-foreground">Parallel: {dest.parallel ? "Yes" : "No"}</p>
+                      <p className="text-muted-foreground">
+                        {t("destinations.parallel")}: {dest.parallel ? t("common.yes") : t("common.no")}
+                      </p>
                     )}
-                    {dest.skip && <Badge variant="outline">Skipped</Badge>}
+                    {dest.skip && <Badge variant="outline">{t("status.skipped")}</Badge>}
                   </div>
                 </CardContent>
               </Card>
@@ -79,3 +82,5 @@ export default function DestinationsPage() {
     </div>
   )
 }
+
+export { DestinationsPage as default }

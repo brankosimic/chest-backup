@@ -1,8 +1,9 @@
 import React from "react"
 import ReactDOM from "react-dom/client"
-import { createBrowserRouter, RouterProvider } from "react-router-dom"
+import { createBrowserRouter, Navigate, RouterProvider } from "react-router-dom"
 import { QueryProvider } from "@/components/QueryProvider"
 import { I18nProvider } from "@/components/I18nProvider"
+import { ErrorBoundary } from "@/components/ui/error-boundary"
 import "@/app/globals.css"
 
 // Dashboard layout
@@ -15,8 +16,7 @@ import DestinationsPage from "@/app/(dashboard)/destinations/page"
 import NewDestinationPage from "@/app/(dashboard)/destinations/new/page"
 import DestinationDetailPage from "@/app/(dashboard)/destinations/[id]/page"
 import NotificationsPage from "@/app/(dashboard)/notifications/page"
-import HistoryPage from "@/app/(dashboard)/history/page"
-import LogsPage from "@/app/(dashboard)/logs/page"
+import ActivityPage from "@/app/(dashboard)/activity/page"
 import SettingsPage from "@/app/(dashboard)/settings/page"
 
 const router = createBrowserRouter([
@@ -33,8 +33,9 @@ const router = createBrowserRouter([
       { path: "destinations/new", element: <NewDestinationPage /> },
       { path: "destinations/:id", element: <DestinationDetailPage /> },
       { path: "notifications", element: <NotificationsPage /> },
-      { path: "history", element: <HistoryPage /> },
-      { path: "logs", element: <LogsPage /> },
+      { path: "activity", element: <ActivityPage /> },
+      { path: "history", element: <Navigate to="/activity" replace /> },
+      { path: "logs", element: <Navigate to="/activity" replace /> },
       { path: "settings", element: <SettingsPage /> },
     ],
   },
@@ -44,10 +45,12 @@ const rootEl = document.getElementById("root")
 if (rootEl)
   ReactDOM.createRoot(rootEl).render(
     <React.StrictMode>
-      <QueryProvider>
-        <I18nProvider>
-          <RouterProvider router={router} />
-        </I18nProvider>
-      </QueryProvider>
+      <ErrorBoundary>
+        <QueryProvider>
+          <I18nProvider>
+            <RouterProvider router={router} />
+          </I18nProvider>
+        </QueryProvider>
+      </ErrorBoundary>
     </React.StrictMode>,
   )

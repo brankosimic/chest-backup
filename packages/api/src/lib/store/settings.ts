@@ -2,12 +2,31 @@ import type { Retention } from "../../types/api"
 import type { ExcludeSettings } from "../../types/api"
 import type { Schedule, NotificationConfig } from "@chest-backup/shared"
 import { RetentionMode } from "@core/types/config"
+import { CronExpressionParser } from "cron-parser"
 import { getConfig, writeConfig } from "./config"
 import { invalidateSourceExclusions } from "./exclusions"
+import { readBackupHistory } from "./backups"
+
+const computeNextRun = (expression: string): string | undefined => {
+  if (!expression) return undefined
+  try {
+    return new Date(CronExpressionParser.parse(expression).next().getTime()).toISOString()
+  } catch {
+    return undefined
+  }
+}
 
 const getSchedule = (): Schedule => {
   const { config } = getConfig()
-  return { schedule: config.schedule ?? "", enabled: true }
+  const expression = config.schedule ?? ""
+  const latest = readBackupHistory().at(0)
+
+  return {
+    schedule: expression,
+    enabled: true,
+    ...(latest?.startedAt ? { lastRun: latest.startedAt } : {}),
+    ...(computeNextRun(expression) ? { nextRun: computeNextRun(expression) } : {}),
+  }
 }
 
 const updateSchedule = (data: Partial<Schedule>): Schedule => {

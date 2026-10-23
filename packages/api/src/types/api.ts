@@ -26,7 +26,11 @@ interface BackupStats {
   total: number
   success: number
   failed: number
+  partial: number
+  skipped: number
   avgDuration: number
+  totalUploadedBytes: number
+  filesChanged: number
 }
 
 type Result<T> = { ok: true; data: T } | { ok: false; error: Response }

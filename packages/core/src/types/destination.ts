@@ -37,10 +37,18 @@ interface UploadContext {
   createdDirs: Set<string>
 }
 
-type ProgressPhase = "archiving" | "destination-start" | "destination-done" | "destination-error"
+type ProgressPhase =
+  | "run-start"
+  | "archiving"
+  | "destination-start"
+  | "destination-done"
+  | "destination-error"
 
 interface BackupProgressEvent {
   phase: ProgressPhase
+  runId?: string
+  timestamp?: string
+  destId?: string
   destName?: string
   destPath?: string
   destType?: string

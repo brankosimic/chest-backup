@@ -5,27 +5,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { useBackupProgress } from "@/hooks/use-queries"
 import { formatSize, formatSpeed } from "@/lib/utils"
+import { DestinationType } from "@chest-backup/shared"
+import { DestRunStatus, RunPhase } from "@/types/backup"
+import type { BadgeVariant } from "@/types/ui"
 import { CheckCircle2, XCircle, Clock, Upload, SkipForward, HardDrive, Network, Sparkles } from "lucide-react"
 import * as styles from "./backup-progress.styles"
 
-const DestStatus = {
-  Done: "done",
-  Error: "error",
-  Uploading: "uploading",
-  Skipped: "skipped",
-} as const
+const ACTIVE_PHASES: RunPhase[] = [RunPhase.Queued, RunPhase.Resolving, RunPhase.Archiving, RunPhase.Uploading]
 
-type DestStatus = (typeof DestStatus)[keyof typeof DestStatus]
-
-const statusIcon = (status: string) => {
+const statusIcon = (status: DestRunStatus) => {
   switch (status) {
-    case DestStatus.Done:
+    case DestRunStatus.Done:
       return <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" />
-    case DestStatus.Error:
+    case DestRunStatus.Error:
       return <XCircle className="h-4 w-4 text-red-500 shrink-0" />
-    case DestStatus.Uploading:
+    case DestRunStatus.Uploading:
       return <Upload className="h-4 w-4 text-blue-500 shrink-0 animate-float-up" />
-    case DestStatus.Skipped:
+    case DestRunStatus.Skipped:
       return <SkipForward className="h-4 w-4 text-amber-500 shrink-0" />
     default:
       return <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -33,32 +29,25 @@ const statusIcon = (status: string) => {
 }
 
 interface StatusBadgeProps {
-  variant: "success" | "destructive" | "default" | "secondary" | "outline"
+  variant: BadgeVariant
   labelKey: string
 }
 
-const statusBadgeProps = (status: string): StatusBadgeProps => {
-  switch (status) {
-    case DestStatus.Done:
-      return { variant: "success", labelKey: "status.success" }
-    case DestStatus.Error:
-      return { variant: "destructive", labelKey: "status.error" }
-    case DestStatus.Uploading:
-      return { variant: "default", labelKey: "dashboard.uploading" }
-    case DestStatus.Skipped:
-      return { variant: "secondary", labelKey: "status.skipped" }
-    default:
-      return { variant: "outline", labelKey: "common.pending" }
-  }
+const statusBadgeProps = (status: DestRunStatus): StatusBadgeProps => {
+  if (status === DestRunStatus.Done) return { variant: "success", labelKey: "status.success" }
+  if (status === DestRunStatus.Error) return { variant: "destructive", labelKey: "status.error" }
+  if (status === DestRunStatus.Uploading) return { variant: "default", labelKey: "dashboard.uploading" }
+  if (status === DestRunStatus.Skipped) return { variant: "secondary", labelKey: "status.skipped" }
+  return { variant: "outline", labelKey: "common.pending" }
 }
 
-const typeIcon = (type: string) => {
-  if (type === "local") return <HardDrive className="h-3 w-3" />
+const typeIcon = (type: DestinationType) => {
+  if (type === DestinationType.Local) return <HardDrive className="h-3 w-3" />
   return <Network className="h-3 w-3" />
 }
 
-const typeLabelKey = (type: string): string => {
-  if (type === "local") return "destinations.local"
+const typeLabelKey = (type: DestinationType): string => {
+  if (type === DestinationType.Local) return "destinations.local"
   return "destinations.sftp"
 }
 
@@ -68,18 +57,18 @@ const BackupProgressCard = () => {
   const lastProgress = useRef(progress)
 
   useEffect(() => {
-    if (progress && progress.status !== "idle") lastProgress.current = progress
+    if (progress) lastProgress.current = progress
   }, [progress])
 
-  const display = progress?.status !== "idle" ? progress : lastProgress.current
+  const display = progress ?? lastProgress.current
 
-  if (!display || display.status === "idle") return null
+  if (!display) return null
 
-  const isActive = ["archiving", "running"].includes(display.status)
-  const isDone = ["completed", "failed"].includes(display.status)
+  const isActive = ACTIVE_PHASES.includes(display.phase)
+  const isDone = display.phase === RunPhase.Completed || display.phase === RunPhase.Failed
   const total = display.destinations.length
-  const terminalStatuses = [DestStatus.Done, DestStatus.Error, DestStatus.Skipped] as const
-  const done = display.destinations.filter((d) => (terminalStatuses as readonly string[]).includes(d.status)).length
+  const terminalStatuses: DestRunStatus[] = [DestRunStatus.Done, DestRunStatus.Error, DestRunStatus.Skipped]
+  const done = display.destinations.filter((d) => terminalStatuses.includes(d.status)).length
   const pct = total > 0 ? Math.round((done / total) * 100) : 0
 
   const borderClass = isActive
@@ -87,6 +76,8 @@ const BackupProgressCard = () => {
     : isDone
       ? "border-green-500/50"
       : ""
+
+  if (!isActive && !isDone) return null
 
   return (
     <Card className={borderClass}>
@@ -137,11 +128,11 @@ const BackupProgressCard = () => {
             <div
               key={dest.name + dest.path}
               className={`${styles.destRow} ${
-                dest.status === DestStatus.Uploading
+                dest.status === DestRunStatus.Uploading
                   ? styles.destRowUploading
-                  : dest.status === DestStatus.Done
+                  : dest.status === DestRunStatus.Done
                     ? styles.destRowDone
-                    : dest.status === DestStatus.Error
+                    : dest.status === DestRunStatus.Error
                       ? styles.destRowError
                       : ""
               }`}
@@ -156,15 +147,15 @@ const BackupProgressCard = () => {
                   </Badge>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  {dest.status === DestStatus.Uploading && (
+                  {dest.status === DestRunStatus.Uploading && (
                     <span className="text-xs text-blue-500 font-medium">
                       {t("dashboard.uploading")}
                     </span>
                   )}
-                  {dest.speed && ([DestStatus.Done, DestStatus.Uploading] as string[]).includes(dest.status) && (
+                  {dest.speed && [DestRunStatus.Done, DestRunStatus.Uploading].includes(dest.status) && (
                     <span className={styles.speedLabel}>{formatSpeed(dest.speed)}</span>
                   )}
-                  {dest.status === DestStatus.Done && (
+                  {dest.status === DestRunStatus.Done && (
                     <CheckCircle2 className="h-4 w-4 text-green-500" />
                   )}
                   <Badge variant={statusBadgeProps(dest.status).variant}>
@@ -172,7 +163,7 @@ const BackupProgressCard = () => {
                   </Badge>
                 </div>
               </div>
-              {dest.message && dest.status === DestStatus.Error && (
+              {dest.message && dest.status === DestRunStatus.Error && (
                 <p className="text-xs text-red-500 pl-6">
                   {dest.message}
                 </p>

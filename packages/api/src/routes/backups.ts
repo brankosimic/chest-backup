@@ -1,4 +1,5 @@
 import { Hono } from "hono"
+import { LogLevel, RunTrigger } from "@chest-backup/shared"
 import {
   getBackups,
   getBackupById,
@@ -7,36 +8,56 @@ import {
   invalidateBackupCache,
   persistBackupResult,
 } from "../lib/store"
-import { runBackup } from "@core/backup/orchestrator"
+import { runBackup, createRunId } from "@core/backup/orchestrator"
+import { formatTimestamp } from "@core/backup/archiver"
 import { getActiveConfig } from "../lib/api-config"
-import { startBackup, getProgress, updateFromEvent, completeBackup, clearProgress } from "../lib/progress"
+import { startRun, applyProgressEvent, completeRun, failRun, getProgress, getActiveRun } from "../lib/progress"
+import { parseRunQuery } from "../lib/query"
 import type { BackupProgressEvent } from "@core/types/index"
 
 const backups = new Hono()
 
+const logRunStart = (runId: string, destinationCount: number): void => {
+  addLogEntry({
+    id: `log-run-${runId}`,
+    timestamp: new Date().toISOString(),
+    level: LogLevel.Info,
+    message: "Manual backup triggered",
+    runId,
+    metadata: { trigger: RunTrigger.Manual, destinations: destinationCount },
+  })
+}
+
+const logRunFailure = (runId: string, message: string): void => {
+  addLogEntry({
+    id: `log-error-${runId}`,
+    timestamp: new Date().toISOString(),
+    level: LogLevel.Error,
+    message: `Manual backup failed: ${message}`,
+    runId,
+    metadata: { error: message },
+  })
+}
+
 backups.get("/", (c) => {
-  const page = Number(c.req.query("page")) || 1
-  const limit = Number(c.req.query("limit")) || 20
-  const data = getBackups(page, limit)
-  return c.json({ success: true, data })
+  return c.json({ success: true, data: getBackups(parseRunQuery(c)) })
 })
 
 backups.get("/stats", (c) => {
-  const data = getBackupStats()
-  return c.json({ success: true, data })
+  return c.json({ success: true, data: getBackupStats(parseRunQuery(c)) })
 })
 
 backups.get("/progress", (c) => {
-  const progress = getProgress()
-  return c.json({ success: true, data: progress })
+  return c.json({ success: true, data: getProgress() })
+})
+
+backups.get("/active", (c) => {
+  return c.json({ success: true, data: getActiveRun() ?? null })
 })
 
 backups.get("/:id", (c) => {
-  const id = c.req.param("id")
-  const backup = getBackupById(id)
-
+  const backup = getBackupById(c.req.param("id"))
   if (!backup) return c.json({ success: false, error: "Backup not found" }, 404)
-
   return c.json({ success: true, data: backup })
 })
 
@@ -44,48 +65,35 @@ backups.post("/run", (c) => {
   const config = getActiveConfig()
   if (!config) return c.json({ success: false, error: "No config loaded — cannot run backup" }, 500)
 
-  const timestamp = new Date()
-    .toISOString()
-    .replace(/[-:]/g, "")
-    .replace(/\.\d{3}/, "")
-  const runTimestamp = `${timestamp.slice(0, 8)}-${timestamp.slice(8, 14)}`
-
-  startBackup(
-    config.destinations.map((d) => ({ name: d.name, path: d.path, type: d.type })),
-    runTimestamp,
+  const runId = createRunId()
+  startRun(
+    runId,
+    RunTrigger.Manual,
+    config.destinations.map((d) => ({ id: d.id, name: d.name, path: d.path, type: d.type })),
+    formatTimestamp(new Date()),
   )
+  logRunStart(runId, config.destinations.length)
 
-  runBackup(config, (event: BackupProgressEvent) => {
-    updateFromEvent(event)
-  })
+  runBackup(
+    config,
+    (event: BackupProgressEvent) => {
+      applyProgressEvent(event)
+    },
+    { runId, trigger: RunTrigger.Manual },
+  )
     .then((result) => {
-      completeBackup(result.success)
+      completeRun(result)
       invalidateBackupCache()
       persistBackupResult(result)
-      setTimeout(() => {
-        clearProgress()
-      }, 5000)
     })
     .catch((err: unknown) => {
-      completeBackup(false)
-      addLogEntry({
-        id: `log-error-${String(Date.now())}`,
-        timestamp: new Date().toISOString(),
-        level: "error",
-        message: `Manual backup failed: ${err instanceof Error ? err.message : String(err)}`,
-        metadata: { error: err instanceof Error ? err.message : String(err) },
-      })
-      setTimeout(() => {
-        clearProgress()
-      }, 5000)
+      const message = err instanceof Error ? err.message : String(err)
+      failRun(runId, message)
+      logRunFailure(runId, message)
     })
 
   return c.json(
-    {
-      success: true,
-      message: "Backup triggered successfully",
-      data: { triggered: true, timestamp: runTimestamp },
-    },
+    { success: true, message: "Backup triggered successfully", data: { triggered: true, runId } },
     202,
   )
 })
