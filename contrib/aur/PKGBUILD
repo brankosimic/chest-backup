@@ -10,7 +10,7 @@
 #   sha256sums=('SKIP')
 
 pkgname=chest-backup
-pkgver=0.1.9
+pkgver=0.2.0
 pkgrel=1
 install=chest-backup.install
 pkgdesc="Full-stack backup manager with web UI and scheduling"
