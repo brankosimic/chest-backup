@@ -11,6 +11,9 @@ const setLocale = (locale: string): void => {
   currentLocale = locale
 }
 
+/** Chromium lacks Bosnian Intl data, so formatting falls back to root patterns. */
+const intlLocale = (): string => (currentLocale === "bs" ? "sr-Latn-BA" : currentLocale)
+
 const RANGE_DAYS: Partial<Record<TimeRange, number>> = {
   [TimeRange.Day]: 1,
   [TimeRange.Week]: 7,
@@ -61,18 +64,18 @@ const formatSize = (bytes: number): string => {
   return `${tb.toFixed(2)} TB`
 }
 
-const formatNumber = (value: number): string => new Intl.NumberFormat(currentLocale).format(value)
+const formatNumber = (value: number): string => new Intl.NumberFormat(intlLocale()).format(value)
 
 const formatDate = (dateStr: string): string => {
   const date = new Date(dateStr)
   if (Number.isNaN(date.getTime())) return "-"
-  return date.toLocaleString(currentLocale)
+  return date.toLocaleString(intlLocale())
 }
 
 const formatDateTime = (dateStr: string): string => {
   const date = new Date(dateStr)
   if (Number.isNaN(date.getTime())) return "-"
-  return date.toLocaleString(currentLocale, {
+  return date.toLocaleString(intlLocale(), {
     year: "numeric",
     month: "short",
     day: "2-digit",
@@ -85,7 +88,7 @@ const formatDateTime = (dateStr: string): string => {
 const formatDateOnly = (dateStr: string): string => {
   const date = new Date(dateStr)
   if (Number.isNaN(date.getTime())) return "-"
-  return date.toLocaleDateString(currentLocale, { year: "numeric", month: "short", day: "2-digit" })
+  return date.toLocaleDateString(intlLocale(), { year: "numeric", month: "short", day: "2-digit" })
 }
 
 /**
@@ -96,7 +99,7 @@ const formatDateTimeCompact = (dateStr: string): string => {
   if (Number.isNaN(date.getTime())) return "-"
 
   const sameYear = date.getFullYear() === new Date().getFullYear()
-  return date.toLocaleString(currentLocale, {
+  return date.toLocaleString(intlLocale(), {
     ...(sameYear ? {} : { year: "numeric" as const }),
     month: "short",
     day: "2-digit",
@@ -127,7 +130,7 @@ const formatRelative = (dateStr: string, now = Date.now()): string => {
     ["second", 1000],
   ]
 
-  const formatter = new Intl.RelativeTimeFormat(currentLocale, { numeric: "auto" })
+  const formatter = new Intl.RelativeTimeFormat(intlLocale(), { numeric: "auto" })
 
   for (const [unit, ms] of units) {
     if (abs >= ms || unit === "second") {

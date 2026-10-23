@@ -149,14 +149,12 @@ const applyResultToDestination = (dest: DestRunProgress, result: BackupResult["d
 }
 
 const settleDestinations = (run: RunSnapshot, result: BackupResult): void => {
-  run.destinations
-    .filter((dest) => dest.status !== "pending" && dest.status !== "uploading")
-    .forEach((dest) => {
-      const match = result.destinationResults.find(
-        (item) => item.destId === dest.id || item.destName === dest.name || item.destLabel === dest.path,
-      )
-      if (match) applyResultToDestination(dest, match)
-    })
+  run.destinations.forEach((dest) => {
+    const match = result.destinationResults.find(
+      (item) => item.destId === dest.id || item.destName === dest.name || item.destLabel === dest.path,
+    )
+    if (match) applyResultToDestination(dest, match)
+  })
 }
 
 const completeRun = (result: BackupResult): void => {

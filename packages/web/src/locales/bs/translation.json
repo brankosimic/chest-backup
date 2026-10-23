@@ -71,6 +71,8 @@
     "size": "Veličina",
     "storageByDestination": "Po odredištu",
     "backupInProgress": "Backup u toku",
+    "backupCompleted": "Backup završen",
+    "backupFailed": "Backup neuspješan",
     "startingBackup": "Pokretanje backup-a",
     "preparingBackup": "Pripremanje backup-a...",
     "archivingSources": "Arhiviranje izvora...",

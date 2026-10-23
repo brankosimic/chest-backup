@@ -29,7 +29,8 @@ import { toActivityTab } from "@/lib/enums"
 import { downloadCsv } from "@/lib/export"
 import { ActivityTab, TimeRange } from "@/types/activity"
 import { RunSort } from "@/types/api"
-import { RunPhase } from "@/types/backup"
+import { isTerminalRunPhase } from "@/lib/run-phase"
+import { invalidateRunQueries } from "@/lib/query-keys"
 import type { ActivityFiltersState } from "@/types/activity"
 import { Activity as ActivityIcon, Download, Eraser, ChevronLeft, ChevronRight, Play, Radio, Pause, Search } from "lucide-react"
 import * as styles from "./page.styles"
@@ -67,15 +68,11 @@ const ActivityPage = () => {
   const streamRunId = stream.run?.runId
 
   useEffect(() => {
-    if (!streamRunId || !streamPhase) return
-    if (streamPhase !== RunPhase.Completed && streamPhase !== RunPhase.Failed) return
+    if (!streamRunId || !streamPhase || !isTerminalRunPhase(streamPhase)) return
     if (settledRunId.current === streamRunId) return
 
     settledRunId.current = streamRunId
-    void qc.invalidateQueries({ queryKey: ["backups"] })
-    void qc.invalidateQueries({ queryKey: ["backup-stats"] })
-    void qc.invalidateQueries({ queryKey: ["logs"] })
-    void qc.invalidateQueries({ queryKey: ["schedule"] })
+    invalidateRunQueries(qc)
   }, [streamPhase, streamRunId, qc])
 
   const query = useMemo(

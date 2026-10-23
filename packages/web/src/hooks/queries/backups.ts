@@ -1,7 +1,8 @@
 import { useEffect, useRef } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import type { Destination } from "@chest-backup/shared"
-import { RunPhase } from "@/types/backup"
+import { isActiveRunPhase, isTerminalRunPhase } from "@/lib/run-phase"
+import { invalidateRunQueries } from "@/lib/query-keys"
 import {
   fetchBackups,
   fetchBackupStats,
@@ -14,8 +15,6 @@ import {
   type LogQuery,
 } from "@/lib/api-client"
 
-const ACTIVE_PHASES: RunPhase[] = [RunPhase.Queued, RunPhase.Resolving, RunPhase.Archiving, RunPhase.Uploading]
-const TERMINAL_PHASES: RunPhase[] = [RunPhase.Completed, RunPhase.Failed]
 /** Fallback polling while no run has been recorded yet (e.g. waiting for the schedule). */
 const IDLE_REFETCH_MS = 10_000
 
@@ -33,7 +32,7 @@ const useBackupProgress = () => {
     refetchInterval: (current) => {
       const data = current.state.data
       if (!data) return IDLE_REFETCH_MS
-      return ACTIVE_PHASES.includes(data.phase) ? 1_000 : false
+      return isActiveRunPhase(data.phase) ? 1_000 : false
     },
   })
 
@@ -41,14 +40,11 @@ const useBackupProgress = () => {
   const runId = query.data?.runId
 
   useEffect(() => {
-    if (!runId || !phase || !TERMINAL_PHASES.includes(phase)) return
+    if (!runId || !phase || !isTerminalRunPhase(phase)) return
     if (settledRunId.current === runId) return
 
     settledRunId.current = runId
-    void qc.invalidateQueries({ queryKey: ["backups"] })
-    void qc.invalidateQueries({ queryKey: ["backup-stats"] })
-    void qc.invalidateQueries({ queryKey: ["logs"] })
-    void qc.invalidateQueries({ queryKey: ["schedule"] })
+    invalidateRunQueries(qc)
   }, [phase, runId, qc])
 
   return query

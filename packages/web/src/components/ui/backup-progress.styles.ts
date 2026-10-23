@@ -5,6 +5,7 @@ const archivingRow = "flex items-center gap-2 text-sm text-muted-foreground"
 const progressTrack = "relative h-2 overflow-hidden rounded-full bg-muted"
 const progressBarBase = "h-full rounded-full transition-all duration-700 ease-out"
 const progressBarDone = "bg-blue-500"
+const progressBarFailed = "bg-red-500"
 const progressBarActive =
   "bg-gradient-to-r from-blue-600 via-blue-400 to-blue-600 bg-[length:200%_100%] animate-shimmer"
 const barRipple = "absolute inset-0 flex items-center justify-end overflow-hidden rounded-full"
@@ -24,6 +25,7 @@ export {
   progressTrack,
   progressBarBase,
   progressBarDone,
+  progressBarFailed,
   progressBarActive,
   barRipple,
   barRippleInner,

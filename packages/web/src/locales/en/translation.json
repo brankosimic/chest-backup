@@ -71,6 +71,8 @@
     "size": "Size",
     "storageByDestination": "By Destination",
     "backupInProgress": "Backup in Progress",
+    "backupCompleted": "Backup Complete",
+    "backupFailed": "Backup Failed",
     "startingBackup": "Starting Backup",
     "preparingBackup": "Preparing backup...",
     "archivingSources": "Creating archive...",

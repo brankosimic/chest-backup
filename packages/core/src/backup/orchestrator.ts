@@ -5,8 +5,8 @@ import type {
   BackupSummary,
   DestOutcome,
   BackupProgressCallback,
+  BackupProgressEvent,
   RunOptions,
-  StoreResult,
 } from "../types/index"
 import type { FileStat } from "../types/manifest"
 import { formatTimestamp } from "./archiver"
@@ -27,19 +27,6 @@ interface RunContext {
   trigger: BackupResult["trigger"]
 }
 
-const buildSkippedResult = (dest: Destination): StoreResult => ({
-  success: true,
-  skipped: true,
-  skippedReason: "no-changes",
-  destId: dest.id,
-  destName: dest.name,
-  destPath: dest.path,
-  destType: dest.type,
-  destLabel: dest.name ?? dest.path,
-  uploaded: [],
-  deleted: [],
-})
-
 const createRunId = (): string =>
   `run-${new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "")}-${Math.random().toString(36).slice(2, 8)}`
 
@@ -52,11 +39,6 @@ const processDestination = async (
   onProgress?: BackupProgressCallback,
 ): Promise<DestOutcome> => {
   const { diff, manifest } = await prepareIncremental(config, dest, files, periodKey)
-
-  if (!diff.toUpload.length && !diff.toDelete.length) {
-    return { result: buildSkippedResult(dest), uploaded: [] }
-  }
-
   const result = await storeToDestination(diff.toUpload, diff.toDelete, diff.unchanged, dest, config, errors, periodKey, onProgress)
 
   if (result.skipped) return { result, uploaded: [] }
@@ -195,13 +177,17 @@ const executeRun = async (
   const errors: string[] = []
   const tempFiles: string[] = []
 
-  onProgress?.({ phase: "run-start", runId: run.runId, timestamp: run.timestamp })
+  const emitProgress = (event: BackupProgressEvent): void => {
+    onProgress?.({ ...event, runId: event.runId ?? run.runId })
+  }
+
+  emitProgress({ phase: "run-start", runId: run.runId, timestamp: run.timestamp })
 
   await sendStartedNotification(config, run.timestamp)
   logger.info({ timestamp: run.timestamp }, "backup started")
 
   try {
-    const result = await executeBackup(config, run, errors, tempFiles, onProgress)
+    const result = await executeBackup(config, run, errors, tempFiles, emitProgress)
     result.durationMs = Date.now() - startTime
     result.finishedAt = new Date().toISOString()
     await sendCompletedNotification(config, result)
