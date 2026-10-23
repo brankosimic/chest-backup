@@ -12,7 +12,7 @@ import { RecentActivity } from "@/components/dashboard/recent-activity"
 import { HealthStrip } from "@/components/dashboard/health-strip"
 import { formatSize, formatDuration, formatUptime, formatRelative, formatNumber } from "@/lib/utils"
 import { useBackupStats, useTriggerBackup, useBackups, useSystem, useDestinations, useBackupProgress, useSchedule } from "@/hooks/use-queries"
-import { StatTileTone } from "@/types/backup"
+import { RunPhase, StatTileTone } from "@/types/backup"
 import { CheckCircle2, Clock, Play, Activity, CalendarClock, HardDrive } from "lucide-react"
 import * as styles from "./page.styles"
 
@@ -25,7 +25,9 @@ const DashboardPage = () => {
   const { data: progress } = useBackupProgress()
   const { data: schedule } = useSchedule()
   const triggerMutation = useTriggerBackup(destinations ?? [])
-  const isRunning = progress && ["archiving", "running"].includes(progress.status)
+  const isRunning =
+    !!progress &&
+    [RunPhase.Queued, RunPhase.Resolving, RunPhase.Archiving, RunPhase.Uploading].includes(progress.phase)
 
   const loading = statsLoading || systemLoading
 

@@ -1,7 +1,8 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { useQueryClient } from "@tanstack/react-query"
 import type { BackupRecord, LogLevel } from "@chest-backup/shared"
 import { LogLevel as LogLevelEnum } from "@chest-backup/shared"
 import { Header } from "@/components/layout/header"
@@ -28,6 +29,7 @@ import { toActivityTab } from "@/lib/enums"
 import { downloadCsv } from "@/lib/export"
 import { ActivityTab, TimeRange } from "@/types/activity"
 import { RunSort } from "@/types/api"
+import { RunPhase } from "@/types/backup"
 import type { ActivityFiltersState } from "@/types/activity"
 import { Activity as ActivityIcon, Download, Eraser, ChevronLeft, ChevronRight, Play, Radio, Pause, Search } from "lucide-react"
 import * as styles from "./page.styles"
@@ -56,8 +58,25 @@ const ActivityPage = () => {
   const [logLevels, setLogLevels] = useState<LogLevel[]>([])
   const [followLive, setFollowLive] = useState(true)
 
+  const qc = useQueryClient()
+  const settledRunId = useRef<string | null>(null)
   const { data: destinations } = useDestinations()
   const stream = useEventStream(true)
+
+  const streamPhase = stream.run?.phase
+  const streamRunId = stream.run?.runId
+
+  useEffect(() => {
+    if (!streamRunId || !streamPhase) return
+    if (streamPhase !== RunPhase.Completed && streamPhase !== RunPhase.Failed) return
+    if (settledRunId.current === streamRunId) return
+
+    settledRunId.current = streamRunId
+    void qc.invalidateQueries({ queryKey: ["backups"] })
+    void qc.invalidateQueries({ queryKey: ["backup-stats"] })
+    void qc.invalidateQueries({ queryKey: ["logs"] })
+    void qc.invalidateQueries({ queryKey: ["schedule"] })
+  }, [streamPhase, streamRunId, qc])
 
   const query = useMemo(
     () => ({

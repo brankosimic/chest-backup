@@ -1,5 +1,7 @@
-import { useQuery, useMutation, useQueryClient, useQueryClient as useQc } from "@tanstack/react-query"
+import { useEffect, useRef } from "react"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import type { Destination } from "@chest-backup/shared"
+import { RunPhase } from "@/types/backup"
 import {
   fetchBackups,
   fetchBackupStats,
@@ -12,23 +14,45 @@ import {
   type LogQuery,
 } from "@/lib/api-client"
 
+const ACTIVE_PHASES: RunPhase[] = [RunPhase.Queued, RunPhase.Resolving, RunPhase.Archiving, RunPhase.Uploading]
+const TERMINAL_PHASES: RunPhase[] = [RunPhase.Completed, RunPhase.Failed]
+/** Fallback polling while no run has been recorded yet (e.g. waiting for the schedule). */
+const IDLE_REFETCH_MS = 10_000
+
 const useBackups = (query: RunQuery = {}) => useQuery({ queryKey: ["backups", query], queryFn: () => fetchBackups(query) })
 
 const useBackupStats = (query: RunQuery = {}) =>
   useQuery({ queryKey: ["backup-stats", query], queryFn: () => fetchBackupStats(query), refetchInterval: 15_000 })
 
-const useBackupProgress = () =>
-  useQuery({
+const useBackupProgress = () => {
+  const qc = useQueryClient()
+  const settledRunId = useRef<string | null>(null)
+  const query = useQuery({
     queryKey: ["backup-progress"],
     queryFn: fetchBackupProgress,
-    refetchInterval: (query) => {
-      const data = query.state.data
-
-      if (data && ["idle", "completed", "failed"].includes(data.status)) return false
-
-      return 1_000
+    refetchInterval: (current) => {
+      const data = current.state.data
+      if (!data) return IDLE_REFETCH_MS
+      return ACTIVE_PHASES.includes(data.phase) ? 1_000 : false
     },
   })
+
+  const phase = query.data?.phase
+  const runId = query.data?.runId
+
+  useEffect(() => {
+    if (!runId || !phase || !TERMINAL_PHASES.includes(phase)) return
+    if (settledRunId.current === runId) return
+
+    settledRunId.current = runId
+    void qc.invalidateQueries({ queryKey: ["backups"] })
+    void qc.invalidateQueries({ queryKey: ["backup-stats"] })
+    void qc.invalidateQueries({ queryKey: ["logs"] })
+    void qc.invalidateQueries({ queryKey: ["schedule"] })
+  }, [phase, runId, qc])
+
+  return query
+}
 
 const useTriggerBackup = (destinations: Destination[]) => {
   const qc = useQueryClient()
@@ -67,7 +91,7 @@ const useLogs = (query: LogQuery = {}) => useQuery({ queryKey: ["logs", query], 
 const useLogStats = () => useQuery({ queryKey: ["log-stats"], queryFn: fetchLogStats })
 
 const useClearLogs = () => {
-  const qc = useQc()
+  const qc = useQueryClient()
 
   return useMutation({
     mutationFn: clearStoredLogs,
