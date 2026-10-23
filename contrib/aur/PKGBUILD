@@ -29,7 +29,7 @@ optdepends=(
   'docker: container-based backup sources (sqlite-container, postgres-container)'
 )
 source=("$pkgname-$pkgver.tar.gz::https://github.com/brankosimic/chest-backup/archive/v$pkgver.tar.gz")
-sha256sums=('4e31ad69bab9b4b0eccb0af24d452c31dde25641e6158f58d6d39368f891ed6a')
+sha256sums=('674ece524baccd4a1783e9766c0417c4abeb67e25e0246e395a92cd9cd01771c')
 
 build() {
   cd "$srcdir/$pkgname-$pkgver"
