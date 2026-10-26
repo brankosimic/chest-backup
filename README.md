@@ -13,6 +13,26 @@ A full-stack backup management system — schedule and monitor backups of files,
 - **Environment variable interpolation** — reference secrets from `.env` in config
 - **Web dashboard and API server** — both share the same backup engine
 
+## Screenshots
+
+<|start|> Dashboard | Sources |
+|---|---|
+| ![Dashboard](docs/screenshots/dashboard.png) | ![Sources](docs/screenshots/sources.png) |
+
+| Destinations | Activity |
+|---|---|
+| ![Destinations](docs/screenshots/destinations.png) | ![Activity](docs/screenshots/activity.png) |
+
+| Settings | Notifications |
+|---|---|
+| ![Settings](docs/screenshots/settings.png) | ![Notifications](docs/screenshots/notifications.png) |
+
+### Forms
+
+| Add source | Add destination |
+|---|---|
+| ![Add source](docs/screenshots/sources_new.png) | ![Add destination](docs/screenshots/destinations_new.png) |
+
 ## Architecture
 
 ```
