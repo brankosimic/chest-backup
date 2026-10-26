@@ -8,10 +8,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
+import { Badge } from "@/components/ui/badge"
 import { Header } from "@/components/layout/header"
 import { ExclusionsCard } from "@/components/settings/exclusions-card"
 import { formatDate } from "@/lib/utils"
-import { useSchedule, useUpdateSchedule, useRetention, useUpdateRetention } from "@/hooks/use-queries"
+import { useSchedule, useUpdateSchedule, useRetention, useUpdateRetention, useNotifications, useUpdateNotifications, useTestNotification } from "@/hooks/use-queries"
 import type { RetentionSettings } from "@/types/mutations"
 
 const cronPresets = [
@@ -46,6 +47,13 @@ export default function SettingsPage() {
   const [globalRetention, setGlobalRetention] = useState(7)
   const [retentionMode, setRetentionMode] = useState<RetentionSettings["retentionMode"]>("months")
 
+  const { data: notificationData } = useNotifications()
+  const updateNotificationsMutation = useUpdateNotifications()
+  const testNotificationMutation = useTestNotification()
+  const [webhookUrl, setWebhookUrl] = useState("")
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false)
+  const [testSent, setTestSent] = useState(false)
+
   useEffect(() => {
     if (scheduleData) {
       setSchedule(scheduleData.schedule)
@@ -59,6 +67,28 @@ export default function SettingsPage() {
       setRetentionMode(retentionData.retentionMode)
     }
   }, [retentionData])
+
+  useEffect(() => {
+    if (notificationData?.discord) {
+      setWebhookUrl(notificationData.discord.webhookUrl)
+      setNotificationsEnabled(notificationData.discord.enabled)
+    }
+  }, [notificationData])
+
+  const handleSaveNotifications = () => {
+    updateNotificationsMutation.mutate({ discord: { webhookUrl, enabled: notificationsEnabled } })
+  }
+
+  const handleTestNotification = () => {
+    testNotificationMutation.mutate(webhookUrl, {
+      onSuccess: () => {
+        setTestSent(true)
+      },
+      onError: () => {
+        setTestSent(false)
+      },
+    })
+  }
 
   const handleSaveGeneral = () => {
     try {
@@ -225,6 +255,39 @@ export default function SettingsPage() {
 
           <Button onClick={handleSaveRetention} disabled={updateRetentionMutation.isPending} className="w-full">
             {updateRetentionMutation.isPending ? t("common.loading") : t("common.save")}
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("notifications.cardTitle")}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="flex items-center justify-between rounded-lg border p-3">
+            <span className="text-sm font-medium">{t("notifications.enabled")}</span>
+            <Switch checked={notificationsEnabled} onCheckedChange={setNotificationsEnabled} />
+          </div>
+
+          <div className="space-y-2">
+            <Label>{t("notifications.webhookUrl")}</Label>
+            <Input
+              value={webhookUrl}
+              onChange={(e) => {
+                setWebhookUrl(e.target.value)
+              }}
+              placeholder={t("notifications.webhookUrlPlaceholder")}
+            />
+          </div>
+
+          <Button variant="outline" onClick={handleTestNotification} disabled={testNotificationMutation.isPending}>
+            {testNotificationMutation.isPending ? t("common.loading") : t("notifications.testNotification")}
+          </Button>
+
+          {testSent && <Badge variant="success">{t("notifications.testSuccess")}</Badge>}
+
+          <Button onClick={handleSaveNotifications} disabled={updateNotificationsMutation.isPending} className="w-full">
+            {updateNotificationsMutation.isPending ? t("common.loading") : t("common.save")}
           </Button>
         </CardContent>
       </Card>

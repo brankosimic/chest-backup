@@ -16,7 +16,6 @@ const navItems: NavItem[] = [
   { href: "/dashboard", label: "nav.dashboard" },
   { href: "/sources", label: "nav.sources" },
   { href: "/destinations", label: "nav.destinations" },
-  { href: "/notifications", label: "nav.notifications" },
   { href: "/activity", label: "nav.activity" },
   { href: "/settings", label: "nav.settings" },
 ]

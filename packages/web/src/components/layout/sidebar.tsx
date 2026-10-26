@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next"
 import { Link, useLocation } from "react-router-dom"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
-import { LayoutDashboard, Database, HardDrive, Bell, Activity, Settings, Box } from "lucide-react"
+import { LayoutDashboard, Database, HardDrive, Activity, Settings, Box } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
 interface NavItem {
@@ -16,7 +16,6 @@ const navItems: NavItem[] = [
   { href: "/dashboard", label: "nav.dashboard", icon: LayoutDashboard },
   { href: "/sources", label: "nav.sources", icon: Database },
   { href: "/destinations", label: "nav.destinations", icon: HardDrive },
-  { href: "/notifications", label: "nav.notifications", icon: Bell },
   { href: "/activity", label: "nav.activity", icon: Activity },
   { href: "/settings", label: "nav.settings", icon: Settings },
 ]

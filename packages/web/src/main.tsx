@@ -15,7 +15,6 @@ import SourceDetailPage from "@/app/(dashboard)/sources/[id]/page"
 import DestinationsPage from "@/app/(dashboard)/destinations/page"
 import NewDestinationPage from "@/app/(dashboard)/destinations/new/page"
 import DestinationDetailPage from "@/app/(dashboard)/destinations/[id]/page"
-import NotificationsPage from "@/app/(dashboard)/notifications/page"
 import ActivityPage from "@/app/(dashboard)/activity/page"
 import SettingsPage from "@/app/(dashboard)/settings/page"
 
@@ -32,7 +31,6 @@ const router = createBrowserRouter([
       { path: "destinations", element: <DestinationsPage /> },
       { path: "destinations/new", element: <NewDestinationPage /> },
       { path: "destinations/:id", element: <DestinationDetailPage /> },
-      { path: "notifications", element: <NotificationsPage /> },
       { path: "activity", element: <ActivityPage /> },
       { path: "history", element: <Navigate to="/activity" replace /> },
       { path: "logs", element: <Navigate to="/activity" replace /> },
