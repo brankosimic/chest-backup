@@ -10,6 +10,7 @@
     "build:api": "pnpm --filter @chest-backup/api build",
     "build:web": "pnpm --filter @chest-backup/web build",
     "start": "pnpm --filter @chest-backup/daemon start",
+    "aur:gen": "bash contrib/aur/gen.sh",
     "lint": "eslint packages/",
     "typecheck": "tsc --noEmit",
     "test": "bun test --bail --timeout 120000 --path-ignore-patterns 'dist/**'",
