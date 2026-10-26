@@ -15,23 +15,29 @@ A full-stack backup management system — schedule and monitor backups of files,
 
 ## Screenshots
 
-<|start|> Dashboard | Sources |
-|---|---|
-| ![Dashboard](docs/screenshots/dashboard.png) | ![Sources](docs/screenshots/sources.png) |
+### Dashboard
+![Dashboard](https://raw.githubusercontent.com/brankosimic/chest-backup/main/docs/screenshots/dashboard.png)
 
-| Destinations | Activity |
-|---|---|
-| ![Destinations](docs/screenshots/destinations.png) | ![Activity](docs/screenshots/activity.png) |
+### Sources
+![Sources](https://raw.githubusercontent.com/brankosimic/chest-backup/main/docs/screenshots/sources.png)
 
-| Settings | Notifications |
-|---|---|
-| ![Settings](docs/screenshots/settings.png) | ![Notifications](docs/screenshots/notifications.png) |
+### Destinations
+![Destinations](https://raw.githubusercontent.com/brankosimic/chest-backup/main/docs/screenshots/destinations.png)
 
-### Forms
+### Activity
+![Activity](https://raw.githubusercontent.com/brankosimic/chest-backup/main/docs/screenshots/activity.png)
 
-| Add source | Add destination |
-|---|---|
-| ![Add source](docs/screenshots/sources_new.png) | ![Add destination](docs/screenshots/destinations_new.png) |
+### Settings
+![Settings](https://raw.githubusercontent.com/brankosimic/chest-backup/main/docs/screenshots/settings.png)
+
+### Notifications
+![Notifications](https://raw.githubusercontent.com/brankosimic/chest-backup/main/docs/screenshots/notifications.png)
+
+### Add source
+![Add source](https://raw.githubusercontent.com/brankosimic/chest-backup/main/docs/screenshots/sources_new.png)
+
+### Add destination
+![Add destination](https://raw.githubusercontent.com/brankosimic/chest-backup/main/docs/screenshots/destinations_new.png)
 
 ## Architecture
 
