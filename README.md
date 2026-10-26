@@ -30,9 +30,6 @@ A full-stack backup management system — schedule and monitor backups of files,
 ### Settings
 ![Settings](https://raw.githubusercontent.com/brankosimic/chest-backup/main/docs/screenshots/settings.png)
 
-### Notifications
-![Notifications](https://raw.githubusercontent.com/brankosimic/chest-backup/main/docs/screenshots/notifications.png)
-
 ### Add source / Add destination
 ![Add source and destination](https://raw.githubusercontent.com/brankosimic/chest-backup/main/docs/screenshots/forms.png)
 
