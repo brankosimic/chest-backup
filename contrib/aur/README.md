@@ -1,5 +1,8 @@
 # chest-backup — AUR package
 
+Builds from source. For a precompiled version with no build step, see
+[`chest-backup-bin`](../aur-bin/README.md).
+
 ## Prerequisites
 
 - A GitHub release tag (e.g. `v1.0.0`) pushed to the repository
