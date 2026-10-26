@@ -26,12 +26,15 @@ The PKGBUILD downloads the tagged tarball from GitHub.
 ### 2. Create the AUR repository
 
 ```bash
-ssh aur@aur.archlinux.org setup-repository chest-backup-bin
+# Cloning a non-existent pkgbase creates it on the AUR
 git clone aur@aur.archlinux.org:chest-backup-bin.git
 cd chest-backup-bin
 ```
 
 ### 3. Copy PKGBUILD and generate .SRCINFO
+
+The PKGBUILDs are generated from `contrib/aur/PKGBUILD.template` — run
+`pnpm aur:gen` after editing the template, then copy the result:
 
 ```bash
 cp /path/to/chest-backup/contrib/aur-bin/PKGBUILD .
