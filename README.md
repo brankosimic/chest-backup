@@ -16,22 +16,22 @@ A full-stack backup management system — schedule and monitor backups of files,
 ## Screenshots
 
 ### Dashboard
-![Dashboard](https://raw.githubusercontent.com/brankosimic/chest-backup/main/docs/screenshots/dashboard.png)
+![Dashboard](https://raw.githubusercontent.com/valens-dev/chest-backup/main/docs/screenshots/dashboard.png)
 
 ### Sources
-![Sources](https://raw.githubusercontent.com/brankosimic/chest-backup/main/docs/screenshots/sources.png)
+![Sources](https://raw.githubusercontent.com/valens-dev/chest-backup/main/docs/screenshots/sources.png)
 
 ### Destinations
-![Destinations](https://raw.githubusercontent.com/brankosimic/chest-backup/main/docs/screenshots/destinations.png)
+![Destinations](https://raw.githubusercontent.com/valens-dev/chest-backup/main/docs/screenshots/destinations.png)
 
 ### Activity
-![Activity](https://raw.githubusercontent.com/brankosimic/chest-backup/main/docs/screenshots/activity.png)
+![Activity](https://raw.githubusercontent.com/valens-dev/chest-backup/main/docs/screenshots/activity.png)
 
 ### Settings
-![Settings](https://raw.githubusercontent.com/brankosimic/chest-backup/main/docs/screenshots/settings.png)
+![Settings](https://raw.githubusercontent.com/valens-dev/chest-backup/main/docs/screenshots/settings.png)
 
 ### Add source / Add destination
-![Add source and destination](https://raw.githubusercontent.com/brankosimic/chest-backup/main/docs/screenshots/forms.png)
+![Add source and destination](https://raw.githubusercontent.com/valens-dev/chest-backup/main/docs/screenshots/forms.png)
 
 ## Architecture
 
