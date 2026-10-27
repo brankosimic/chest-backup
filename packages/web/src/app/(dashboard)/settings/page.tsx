@@ -35,7 +35,7 @@ const retentionUnitKeys: Record<string, string> = {
 export default function SettingsPage() {
   const { t, i18n } = useTranslation()
   const [tempDir, setTempDir] = useState(() => localStorage.getItem("chest-backup-tempDir") ?? "/tmp")
-  const [language, setLanguage] = useState(() => localStorage.getItem("chest-backup-language") ?? i18n.language)
+  const [language, setLanguage] = useState(i18n.language)
 
   const { data: scheduleData } = useSchedule()
   const updateScheduleMutation = useUpdateSchedule()
@@ -93,9 +93,8 @@ export default function SettingsPage() {
   const handleSaveGeneral = () => {
     try {
       localStorage.setItem("chest-backup-tempDir", tempDir)
-      localStorage.setItem("chest-backup-language", language)
-    } catch {
-      /* ignore */
+    } catch (e) {
+      console.error(e)
     }
   }
 
@@ -132,11 +131,13 @@ export default function SettingsPage() {
             <Select
               value={language}
               onChange={(e) => {
-                setLanguage(e.target.value)
+                const next = e.target.value
+                setLanguage(next)
+                void i18n.changeLanguage(next)
               }}
             >
-              <option value="en">English</option>
-              <option value="bs">Bosanski</option>
+              <option value="en">{t("nav.languages.en")}</option>
+              <option value="bs">{t("nav.languages.bs")}</option>
             </Select>
           </div>
 

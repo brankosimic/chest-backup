@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import type { Destination } from "@chest-backup/shared"
+import type { BackupRunProgress } from "@/types/backup"
 import { isActiveRunPhase, isTerminalRunPhase } from "@/lib/run-phase"
 import { invalidateRunQueries } from "@/lib/query-keys"
 import {
@@ -15,7 +16,6 @@ import {
   type LogQuery,
 } from "@/lib/api-client"
 
-/** Fallback polling while no run has been recorded yet (e.g. waiting for the schedule). */
 const IDLE_REFETCH_MS = 10_000
 
 const useBackups = (query: RunQuery = {}) => useQuery({ queryKey: ["backups", query], queryFn: () => fetchBackups(query) })
@@ -26,9 +26,15 @@ const useBackupStats = (query: RunQuery = {}) =>
 const useBackupProgress = () => {
   const qc = useQueryClient()
   const settledRunId = useRef<string | null>(null)
+  const lastSeen = useRef<BackupRunProgress | null>(null)
+
   const query = useQuery({
     queryKey: ["backup-progress"],
-    queryFn: fetchBackupProgress,
+    queryFn: async () => {
+      const data = await fetchBackupProgress()
+      if (data) lastSeen.current = data
+      return data ?? lastSeen.current
+    },
     refetchInterval: (current) => {
       const data = current.state.data
       if (!data) return IDLE_REFETCH_MS

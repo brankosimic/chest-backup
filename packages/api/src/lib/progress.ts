@@ -3,7 +3,6 @@ import { RunStatus, RunTrigger, deriveRunStatus } from "@chest-backup/shared"
 import type { DestRunProgress, RunPhase, RunSnapshot } from "../types/run"
 import { publish } from "./event-bus"
 
-/** How many finished runs stay in memory for instant access. */
 const MAX_RECENT_RUNS = 50
 
 const runs = new Map<string, RunSnapshot>()
@@ -207,11 +206,12 @@ const getRecentRuns = (limit = MAX_RECENT_RUNS): RunSnapshot[] =>
     return run ? [cloneRun(run)] : []
   })
 
-/**
- * Backwards-compatible view of the currently running (or last finished) run.
- * Returns null when the process has not seen a run yet.
- */
-const getProgress = (): RunSnapshot | null => getActiveRun() ?? getRecentRuns(1).at(0) ?? null
+const getProgress = (): RunSnapshot | null => getActiveRun() ?? null
+
+const getLastFinishedRun = (): RunSnapshot | null => {
+  const last = getRecentRuns(1).at(0)
+  return last && !isActivePhase(last.phase) ? last : null
+}
 
 export {
   startRun,
@@ -222,4 +222,5 @@ export {
   getActiveRun,
   getRecentRuns,
   getProgress,
+  getLastFinishedRun,
 }

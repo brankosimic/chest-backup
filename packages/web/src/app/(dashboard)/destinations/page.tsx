@@ -63,7 +63,9 @@ const DestinationsPage = () => {
                         <p className="text-muted-foreground">
                           {dest.host}:{dest.port}
                         </p>
-                        <p className="text-muted-foreground">{t("destinations.user", { user: dest.user })}</p>
+                        <p className="text-muted-foreground">
+                          {t("destinations.user")}: {dest.user}
+                        </p>
                       </>
                     )}
                     {dest.parallel !== undefined && (

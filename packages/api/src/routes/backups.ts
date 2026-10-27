@@ -11,7 +11,7 @@ import {
 import { runBackup, createRunId } from "@core/backup/orchestrator"
 import { formatTimestamp } from "@core/backup/archiver"
 import { getActiveConfig } from "../lib/api-config"
-import { startRun, applyProgressEvent, completeRun, failRun, getProgress, getActiveRun } from "../lib/progress"
+import { startRun, applyProgressEvent, completeRun, failRun, getProgress, getLastFinishedRun, getActiveRun } from "../lib/progress"
 import { parseRunQuery } from "../lib/query"
 import type { BackupProgressEvent } from "@core/types/index"
 
@@ -48,7 +48,13 @@ backups.get("/stats", (c) => {
 })
 
 backups.get("/progress", (c) => {
-  return c.json({ success: true, data: getProgress() })
+  const active = getProgress()
+  if (!active) return c.json({ success: true, data: null })
+  return c.json({ success: true, data: active, lastFinished: getLastFinishedRun() })
+})
+
+backups.get("/last", (c) => {
+  return c.json({ success: true, data: getLastFinishedRun() })
 })
 
 backups.get("/active", (c) => {

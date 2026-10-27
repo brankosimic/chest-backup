@@ -149,7 +149,7 @@
     "path": "Putanja",
     "host": "Host",
     "port": "Port",
-    "user": "Korisnik: {{user}}",
+    "user": "Korisnik",
     "password": "Lozinka",
     "destinationType": "Vrsta odredišta",
     "local": "Lokalno",

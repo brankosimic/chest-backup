@@ -66,6 +66,7 @@ const BackupProgressCard = () => {
   const isActive = isActiveRunPhase(display.phase)
   const isFailed = display.phase === RunPhase.Failed
   const isDone = isTerminalRunPhase(display.phase)
+  const settled = !isActive && isDone
   const total = display.destinations.length
   const terminalStatuses: DestRunStatus[] = [DestRunStatus.Done, DestRunStatus.Error, DestRunStatus.Skipped]
   const done = display.destinations.filter((d) => terminalStatuses.includes(d.status)).length
@@ -80,7 +81,7 @@ const BackupProgressCard = () => {
         ? "border-green-500/50"
         : ""
 
-  if (!isActive && !isDone) return null
+  if (!isActive && !settled) return null
 
   return (
     <Card className={borderClass}>

@@ -1,7 +1,6 @@
 "use client"
 
 import { useTranslation } from "react-i18next"
-import { LanguageToggle } from "@/components/layout/language-toggle"
 
 const Header = ({ title, subtitle, action }: { title: string; subtitle?: string; action?: React.ReactNode }) => {
   const { t } = useTranslation()
@@ -12,10 +11,7 @@ const Header = ({ title, subtitle, action }: { title: string; subtitle?: string;
         <h1 className="text-2xl font-bold tracking-tight">{t(title)}</h1>
         {subtitle && <p className="mt-1 text-sm text-muted-foreground">{t(subtitle)}</p>}
       </div>
-      <div className="flex items-center gap-2">
-        {action}
-        <LanguageToggle />
-      </div>
+      {action && <div className="flex items-center gap-2">{action}</div>}
     </header>
   )
 }

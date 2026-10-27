@@ -118,7 +118,14 @@ const fetchBackupStats = (query: RunQuery = {}) =>
 const triggerBackup = () =>
   apiFetch<{ triggered: boolean; runId: string }>("/api/backups/run", { method: "POST" })
 
-const fetchBackupProgress = () => apiFetch<BackupRunProgress>("/api/backups/progress")
+const fetchBackupProgress = async (): Promise<BackupRunProgress | null> => {
+  const auth = getAuthHeader()
+  const response = await fetch(`${BASE_URL}/api/backups/progress`, { headers: auth ? { Authorization: auth } : {} })
+  if (!response.ok) throw toApiError(null, response.status)
+  const json = (await response.json()) as ApiResponse<BackupRunProgress | null>
+  if (!json.success) throw toApiError(json, response.status)
+  return json.data ?? null
+}
 
 const fetchLogs = (query: LogQuery = {}) =>
   apiFetch<Paginated<LogEntry>>(

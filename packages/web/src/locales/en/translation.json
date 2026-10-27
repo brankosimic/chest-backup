@@ -149,7 +149,7 @@
     "path": "Path",
     "host": "Host",
     "port": "Port",
-    "user": "User: {{user}}",
+    "user": "User",
     "password": "Password",
     "destinationType": "Destination Type",
     "local": "Local",
