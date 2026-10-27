@@ -42,6 +42,10 @@
     "settings": "Settings",
     "theme": "Toggle theme",
     "language": "Language",
+    "languages": {
+      "en": "English",
+      "bs": "Bosanski"
+    },
     "menu": "Menu"
   },
   "dashboard": {

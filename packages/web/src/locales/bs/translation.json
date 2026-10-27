@@ -42,6 +42,10 @@
     "settings": "Postavke",
     "theme": "Promijeni temu",
     "language": "Jezik",
+    "languages": {
+      "en": "English",
+      "bs": "Bosanski"
+    },
     "menu": "Meni"
   },
   "dashboard": {

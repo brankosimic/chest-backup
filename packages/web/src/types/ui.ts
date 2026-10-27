@@ -2,6 +2,13 @@ import type { ReactNode } from "react"
 
 type BadgeVariant = "default" | "secondary" | "destructive" | "outline" | "success" | "warning"
 
+type LanguageCode = "en" | "bs"
+
+interface LanguageOption {
+  code: LanguageCode
+  labelKey: string
+}
+
 interface SheetProps {
   open: boolean
   onClose: () => void
@@ -50,6 +57,8 @@ interface ErrorBoundaryProps {
 
 export type {
   BadgeVariant,
+  LanguageCode,
+  LanguageOption,
   SheetProps,
   TabsProps,
   TabsTriggerProps,
