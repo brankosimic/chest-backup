@@ -1,4 +1,5 @@
 import type { ReactNode } from "react"
+import type { LucideIcon } from "lucide-react"
 
 type BadgeVariant = "default" | "secondary" | "destructive" | "outline" | "success" | "warning"
 
@@ -55,6 +56,12 @@ interface ErrorBoundaryProps {
   fallback?: ReactNode
 }
 
+interface NavItem {
+  href: string
+  label: string
+  icon: LucideIcon
+}
+
 export type {
   BadgeVariant,
   LanguageCode,
@@ -67,4 +74,5 @@ export type {
   SkeletonProps,
   TooltipProps,
   ErrorBoundaryProps,
+  NavItem,
 }

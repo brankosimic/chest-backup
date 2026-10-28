@@ -2,7 +2,6 @@
 
 import { useTranslation } from "react-i18next"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Header } from "@/components/layout/header"
 import { BackupProgressCard } from "@/components/ui/backup-progress"
@@ -11,10 +10,9 @@ import { StatTile } from "@/components/dashboard/stat-tile"
 import { RecentActivity } from "@/components/dashboard/recent-activity"
 import { HealthStrip } from "@/components/dashboard/health-strip"
 import { formatSize, formatDuration, formatUptime, formatRelative, formatNumber } from "@/lib/utils"
-import { useBackupStats, useTriggerBackup, useBackups, useSystem, useDestinations, useBackupProgress, useSchedule } from "@/hooks/use-queries"
+import { useBackupStats, useBackups, useSystem, useDestinations, useSchedule } from "@/hooks/use-queries"
 import { StatTileTone } from "@/types/backup"
-import { isActiveRunPhase } from "@/lib/run-phase"
-import { CheckCircle2, Clock, Play, Activity, CalendarClock, HardDrive } from "lucide-react"
+import { CheckCircle2, Clock, Activity, CalendarClock, HardDrive } from "lucide-react"
 import * as styles from "./page.styles"
 
 const DashboardPage = () => {
@@ -23,10 +21,7 @@ const DashboardPage = () => {
   const { data: system, isLoading: systemLoading } = useSystem()
   const { data: backupsData, isLoading: backupsLoading } = useBackups({ limit: 20 })
   const { data: destinations } = useDestinations()
-  const { data: progress } = useBackupProgress()
   const { data: schedule } = useSchedule()
-  const triggerMutation = useTriggerBackup(destinations ?? [])
-  const isRunning = !!progress && isActiveRunPhase(progress.phase)
 
   const loading = statsLoading || systemLoading
 
@@ -43,26 +38,7 @@ const DashboardPage = () => {
 
   return (
     <div className={styles.page}>
-      <Header
-        title={t("dashboard.title")}
-        subtitle={t("dashboard.subtitle")}
-        action={
-          <Button
-            variant="default"
-            onClick={() => {
-              triggerMutation.mutate()
-            }}
-            disabled={triggerMutation.isPending || isRunning}
-          >
-            <Play className={styles.playIcon} />
-            {triggerMutation.isPending
-              ? t("common.loading")
-              : isRunning
-                ? t("dashboard.backupInProgress")
-                : t("dashboard.runBackup")}
-          </Button>
-        }
-      />
+      <Header title={t("dashboard.title")} subtitle={t("dashboard.subtitle")} />
 
       <div className={styles.statsGrid}>
         <StatTile

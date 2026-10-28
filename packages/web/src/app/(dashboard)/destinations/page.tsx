@@ -46,7 +46,7 @@ const DestinationsPage = () => {
       ) : (
         <div className="flex flex-wrap gap-4">
           {destinations.map((dest: Destination) => (
-            <Link key={dest.id} to={`/destinations/${dest.id}`} className="flex w-full flex-col sm:w-1/2 lg:w-1/3">
+            <Link key={dest.id} to={`/destinations/${dest.id}`} className="flex w-full flex-col sm:w-1/2 lg:w-1/3 2xl:w-1/4">
               <Card className="h-full hover:shadow-md transition-shadow">
                 <CardHeader>
                   <div className="flex items-center justify-between">

@@ -1,66 +1,101 @@
+"use client"
+
 import { useTranslation } from "react-i18next"
 import { Link, useLocation } from "react-router-dom"
 import { cn } from "@/lib/utils"
-import { Badge } from "@/components/ui/badge"
-import { LayoutDashboard, Database, HardDrive, Activity, Settings, Box } from "lucide-react"
-import type { LucideIcon } from "lucide-react"
-
-interface NavItem {
-  href: string
-  label: string
-  icon: LucideIcon
-  badge?: string
-}
-
-const navItems: NavItem[] = [
-  { href: "/dashboard", label: "nav.dashboard", icon: LayoutDashboard },
-  { href: "/sources", label: "nav.sources", icon: Database },
-  { href: "/destinations", label: "nav.destinations", icon: HardDrive },
-  { href: "/activity", label: "nav.activity", icon: Activity },
-  { href: "/settings", label: "nav.settings", icon: Settings },
-]
+import { Tooltip } from "@/components/ui/tooltip"
+import { Play } from "lucide-react"
+import { Logo } from "./logo"
+import { useBackupProgress, useDestinations, useSystem, useTriggerBackup } from "@/hooks/use-queries"
+import { isActiveRunPhase } from "@/lib/run-phase"
+import { formatUptime } from "@/lib/utils"
+import { navItems } from "./nav-items"
+import * as styles from "./sidebar.styles"
 
 const Sidebar = ({ collapsed = false }: { collapsed?: boolean }) => {
   const { t } = useTranslation()
   const { pathname } = useLocation()
+  const { data: destinations } = useDestinations()
+  const { data: progress } = useBackupProgress()
+  const { data: system } = useSystem()
+  const triggerMutation = useTriggerBackup(destinations ?? [])
+  const isRunning = !!progress && isActiveRunPhase(progress.phase)
 
   return (
-    <aside className={cn("hidden md:flex h-full w-64 flex-col border-r bg-sidebar-background", collapsed && "w-16")}>
-      <div className="flex h-16 items-center border-b border-sidebar-border px-4">
-        <Link to="/dashboard" className="flex items-center gap-2 text-lg font-semibold text-sidebar-primary-foreground">
-          <Box className="h-6 w-6" />
+    <aside className={styles.aside}>
+      <div className={styles.brandBar}>
+        <Link to="/dashboard" className={styles.brand}>
+          <span className={styles.brandIcon}>
+            <Logo className="h-7 w-7" />
+          </span>
           {!collapsed && <span>Chest-Backup</span>}
         </Link>
       </div>
 
-      <nav className="flex-1 space-y-1 px-2 py-4">
+      <nav className={styles.nav}>
+
         {navItems.map((item) => {
           const Icon = item.icon
           const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href))
-          return (
+          const link = (
             <Link
-              key={item.href}
               to={item.href}
+              aria-current={isActive ? "page" : undefined}
               className={cn(
-                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                isActive
-                  ? "bg-sidebar-accent text-sidebar-primary-foreground"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-primary-foreground",
+                styles.link,
+                collapsed && styles.linkCollapsed,
+                isActive ? styles.linkActive : styles.linkIdle,
               )}
             >
-              <Icon className="h-4 w-4 shrink-0" />
+              {isActive && <span className={styles.activeBar} />}
+              <Icon className={cn(styles.linkIcon, !isActive && styles.linkIconIdle)} />
               {!collapsed && <span className="flex-1">{t(item.label)}</span>}
-              {item.badge && <Badge variant="secondary">{item.badge}</Badge>}
             </Link>
+          )
+
+          return collapsed ? (
+            <Tooltip key={item.href} content={t(item.label)} side="top">
+              {link}
+            </Tooltip>
+          ) : (
+            <div key={item.href}>{link}</div>
           )
         })}
       </nav>
 
-      <div className="border-t border-sidebar-border p-4">
-        <div className="flex items-center gap-2 text-xs text-sidebar-foreground">
-          <div className="h-2 w-2 rounded-full bg-success" />
-          {!collapsed && <span>{t("status.running")}</span>}
-        </div>
+      <div className={styles.footer}>
+        <button
+          type="button"
+          onClick={() => {
+            triggerMutation.mutate()
+          }}
+          disabled={triggerMutation.isPending || isRunning}
+          title={isRunning ? t("dashboard.backupInProgress") : t("dashboard.runBackup")}
+          className={cn(styles.runButton, collapsed && styles.runButtonCollapsed, isRunning && styles.runButtonRunning)}
+        >
+          {isRunning ? (
+            <span className={styles.spinner} />
+          ) : (
+            <Play className="h-3.5 w-3.5" />
+          )}
+          {!collapsed && (
+            <span>{isRunning ? t("dashboard.backupInProgress") : t("dashboard.runBackup")}</span>
+          )}
+        </button>
+
+        {system && (
+          <div className={cn(styles.status, collapsed && styles.statusCollapsed)}>
+            <div className={styles.statusDotWrap}>
+              <span className={styles.statusDotPing} />
+              <span className={styles.statusDot} />
+            </div>
+            {!collapsed && (
+              <span>
+                {formatUptime(system.uptime)} · v{system.version}
+              </span>
+            )}
+          </div>
+        )}
       </div>
     </aside>
   )

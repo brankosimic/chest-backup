@@ -107,191 +107,195 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="mx-auto max-w-6xl space-y-6">
       <Header title={t("settings.title")} subtitle={t("settings.subtitle")} />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("settings.general")}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-2">
-            <Label>{t("settings.tempDir")}</Label>
-            <Input
-              value={tempDir}
-              onChange={(e) => {
-                setTempDir(e.target.value)
-              }}
-              placeholder={t("settings.tempDirPlaceholder")}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>{t("settings.language")}</Label>
-            <Select
-              value={language}
-              onChange={(e) => {
-                const next = e.target.value
-                setLanguage(next)
-                void i18n.changeLanguage(next)
-              }}
-            >
-              <option value="en">{t("nav.languages.en")}</option>
-              <option value="bs">{t("nav.languages.bs")}</option>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label>{t("settings.theme")}</Label>
-            <p className="text-sm text-muted-foreground">{t("settings.themeComingSoon")}</p>
-          </div>
-
-          <Button onClick={handleSaveGeneral} className="w-full">
-            {t("common.save")}
-          </Button>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("settings.schedule")}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-2">
-            <Label>{t("settings.cronExpression")}</Label>
-            <Input
-              value={schedule}
-              onChange={(e) => {
-                setSchedule(e.target.value)
-              }}
-              placeholder="0 3 * * *"
-            />
-            <p className="text-xs text-muted-foreground">Format: minute hour day-of-month month day-of-week</p>
-          </div>
-
-          <div className="flex items-center justify-between rounded-lg border p-3">
-            <div>
-              <p className="text-sm font-medium">{t("settings.scheduleEnabled")}</p>
+      <div className="grid gap-6 xl:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("settings.general")}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-2">
+              <Label>{t("settings.tempDir")}</Label>
+              <Input
+                value={tempDir}
+                onChange={(e) => {
+                  setTempDir(e.target.value)
+                }}
+                placeholder={t("settings.tempDirPlaceholder")}
+              />
             </div>
-            <Switch checked={enabled} onCheckedChange={setEnabled} />
-          </div>
 
-          {scheduleData?.lastRun && (
-            <div className="rounded-lg border p-3 space-y-1">
-              <p className="text-sm text-muted-foreground">
-                <span className="font-medium">{t("settings.lastRun")}:</span> {formatDate(scheduleData.lastRun)}
-              </p>
-              {scheduleData.nextRun && (
+            <div className="space-y-2">
+              <Label>{t("settings.language")}</Label>
+              <Select
+                value={language}
+                onChange={(e) => {
+                  const next = e.target.value
+                  setLanguage(next)
+                  void i18n.changeLanguage(next)
+                }}
+              >
+                <option value="en">{t("nav.languages.en")}</option>
+                <option value="bs">{t("nav.languages.bs")}</option>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>{t("settings.theme")}</Label>
+              <p className="text-sm text-muted-foreground">{t("settings.themeComingSoon")}</p>
+            </div>
+
+            <Button onClick={handleSaveGeneral} className="w-full">
+              {t("common.save")}
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("settings.schedule")}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-2">
+              <Label>{t("settings.cronExpression")}</Label>
+              <Input
+                value={schedule}
+                onChange={(e) => {
+                  setSchedule(e.target.value)
+                }}
+                placeholder="0 3 * * *"
+              />
+              <p className="text-xs text-muted-foreground">Format: minute hour day-of-month month day-of-week</p>
+            </div>
+
+            <div className="flex items-center justify-between rounded-lg border p-3">
+              <div>
+                <p className="text-sm font-medium">{t("settings.scheduleEnabled")}</p>
+              </div>
+              <Switch checked={enabled} onCheckedChange={setEnabled} />
+            </div>
+
+            {scheduleData?.lastRun && (
+              <div className="rounded-lg border p-3 space-y-1">
                 <p className="text-sm text-muted-foreground">
-                  <span className="font-medium">{t("settings.nextRun")}:</span> {formatDate(scheduleData.nextRun)}
+                  <span className="font-medium">{t("settings.lastRun")}:</span> {formatDate(scheduleData.lastRun)}
                 </p>
-              )}
-            </div>
-          )}
+                {scheduleData.nextRun && (
+                  <p className="text-sm text-muted-foreground">
+                    <span className="font-medium">{t("settings.nextRun")}:</span> {formatDate(scheduleData.nextRun)}
+                  </p>
+                )}
+              </div>
+            )}
 
-          <div className="space-y-2">
-            <Label>{t("settings.presets")}</Label>
-            <div className="grid gap-2 sm:grid-cols-3">
-              {cronPresets.map((preset) => (
-                <Button
-                  key={preset.value}
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setSchedule(preset.value)
-                  }}
-                >
-                  {t(preset.label)}
-                </Button>
-              ))}
+            <div className="space-y-2">
+              <Label>{t("settings.presets")}</Label>
+              <div className="grid gap-2 sm:grid-cols-3">
+                {cronPresets.map((preset) => (
+                  <Button
+                    key={preset.value}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSchedule(preset.value)
+                    }}
+                  >
+                    {t(preset.label)}
+                  </Button>
+                ))}
+              </div>
             </div>
-          </div>
 
-          <Button onClick={handleSaveSchedule} disabled={updateScheduleMutation.isPending} className="w-full">
-            {updateScheduleMutation.isPending ? t("common.loading") : t("common.save")}
-          </Button>
-        </CardContent>
-      </Card>
+            <Button onClick={handleSaveSchedule} disabled={updateScheduleMutation.isPending} className="w-full">
+              {updateScheduleMutation.isPending ? t("common.loading") : t("common.save")}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
 
       <ExclusionsCard />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("settings.retention")}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-2">
-            <Label>{t("settings.retentionMode")}</Label>
-            <Select
-              value={retentionMode}
-              onChange={(e) => {
-                setRetentionMode(e.target.value as RetentionSettings["retentionMode"])
-              }}
-            >
-              {retentionModes.map((mode) => (
-                <option key={mode.value} value={mode.value}>
-                  {t(mode.label)}
-                </option>
-              ))}
-            </Select>
-            <p className="text-xs text-muted-foreground">{t("settings.retentionModeDescription")}</p>
-          </div>
-
-          {retentionMode !== "forever" && (
+      <div className="grid gap-6 xl:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("settings.retention")}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
             <div className="space-y-2">
-              <Label>{t("settings.globalRetention")}</Label>
-              <Input
-                type="number"
-                min={1}
-                value={globalRetention}
+              <Label>{t("settings.retentionMode")}</Label>
+              <Select
+                value={retentionMode}
                 onChange={(e) => {
-                  setGlobalRetention(Number(e.target.value))
+                  setRetentionMode(e.target.value as RetentionSettings["retentionMode"])
                 }}
-              />
-              <p className="text-xs text-muted-foreground">
-                {t(retentionUnitKeys[retentionMode] ?? "settings.retentionDays")}
-              </p>
+              >
+                {retentionModes.map((mode) => (
+                  <option key={mode.value} value={mode.value}>
+                    {t(mode.label)}
+                  </option>
+                ))}
+              </Select>
+              <p className="text-xs text-muted-foreground">{t("settings.retentionModeDescription")}</p>
             </div>
-          )}
 
-          <Button onClick={handleSaveRetention} disabled={updateRetentionMutation.isPending} className="w-full">
-            {updateRetentionMutation.isPending ? t("common.loading") : t("common.save")}
-          </Button>
-        </CardContent>
-      </Card>
+            {retentionMode !== "forever" && (
+              <div className="space-y-2">
+                <Label>{t("settings.globalRetention")}</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  value={globalRetention}
+                  onChange={(e) => {
+                    setGlobalRetention(Number(e.target.value))
+                  }}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {t(retentionUnitKeys[retentionMode] ?? "settings.retentionDays")}
+                </p>
+              </div>
+            )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("notifications.cardTitle")}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="flex items-center justify-between rounded-lg border p-3">
-            <span className="text-sm font-medium">{t("notifications.enabled")}</span>
-            <Switch checked={notificationsEnabled} onCheckedChange={setNotificationsEnabled} />
-          </div>
+            <Button onClick={handleSaveRetention} disabled={updateRetentionMutation.isPending} className="w-full">
+              {updateRetentionMutation.isPending ? t("common.loading") : t("common.save")}
+            </Button>
+          </CardContent>
+        </Card>
 
-          <div className="space-y-2">
-            <Label>{t("notifications.webhookUrl")}</Label>
-            <Input
-              value={webhookUrl}
-              onChange={(e) => {
-                setWebhookUrl(e.target.value)
-              }}
-              placeholder={t("notifications.webhookUrlPlaceholder")}
-            />
-          </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("notifications.cardTitle")}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="flex items-center justify-between rounded-lg border p-3">
+              <span className="text-sm font-medium">{t("notifications.enabled")}</span>
+              <Switch checked={notificationsEnabled} onCheckedChange={setNotificationsEnabled} />
+            </div>
 
-          <Button variant="outline" onClick={handleTestNotification} disabled={testNotificationMutation.isPending}>
-            {testNotificationMutation.isPending ? t("common.loading") : t("notifications.testNotification")}
-          </Button>
+            <div className="space-y-2">
+              <Label>{t("notifications.webhookUrl")}</Label>
+              <Input
+                value={webhookUrl}
+                onChange={(e) => {
+                  setWebhookUrl(e.target.value)
+                }}
+                placeholder={t("notifications.webhookUrlPlaceholder")}
+              />
+            </div>
 
-          {testSent && <Badge variant="success">{t("notifications.testSuccess")}</Badge>}
+            <Button variant="outline" onClick={handleTestNotification} disabled={testNotificationMutation.isPending}>
+              {testNotificationMutation.isPending ? t("common.loading") : t("notifications.testNotification")}
+            </Button>
 
-          <Button onClick={handleSaveNotifications} disabled={updateNotificationsMutation.isPending} className="w-full">
-            {updateNotificationsMutation.isPending ? t("common.loading") : t("common.save")}
-          </Button>
-        </CardContent>
-      </Card>
+            {testSent && <Badge variant="success">{t("notifications.testSuccess")}</Badge>}
+
+            <Button onClick={handleSaveNotifications} disabled={updateNotificationsMutation.isPending} className="w-full">
+              {updateNotificationsMutation.isPending ? t("common.loading") : t("common.save")}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }
