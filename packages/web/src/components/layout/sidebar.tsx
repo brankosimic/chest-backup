@@ -28,7 +28,7 @@ const Sidebar = ({ collapsed = false }: { collapsed?: boolean }) => {
           <span className={styles.brandIcon}>
             <Logo className="h-7 w-7" />
           </span>
-          {!collapsed && <span>Chest-Backup</span>}
+          {!collapsed && <span>Chest Backup</span>}
         </Link>
       </div>
 

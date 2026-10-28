@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client"
 import { createBrowserRouter, Navigate, RouterProvider } from "react-router-dom"
 import { QueryProvider } from "@/components/QueryProvider"
 import { I18nProvider } from "@/components/I18nProvider"
+import { ThemeProvider } from "@/lib/theme-provider"
 import { ErrorBoundary } from "@/components/ui/error-boundary"
 import "@/app/globals.css"
 
@@ -44,11 +45,13 @@ if (rootEl)
   ReactDOM.createRoot(rootEl).render(
     <React.StrictMode>
       <ErrorBoundary>
-        <QueryProvider>
-          <I18nProvider>
-            <RouterProvider router={router} />
-          </I18nProvider>
-        </QueryProvider>
+        <ThemeProvider>
+          <QueryProvider>
+            <I18nProvider>
+              <RouterProvider router={router} />
+            </I18nProvider>
+          </QueryProvider>
+        </ThemeProvider>
       </ErrorBoundary>
     </React.StrictMode>,
   )

@@ -307,7 +307,7 @@
     "tempDirPlaceholder": "/tmp",
     "language": "Jezik",
     "theme": "Tema",
-    "themeComingSoon": "Postavke teme bit će dostupne u budućoj verziji.",
+    "themeHint": "Sistem prati izgled vašeg uređaja.",
     "dark": "Tamna",
     "light": "Svijetla",
     "system": "Sistem",

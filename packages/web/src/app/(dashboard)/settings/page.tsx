@@ -11,6 +11,8 @@ import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
 import { Header } from "@/components/layout/header"
 import { ExclusionsCard } from "@/components/settings/exclusions-card"
+import { useTheme } from "@/lib/theme"
+import type { Theme } from "@/lib/theme"
 import { formatDate } from "@/lib/utils"
 import { useSchedule, useUpdateSchedule, useRetention, useUpdateRetention, useNotifications, useUpdateNotifications, useTestNotification } from "@/hooks/use-queries"
 import type { RetentionSettings } from "@/types/mutations"
@@ -36,6 +38,7 @@ export default function SettingsPage() {
   const { t, i18n } = useTranslation()
   const [tempDir, setTempDir] = useState(() => localStorage.getItem("chest-backup-tempDir") ?? "/tmp")
   const [language, setLanguage] = useState(i18n.language)
+  const { theme, setTheme } = useTheme()
 
   const { data: scheduleData } = useSchedule()
   const updateScheduleMutation = useUpdateSchedule()
@@ -90,14 +93,6 @@ export default function SettingsPage() {
     })
   }
 
-  const handleSaveGeneral = () => {
-    try {
-      localStorage.setItem("chest-backup-tempDir", tempDir)
-    } catch (e) {
-      console.error(e)
-    }
-  }
-
   const handleSaveSchedule = () => {
     updateScheduleMutation.mutate({ schedule, enabled })
   }
@@ -144,12 +139,18 @@ export default function SettingsPage() {
 
             <div className="space-y-2">
               <Label>{t("settings.theme")}</Label>
-              <p className="text-sm text-muted-foreground">{t("settings.themeComingSoon")}</p>
+              <Select
+                value={theme}
+                onChange={(e) => {
+                  setTheme(e.target.value as Theme)
+                }}
+              >
+                <option value="system">{t("settings.system")}</option>
+                <option value="light">{t("settings.light")}</option>
+                <option value="dark">{t("settings.dark")}</option>
+              </Select>
+              <p className="text-xs text-muted-foreground">{t("settings.themeHint")}</p>
             </div>
-
-            <Button onClick={handleSaveGeneral} className="w-full">
-              {t("common.save")}
-            </Button>
           </CardContent>
         </Card>
 

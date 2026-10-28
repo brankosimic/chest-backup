@@ -1,88 +1,69 @@
 import { useTranslation } from "react-i18next"
-import { Link } from "react-router-dom"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { useNavigate } from "react-router-dom"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { Header } from "@/components/layout/header"
+import { DestinationRow } from "@/components/destinations/destination-row"
 import { Plus } from "lucide-react"
 import { useDestinations } from "@/hooks/use-queries"
-import type { Destination } from "@chest-backup/shared"
-import { DestinationType } from "@chest-backup/shared"
+import * as styles from "./page.styles"
 
 const DestinationsPage = () => {
   const { t } = useTranslation()
-  const { data: destinations, isLoading } = useDestinations()
+  const navigate = useNavigate()
+  const { data: destinations, isLoading, isError, refetch } = useDestinations()
 
-  if (isLoading) {
+  if (isLoading) return <LoadingSpinner className="h-screen" />
+
+  if (isError)
     return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      <div className={styles.page}>
+        <Header title={t("destinations.title")} subtitle={t("destinations.subtitle")} />
+        <Card>
+          <CardContent className={styles.errorCard}>
+            <p className={styles.emptyText}>{t("common.error")}</p>
+            <Button variant="outline" onClick={() => void refetch()}>
+              {t("common.refresh")}
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     )
-  }
 
   return (
-    <div className="mx-auto max-w-7xl">
+    <div className={styles.page}>
       <Header
         title={t("destinations.title")}
         subtitle={t("destinations.subtitle")}
         action={
-          <Link to="/destinations/new">
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              {t("destinations.addDestination")}
-            </Button>
-          </Link>
+          <Button onClick={() => void navigate("/destinations/new")}>
+            <Plus className={styles.plusIcon} />
+            {t("destinations.addDestination")}
+          </Button>
         }
       />
 
       {!destinations?.length ? (
         <Card>
-          <CardContent className="pt-6">
-            <p className="text-center text-muted-foreground">{t("destinations.noDestinations")}</p>
-            <p className="mt-2 text-center text-sm">{t("destinations.noDestinationsDesc")}</p>
+          <CardContent className={styles.emptyCard}>
+            <p className={styles.emptyText}>{t("destinations.noDestinations")}</p>
+            <p className={styles.emptyDesc}>{t("destinations.noDestinationsDesc")}</p>
           </CardContent>
         </Card>
       ) : (
-        <div className="flex flex-wrap gap-4">
-          {destinations.map((dest: Destination) => (
-            <Link key={dest.id} to={`/destinations/${dest.id}`} className="flex w-full flex-col sm:w-1/2 lg:w-1/3 2xl:w-1/4">
-              <Card className="h-full hover:shadow-md transition-shadow">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-base">{dest.name ?? dest.path}</CardTitle>
-                    <Badge variant={dest.type === DestinationType.Local ? "default" : "secondary"}>
-                      {dest.type === DestinationType.Local ? t("destinations.local") : t("destinations.sftp")}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-1 text-sm">
-                    {dest.type === DestinationType.Sftp && dest.host && (
-                      <>
-                        <p className="text-muted-foreground">
-                          {dest.host}:{dest.port}
-                        </p>
-                        <p className="text-muted-foreground">
-                          {t("destinations.user")}: {dest.user}
-                        </p>
-                      </>
-                    )}
-                    {dest.parallel !== undefined && (
-                      <p className="text-muted-foreground">
-                        {t("destinations.parallel")}: {dest.parallel ? t("common.yes") : t("common.no")}
-                      </p>
-                    )}
-                    {dest.skip && <Badge variant="outline">{t("status.skipped")}</Badge>}
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
+        <div className={styles.grid}>
+          {destinations.map((dest) => (
+            <DestinationRow key={dest.id} destination={dest} />
           ))}
+          <button type="button" onClick={() => void navigate("/destinations/new")} className={styles.addBox}>
+            <Plus className={styles.addBoxIcon} />
+            {t("destinations.addDestination")}
+          </button>
         </div>
       )}
     </div>
   )
 }
 
-export { DestinationsPage as default }
+export default DestinationsPage

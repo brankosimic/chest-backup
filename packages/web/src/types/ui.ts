@@ -62,6 +62,11 @@ interface NavItem {
   icon: LucideIcon
 }
 
+interface ConnectionRow {
+  label: string
+  value: string
+}
+
 export type {
   BadgeVariant,
   LanguageCode,
@@ -75,4 +80,5 @@ export type {
   TooltipProps,
   ErrorBoundaryProps,
   NavItem,
+  ConnectionRow,
 }

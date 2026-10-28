@@ -53,7 +53,7 @@ const MobileNav = () => {
         </button>
         <Link to="/dashboard" className={styles.brand}>
           <Logo className="h-7 w-7" />
-          Chest-Backup
+          Chest Backup
         </Link>
       </header>
 

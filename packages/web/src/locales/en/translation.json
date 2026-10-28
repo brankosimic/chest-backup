@@ -307,7 +307,7 @@
     "tempDirPlaceholder": "/tmp",
     "language": "Language",
     "theme": "Theme",
-    "themeComingSoon": "Theme settings will be available in a future update.",
+    "themeHint": "System follows your device's appearance preference.",
     "dark": "Dark",
     "light": "Light",
     "system": "System",

@@ -39,6 +39,15 @@ const DestCard = ({ props }: { props: DestCardProps }) => {
                   <div className={styles.skeletonTextNarrow} />
                 </div>
               </div>
+              <div className={styles.diskGroup}>
+                <div className={styles.row}>
+                  <span className={styles.rowLabel}>{t("dashboard.diskUsage")}</span>
+                  <span className={styles.skeletonTextNarrow} />
+                </div>
+                <div className={styles.barTrack}>
+                  <div className={cn(styles.diskBar, styles.skeletonBar)} />
+                </div>
+              </div>
               <div className={styles.footer}>
                 <Clock className={styles.clockIcon} />
                 <span>{t("dashboard.avgDuration")}: </span>

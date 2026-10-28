@@ -22,6 +22,7 @@ const rowLabel = "text-muted-foreground"
 const rowValue = "font-medium tabular-nums"
 const barTrack = "h-1.5 w-full overflow-hidden rounded-full bg-muted"
 const diskBar = "h-full rounded-full bg-primary transition-all"
+const skeletonBar = "w-full animate-pulse bg-muted"
 
 export {
   header,
@@ -48,4 +49,5 @@ export {
   rowValue,
   barTrack,
   diskBar,
+  skeletonBar,
 }
