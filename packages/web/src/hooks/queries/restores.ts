@@ -48,7 +48,10 @@ const useActiveRestore = () =>
   useQuery({
     queryKey: ["restore-active"],
     queryFn: fetchActiveRestore,
-    refetchInterval: 3_000,
+    refetchInterval: (query) => {
+      const job = query.state.data
+      return job && job.status === RestoreStatus.Running ? 3_000 : false
+    },
   })
 
 export { useRestoreSnapshots, useRestoreSnapshotFiles, useStartRestore, useRestoreJob, useActiveRestore }

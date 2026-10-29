@@ -162,7 +162,7 @@ const RestorePage = () => {
   }
 
   const selectedCount = selected.size
-  const canRestore = !!destId && !!periodKey && !startRestore.isPending && (!activeJob || activeJob.status !== RestoreStatus.Running)
+  const canRestore = !!destId && !!periodKey && selectedCount > 0 && !startRestore.isPending && (!activeJob || activeJob.status !== RestoreStatus.Running)
 
   const runRestore = (): void => {
     if (!destId || !periodKey) return

@@ -161,8 +161,15 @@ const startRestoreJob = (dest: Destination, periodKey: string, options: RestoreO
 const getRestoreJob = (id: string): RestoreJob | undefined => jobs.get(id)
 
 const getActiveRestoreJob = (): RestoreJob | null => {
-  const job = activeJobId ? jobs.get(activeJobId) : undefined
-  return isRunning(job) ? (job ?? null) : null
+  if (activeJobId) {
+    const job = jobs.get(activeJobId)
+    if (job) return job
+  }
+  let latest: RestoreJob | undefined
+  for (const job of jobs.values()) {
+    if (!latest || job.startedAt > latest.startedAt) latest = job
+  }
+  return latest ?? null
 }
 
 export { startRestoreJob, getRestoreJob, getActiveRestoreJob }
