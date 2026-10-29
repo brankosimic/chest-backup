@@ -13,6 +13,7 @@ import * as styles from "./destination-row.styles"
 const DestinationRow = ({ destination }: { destination: Destination }) => {
   const { t } = useTranslation()
   const isLocal = destination.type === DestinationType.Local
+  const skipped = !!destination.skip
   const { data: usage, isLoading } = useDestinationUsage(destination.id)
 
   const baseRows: ConnectionRow[] = isLocal
@@ -31,7 +32,7 @@ const DestinationRow = ({ destination }: { destination: Destination }) => {
 
   return (
     <Link to={`/destinations/${destination.id}`} className={styles.linkShell}>
-      <Card className={cn(styles.cardShell, usage && (usage.available ? "border-green-500" : "border-destructive"))}>
+      <Card className={cn(styles.cardShell, skipped ? "border-amber-500" : usage && (usage.available ? "border-green-500" : "border-destructive"))}>
         <div className={styles.body}>
           <div className={styles.identity}>
             <span className={styles.iconWrap}>
@@ -43,11 +44,16 @@ const DestinationRow = ({ destination }: { destination: Destination }) => {
                 <Badge variant={isLocal ? "default" : "secondary"}>
                   {isLocal ? t("destinations.local") : t("destinations.sftp")}
                 </Badge>
+                {skipped && (
+                  <Badge variant="outline" className={styles.skippedBadge}>
+                    {t("status.skipped")}
+                  </Badge>
+                )}
               </div>
               <span className={styles.subtitle}>
-                {usage?.available === false ? t("destinations.unavailable") : destination.path}
+                {!skipped && usage?.available === false ? t("destinations.unavailable") : destination.path}
               </span>
-              {usage && !usage.available && (
+              {!skipped && usage && !usage.available && (
                 <AlertTriangle className={styles.unavailableIcon} aria-label={t("destinations.unavailable")} />
               )}
             </div>

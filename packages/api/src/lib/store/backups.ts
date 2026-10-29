@@ -1,5 +1,5 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync, statSync } from "node:fs"
-import { resolve } from "node:path"
+import { resolve, dirname } from "node:path"
 import type { BackupRecord, StoreResult } from "@chest-backup/shared"
 import { DestinationType, RunStatus, RunTrigger, deriveRunStatus } from "@chest-backup/shared"
 import { getConfig, stableId, DATA_DIR, BACKUP_HISTORY_PATH } from "./config"
@@ -353,29 +353,26 @@ const buildSftpUsage = async (dest: Destination, avgDurationMs: number): Promise
   }
 }
 
-const buildDestUsage = async (dest: Destination, avgDurationMs: number): Promise<DestinationUsage | null> => {
-  if (dest.type === DestinationType.Local) return buildLocalUsage(dest, avgDurationMs)
-  return buildSftpUsage(dest, avgDurationMs)
+const buildUnavailableUsage = async (dest: Destination, avgDurationMs: number): Promise<DestinationUsage> => ({
+  type: dest.type,
+  name: dest.name,
+  path: dest.path,
+  totalSize: 0,
+  fileCount: 0,
+  avgDurationMs,
+  available: false,
+  diskSpace: dest.type === DestinationType.Local ? getLocalDiskSpace(dirname(dest.path)) : await getSftpDiskSpace(dest),
+})
+
+const buildDestUsage = async (dest: Destination, avgDurationMs: number): Promise<DestinationUsage> => {
+  const usage = dest.type === DestinationType.Local ? buildLocalUsage(dest, avgDurationMs) : await buildSftpUsage(dest, avgDurationMs)
+  return usage ?? buildUnavailableUsage(dest, avgDurationMs)
 }
 
 const getDestinationUsage = async (id: string): Promise<DestinationUsage | null> => {
   const dest = findDestinationById(id)
   if (!dest) return null
-
-  const avgDurationMs = destAvgDurationMs(dest)
-  const usage = await buildDestUsage(dest, avgDurationMs)
-  if (usage) return usage
-
-  return {
-    type: dest.type,
-    name: dest.name,
-    path: dest.path,
-    totalSize: 0,
-    fileCount: 0,
-    avgDurationMs,
-    available: false,
-    diskSpace: dest.type === DestinationType.Local ? getLocalDiskSpace(dest.path) : undefined,
-  }
+  return buildDestUsage(dest, destAvgDurationMs(dest))
 }
 
 const addBackupRecord = (record: BackupRecord): void => {

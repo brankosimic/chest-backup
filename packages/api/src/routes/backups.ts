@@ -72,13 +72,14 @@ backups.post("/run", (c) => {
   if (!config) return c.json({ success: false, error: "No config loaded — cannot run backup" }, 500)
 
   const runId = createRunId()
+  const activeDestinations = config.destinations.filter((d) => !d.skip)
   startRun(
     runId,
     RunTrigger.Manual,
-    config.destinations.map((d) => ({ id: d.id, name: d.name, path: d.path, type: d.type })),
+    activeDestinations.map((d) => ({ id: d.id, name: d.name, path: d.path, type: d.type })),
     formatTimestamp(new Date()),
   )
-  logRunStart(runId, config.destinations.length)
+  logRunStart(runId, activeDestinations.length)
 
   runBackup(
     config,

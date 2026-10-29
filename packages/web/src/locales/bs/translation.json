@@ -54,14 +54,14 @@
   "dashboard": {
     "title": "Naslovna",
     "subtitle": "Pregled vašeg sistema za backup",
-    "totalBackups": "Ukupno backup-ova",
+    "totalBackups": "Ukupno backupa",
     "successRate": "Stopa uspjeha",
     "avgDuration": "Prosječno trajanje",
     "storageUsed": "Korišteno prostora",
     "recentBackups": "Nedavni backup-ovi",
     "recentActivity": "Nedavna aktivnost",
     "viewAllActivity": "Prikaži svu aktivnost",
-    "noRunsYet": "Još nema pokrenutih backup-ova",
+    "noRunsYet": "Još nema pokrenutih backupa",
     "lastRun": "Zadnji put",
     "nextRun": "Sljedeći put",
     "systemHealth": "Zdravlje sistema",
@@ -71,7 +71,7 @@
     "memoryUsage": "Korištenje memorije",
     "diskUsage": "Korištenje diska",
     "version": "Verzija",
-    "backupChart": "Istorija backup-ova",
+    "backupChart": "Istorija backupa",
     "quickActions": "Brze akcije",
     "runBackup": "Pokreni backup odmah",
     "fileCount": "Datoteke",
@@ -85,7 +85,7 @@
     "archivingSources": "Arhiviranje izvora...",
     "uploading": "Otpremanje",
     "filesChanged": "Promijenjene datoteke",
-    "transferred": "Prenijeto"
+    "transferred": "Preneseno"
   },
   "sources": {
     "title": "Izvori",
@@ -189,7 +189,7 @@
   },
   "retention": {
     "title": "Politika zadržavanja",
-    "subtitle": "Upravljajte zadržavanjem backup-ova",
+    "subtitle": "Upravljajte zadržavanjem backupa",
     "globalRetention": "Globalno zadržavanje (backup-ovi)",
     "destinationRetention": "Zadržavanje po odredištu",
     "save": "Sačuvaj postavke zadržavanja"
@@ -243,7 +243,7 @@
       "problems": "Problemi",
       "skipped": "Preskočeno",
       "avgDuration": "Prosječno trajanje",
-      "transferred": "Prenijeto",
+      "transferred": "Preneseno",
       "partialHint": "{{partial}} djelimično, {{failed}} neuspješno"
     },
     "filters": {
@@ -269,14 +269,14 @@
       "trigger": "Okidač",
       "duration": "Trajanje",
       "files": "Datoteke",
-      "transferred": "Prenijeto",
+      "transferred": "Preneseno",
       "destinations": "Odredišta",
       "errors": "Greške"
     },
     "detail": {
       "duration": "Trajanje",
       "filesChanged": "Promijenjene datoteke",
-      "transferred": "Prenijeto",
+      "transferred": "Preneseno",
       "errors": "Greške",
       "runInfo": "Detalji runa",
       "runId": "ID runa",

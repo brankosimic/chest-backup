@@ -11,17 +11,25 @@ import * as styles from "./dest-card.styles"
 
 const DestCard = ({ props }: { props: DestCardProps }) => {
   const { t } = useTranslation()
+  const skipped = !!props.destination.skip
   const { data: usage, isLoading } = useDestinationUsage(props.destination.id)
   return (
     <Link to={`/destinations/${props.destination.id}`} className={styles.linkShell}>
-      <Card className={cn(styles.cardShell, usage && (usage.available ? "border-green-500" : "border-destructive"))}>
-        {usage && !usage.available && (
+      <Card className={cn(styles.cardShell, skipped ? "border-amber-500" : usage && (usage.available ? "border-green-500" : "border-destructive"))}>
+        {!skipped && usage && !usage.available && (
           <AlertTriangle className={styles.unavailableIcon} aria-label={t("destinations.unavailable")} />
         )}
         <CardHeader className={styles.header}>
-          <CardTitle className={styles.title} title={props.destination.path}>
-            {props.destination.name ?? props.destination.path}
-          </CardTitle>
+          <div className={styles.titleGroup}>
+            <CardTitle className={styles.title} title={props.destination.path}>
+              {props.destination.name ?? props.destination.path}
+            </CardTitle>
+            {skipped && (
+              <Badge variant="outline" className={styles.skippedBadge}>
+                {t("status.skipped")}
+              </Badge>
+            )}
+          </div>
           <Badge variant={props.destination.type === DestinationType.Local ? "default" : "secondary"} className={styles.badge}>
             {props.destination.type === DestinationType.Local ? t("destinations.local") : t("destinations.sftp")}
           </Badge>

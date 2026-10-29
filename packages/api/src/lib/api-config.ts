@@ -3,10 +3,10 @@ import { loadConfig } from "@core/config/loader"
 import { startDaemon } from "@core/daemon"
 import { logger } from "@core/utils/logger"
 import type { Config } from "@core/types/config"
-import type { BackupProgressEvent } from "@core/types/index"
+import type { BackupProgressEvent, BackupResult } from "@core/types/index"
 import { RunTrigger } from "@chest-backup/shared"
-import { persistBackupResult } from "./store"
-import { applyProgressEvent, startRun } from "./progress"
+import { invalidateBackupCache, persistBackupResult } from "./store"
+import { applyProgressEvent, completeRun, startRun } from "./progress"
 
 let activeConfig: Config | null = null
 let activeConfigPath: string | null = null
@@ -54,14 +54,20 @@ const startScheduledRun = (event: BackupProgressEvent): void => {
   startRun(
     event.runId ?? "",
     RunTrigger.Scheduled,
-    (config?.destinations ?? []).map((d) => ({ id: d.id, name: d.name, path: d.path, type: d.type })),
+    (config?.destinations ?? []).filter((d) => !d.skip).map((d) => ({ id: d.id, name: d.name, path: d.path, type: d.type })),
     event.timestamp ?? "",
   )
 }
 
+const settleScheduledRun = (result: BackupResult): void => {
+  completeRun(result)
+  invalidateBackupCache()
+  persistBackupResult(result)
+}
+
 const loadAndStartDaemon = async (): Promise<void> => {
   try {
-    await startDaemon(persistBackupResult, {
+    await startDaemon(settleScheduledRun, {
       onProgress: (event: BackupProgressEvent) => {
         startScheduledRun(event)
         applyProgressEvent(event)
