@@ -4,7 +4,7 @@ set -euo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 template="$root/contrib/aur/PKGBUILD.template"
 pkgver="$(node -p "require('$root/package.json').version")"
-sha256="45d6053cb89c42f3dcf8820e11a729c7abba384f8d12d8505cbf87caa57d290b"
+sha256="d026e88bf8122edae2b60c6c9d3592e58eec903829e0277374ae1faf62de04c1"
 
 make_makedepends() {
   printf "makedepends=(\n  'nodejs'\n  'pnpm'\n  'python'\n)\n"
