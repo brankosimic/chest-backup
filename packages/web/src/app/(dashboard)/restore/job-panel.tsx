@@ -1,10 +1,12 @@
+import type { ReactNode } from "react"
 import { useTranslation } from "react-i18next"
-import { Card } from "@/components/ui/card"
+import { motion } from "framer-motion"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { formatNumber, formatSize, cn, destLabel } from "@/lib/utils"
-import { RestoreStatus } from "@chest-backup/shared"
+import { DestinationType, RestoreStatus } from "@chest-backup/shared"
 import type { JobPanelProps, RestoreStatusMeta } from "@/types/ui"
-import { RotateCcw, CheckCircle2, XCircle, Loader2 } from "lucide-react"
+import { RotateCcw, CheckCircle2, XCircle, AlertTriangle, HardDrive, Network, Clock } from "lucide-react"
 import * as styles from "./page.styles"
 
 const statusMeta: Record<RestoreStatus, RestoreStatusMeta> = {
@@ -14,72 +16,101 @@ const statusMeta: Record<RestoreStatus, RestoreStatusMeta> = {
   [RestoreStatus.Failed]: { variant: "destructive", labelKey: "restore.statusFailed" },
 }
 
+const statusIcon: Partial<Record<RestoreStatus, ReactNode>> = {
+  [RestoreStatus.Success]: <CheckCircle2 className="h-4 w-4 shrink-0 text-green-500" />,
+  [RestoreStatus.Partial]: <AlertTriangle className="h-4 w-4 shrink-0 text-amber-500" />,
+  [RestoreStatus.Failed]: <XCircle className="h-4 w-4 shrink-0 text-red-500" />,
+}
+
 const JobPanel = ({ job }: JobPanelProps) => {
   const { t } = useTranslation()
   const pct = job.totalFiles > 0 ? Math.round((job.completedFiles / job.totalFiles) * 100) : 0
-  const meta = statusMeta[job.status]
+  const isRunning = job.status === RestoreStatus.Running
 
   return (
-    <Card className={styles.jobCard}>
-      <div className={styles.jobHeader}>
-        <div className={styles.jobTitle}>
-          <RotateCcw className={styles.jobTitleIcon} />
-          <span className="font-medium">{t("restore.jobTitle")}</span>
+    <Card className={cn(styles.jobCard, isRunning && styles.jobCardRunning, job.status === RestoreStatus.Failed && styles.jobCardFailed, !isRunning && job.status !== RestoreStatus.Failed && styles.jobCardDone)}>
+      <CardHeader className={styles.jobHeaderRow}>
+        <div className={styles.jobTitleGroup}>
+          {isRunning ? (
+            <span className={styles.liveDot}>
+              <span className={styles.liveDotPing} />
+              <span className={styles.liveDotCore} />
+            </span>
+          ) : (
+            statusIcon[job.status]
+          )}
+          <CardTitle className="text-sm font-medium">{isRunning ? t("restore.jobTitle") : t(statusMeta[job.status].labelKey)}</CardTitle>
         </div>
-        <Badge variant={meta.variant}>
-          {job.status === RestoreStatus.Running ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : job.status === RestoreStatus.Success ? <CheckCircle2 className="mr-1 h-3 w-3" /> : job.status === RestoreStatus.Failed ? <XCircle className="mr-1 h-3 w-3" /> : null}
-          {t(meta.labelKey)}
-        </Badge>
-      </div>
-
-      <p className={styles.jobMeta}>
-        {destLabel({ name: job.destinationName, path: job.destinationPath })} · {job.periodKey} →{" "}
-        <span className="font-mono">{job.targetRoot}</span>
-      </p>
-
-      <div>
+        <div className={styles.jobHeaderStats}>
+          {job.dryRun && <Badge variant="secondary">{t("restore.dryRun")}</Badge>}
+          <span>{formatNumber(job.completedFiles)}/{formatNumber(job.totalFiles)}</span>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-3">
         <div className={styles.progressTrack}>
-          <div className={styles.progressBar} style={{ width: `${String(pct)}%` }} />
+          <motion.div
+            className={`${styles.progressBarBase} ${isRunning ? styles.progressBarActive : job.status === RestoreStatus.Failed ? styles.progressBarFailed : styles.progressBarDone}`}
+            initial={{ width: 0 }}
+            animate={{ width: `${String(pct)}%` }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
+          />
+          {isRunning && pct < 100 && (
+            <div className={styles.barRipple}>
+              <div className={styles.barRippleInner} />
+            </div>
+          )}
         </div>
-        <p className={styles.progressMeta}>
-          {formatNumber(job.completedFiles)} / {formatNumber(job.totalFiles)} ({String(pct)}%)
+
+        <p className={styles.jobMeta}>
+          <span className="inline-flex items-center gap-1.5">
+            {job.destinationType === DestinationType.Local ? <HardDrive className={styles.destIcon} /> : <Network className={styles.destIcon} />}
+            {destLabel({ name: job.destinationName, path: job.destinationPath })}
+          </span>
+          · {job.periodKey} → <span className="font-mono">{job.targetRoot}</span>
+          {!isRunning && (
+            <>
+              {" "}· <Clock className="inline h-3 w-3" /> {formatNumber(job.completedFiles)} files
+              {typeof job.durationMs === "number" && ` · ${String(Math.round(job.durationMs / 1000))}s`}
+            </>
+          )}
         </p>
-      </div>
 
-      <div className={styles.statGrid}>
-        <div className={styles.statBox}>
-          <p className={styles.statValue}>{formatNumber(job.restoredCount)}</p>
-          <p className={styles.statLabel}>{t("restore.statRestored")}</p>
+        <div className={styles.statGrid}>
+          <div className={styles.statBox}>
+            <p className={styles.statValue}>{formatNumber(job.restoredCount)}</p>
+            <p className={styles.statLabel}>{t("restore.statRestored")}</p>
+          </div>
+          <div className={styles.statBox}>
+            <p className={styles.statValue}>{formatNumber(job.skippedCount)}</p>
+            <p className={styles.statLabel}>{t("restore.statSkipped")}</p>
+          </div>
+          <div className={styles.statBox}>
+            <p className={cn(styles.statValue, job.failedCount > 0 && "text-destructive")}>{formatNumber(job.failedCount)}</p>
+            <p className={styles.statLabel}>{t("restore.statFailed")}</p>
+          </div>
+          <div className={styles.statBox}>
+            <p className={styles.statValue}>{formatSize(job.restoredBytes)}</p>
+            <p className={styles.statLabel}>{t("restore.statBytes")}</p>
+          </div>
         </div>
-        <div className={styles.statBox}>
-          <p className={styles.statValue}>{formatNumber(job.skippedCount)}</p>
-          <p className={styles.statLabel}>{t("restore.statSkipped")}</p>
-        </div>
-        <div className={styles.statBox}>
-          <p className={cn(styles.statValue, job.failedCount > 0 && "text-destructive")}>{formatNumber(job.failedCount)}</p>
-          <p className={styles.statLabel}>{t("restore.statFailed")}</p>
-        </div>
-        <div className={styles.statBox}>
-          <p className={styles.statValue}>{formatSize(job.restoredBytes)}</p>
-          <p className={styles.statLabel}>{t("restore.statBytes")}</p>
-        </div>
-      </div>
 
-      {job.currentPath && (
-        <div className={styles.currentFile} title={job.currentPath}>
-          {job.currentPath}
-        </div>
-      )}
+        {job.currentPath && isRunning && (
+          <div className={styles.currentFile} title={job.currentPath}>
+            <RotateCcw className="h-3 w-3 shrink-0 animate-spin" />
+            <span className="truncate">{job.currentPath}</span>
+          </div>
+        )}
 
-      {job.errors.length > 0 && (
-        <div className={styles.errorList}>
-          {job.errors.map((error, index) => (
-            <p key={`${error}-${String(index)}`} className={styles.errorItem}>
-              {error}
-            </p>
-          ))}
-        </div>
-      )}
+        {job.errors.length > 0 && (
+          <div className={styles.errorList}>
+            {job.errors.map((error, index) => (
+              <p key={`${error}-${String(index)}`} className={styles.errorItem}>
+                {error}
+              </p>
+            ))}
+          </div>
+        )}
+      </CardContent>
     </Card>
   )
 }

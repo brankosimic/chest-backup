@@ -177,6 +177,17 @@ interface RestoreButtonProps {
   onRestore: (destinationId: string) => void
 }
 
+interface ConfirmDialogProps {
+  open: boolean
+  title: string
+  description?: ReactNode
+  children?: ReactNode
+  confirmLabel: string
+  cancelLabel: string
+  onConfirm: () => void
+  onCancel: () => void
+}
+
 interface DiskUsageRowProps {
   diskSpace: ResourceUsage
 }
@@ -239,6 +250,7 @@ export type {
   MobileNavItemProps,
   LogLevelButtonProps,
   RestoreButtonProps,
+  ConfirmDialogProps,
   DiskUsageRowProps,
   DiskUsageBlockProps,
   MobileRunRowProps,

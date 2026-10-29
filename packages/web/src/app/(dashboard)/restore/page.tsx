@@ -11,12 +11,12 @@ import { Label } from "@/components/ui/label"
 import { Select } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Skeleton } from "@/components/ui/skeleton"
-import { LoadingSpinner } from "@/components/ui/loading-spinner"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { useDestinations } from "@/hooks/queries/destinations"
 import { useRestoreSnapshots, useRestoreSnapshotFiles, useStartRestore, useActiveRestore } from "@/hooks/queries/restores"
 import { formatDateTime, formatNumber, formatSize, destLabel } from "@/lib/utils"
 import { DestinationType, RestoreStatus } from "@chest-backup/shared"
-import { FolderOpen, Search, RotateCcw, Clock } from "lucide-react"
+import { FolderOpen, Search, RotateCcw, Clock, HardDrive, Network } from "lucide-react"
 import { FileTree } from "./file-tree"
 import { JobPanel } from "./job-panel"
 import * as styles from "./page.styles"
@@ -35,6 +35,7 @@ const RestorePage = () => {
   const [targetRoot, setTargetRoot] = useState("/")
   const [overwrite, setOverwrite] = useState(true)
   const [dryRun, setDryRun] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
 
   useEffect(() => {
     if (preselectDest && destinations?.some((d) => d.id === preselectDest)) setDestId(preselectDest)
@@ -77,20 +78,27 @@ const RestorePage = () => {
 
   const selectedCount = selected.size
   const canRestore = !!destId && !!periodKey && selectedCount > 0 && !startRestore.isPending && (!activeJob || activeJob.status !== RestoreStatus.Running)
+  const snapshot = snapshots?.find((s) => s.key === periodKey)
+  const dest = (destinations ?? []).find((d) => d.id === destId)
+  const target = targetRoot.trim() || "/"
 
-  const runRestore = (): void => {
+  const openConfirm = (): void => {
+    if (!canRestore) return
+    setConfirmOpen(true)
+  }
+
+  const confirmRestore = (): void => {
     if (!destId || !periodKey) return
     startRestore.mutate({
       destinationId: destId,
       periodKey,
       ...(selectedCount > 0 ? { files: [...selected] } : {}),
-      targetRoot: targetRoot.trim() || "/",
+      targetRoot: target,
       overwrite,
       dryRun,
     })
+    setConfirmOpen(false)
   }
-
-  const snapshot = snapshots?.find((s) => s.key === periodKey)
 
   return (
     <div className={styles.page}>
@@ -231,16 +239,10 @@ const RestorePage = () => {
               <Switch checked={dryRun} onCheckedChange={setDryRun} />
             </div>
 
-            <Button onClick={runRestore} disabled={!canRestore} className={styles.restoreButton}>
-              {startRestore.isPending ? (
-                <LoadingSpinner size="sm" />
-              ) : (
-                <>
-                  <RotateCcw className="h-4 w-4" />
-                  {dryRun ? t("restore.preview") : t("restore.restore")}
-                  {selectedCount > 0 && ` (${formatNumber(selectedCount)})`}
-                </>
-              )}
+            <Button onClick={openConfirm} disabled={!canRestore} className={styles.restoreButton}>
+              <RotateCcw className="h-4 w-4" />
+              {dryRun ? t("restore.preview") : t("restore.restore")}
+              {selectedCount > 0 && ` (${formatNumber(selectedCount)})`}
             </Button>
             {activeJob?.status === RestoreStatus.Running && (
               <p className={styles.busyHint}>
@@ -259,6 +261,35 @@ const RestorePage = () => {
           </CardContent>
         </Card>
       )}
+
+      <ConfirmDialog
+        open={confirmOpen}
+        title={t("restore.confirmTitle")}
+        description={t("restore.confirmQuestion", { count: formatNumber(selectedCount), snapshot: periodKey ?? "", target })}
+        confirmLabel={dryRun ? t("restore.preview") : t("restore.restore")}
+        cancelLabel={t("common.cancel")}
+        onConfirm={confirmRestore}
+        onCancel={() => {
+          setConfirmOpen(false)
+        }}
+      >
+        <div className={styles.confirmRow}>
+          <span className={styles.confirmLabel}>{t("restore.confirmDestination")}</span>
+          <span className={styles.confirmValue}>
+            {dest && (dest.type === DestinationType.Local ? <HardDrive className="h-3.5 w-3.5" /> : <Network className="h-3.5 w-3.5" />)}
+            {dest ? destLabel(dest) : "—"}
+          </span>
+        </div>
+        <div className={styles.confirmRow}>
+          <span className={styles.confirmLabel}>{t("restore.confirmTarget")}</span>
+          <span className={`${styles.confirmValue} font-mono`}>{target}</span>
+        </div>
+        {dryRun ? (
+          <p className={styles.confirmNote}>{t("restore.confirmDryRun")}</p>
+        ) : overwrite ? (
+          <p className={styles.confirmNote}>{t("restore.confirmOverwrite")}</p>
+        ) : null}
+      </ConfirmDialog>
     </div>
   )
 }
