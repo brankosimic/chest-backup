@@ -8,6 +8,10 @@ import bs from "@/locales/bs/translation.json"
 import type { ReactNode } from "react"
 import { setLocale } from "@/lib/utils"
 
+interface I18nProviderProps {
+  children: ReactNode
+}
+
 const STORAGE_KEY = "chest-backup.language"
 
 const savedLanguage = (): string => {
@@ -33,10 +37,6 @@ i18n.on("languageChanged", (language: string) => {
   if (typeof window === "undefined") return
   window.localStorage.setItem(STORAGE_KEY, language)
 })
-
-interface I18nProviderProps {
-  children: ReactNode
-}
 
 const I18nProvider = ({ children }: I18nProviderProps) => {
   return <I18nextProvider i18n={i18n}>{children}</I18nextProvider>

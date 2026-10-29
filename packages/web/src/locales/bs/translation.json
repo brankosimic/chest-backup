@@ -233,7 +233,6 @@
     "followPaused": "Prati uživo",
     "clearLogs": "Obriši sačuvane logove",
     "logCount": "Log linija: {{count}}",
-    "logsForRun": "povezano sa live runom",
     "empty": {
       "title": "Nema backup runova",
       "description": "Runovi se pojavljuju čim daemon završi jedan — ili pokrenite backup ručno."

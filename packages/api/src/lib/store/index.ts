@@ -1,17 +1,7 @@
 import { addLogEntry, getLogs, getLogStats, clearLogs, flushLogs } from "./logs"
 import { getSystem } from "./system"
-import {
-  getSources,
-  findSourceById,
-  createSource,
-  updateSource,
-  deleteSource,
-  getDestinations,
-  findDestinationById,
-  createDestination,
-  updateDestination,
-  deleteDestination,
-} from "./entities"
+import { getSources, findSourceById, createSource, updateSource, deleteSource } from "./sources"
+import { getDestinations, findDestinationById, createDestination, updateDestination, deleteDestination } from "./destinations"
 import {
   getSchedule,
   updateSchedule,

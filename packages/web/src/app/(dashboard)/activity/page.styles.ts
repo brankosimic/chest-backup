@@ -14,13 +14,10 @@ const pagination = "flex items-center justify-between gap-3"
 const paginationLabel = "text-sm text-muted-foreground"
 const logToolbar = "flex flex-col items-stretch gap-2 sm:flex-row sm:flex-wrap sm:items-center"
 const logSearch = "relative min-w-[12rem] sm:flex-1 sm:max-w-xs"
+const logSearchInput = "flex h-10 w-full rounded-md border border-input bg-background pl-8 pr-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
 const logSearchIcon = "pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
-const logLevel = "rounded-md border px-2 py-1 text-xs font-medium uppercase transition-colors cursor-pointer"
-const logLevelActive = "border-primary bg-primary/10 text-primary"
-const logLevelInactive = "border-input text-muted-foreground hover:text-foreground"
 const logActions = "flex items-center gap-2 sm:ml-auto"
 const logMeta = "flex items-center justify-between text-xs text-muted-foreground"
-const logLiveNote = "ml-2 text-primary"
 const logShell = "h-[calc(100vh-22rem)] min-h-[24rem] overflow-hidden rounded-lg border bg-muted/20"
 
 export {
@@ -40,12 +37,9 @@ export {
   paginationLabel,
   logToolbar,
   logSearch,
+  logSearchInput,
   logSearchIcon,
-  logLevel,
-  logLevelActive,
-  logLevelInactive,
   logActions,
   logMeta,
-  logLiveNote,
   logShell,
 }

@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync, statSync } from "no
 import type { BackupRecord, StoreResult } from "@chest-backup/shared"
 import { RunStatus, RunTrigger, deriveRunStatus } from "@chest-backup/shared"
 import { DATA_DIR, BACKUP_HISTORY_PATH } from "./config"
-import { findDestinationById } from "./entities"
+import { findDestinationById } from "./destinations"
 import type { PaginatedResult, BackupStats, DestinationUsage } from "../../types/api"
 import type { BackupQuery } from "../../types/query"
 import { destAvgDurationMs, buildDestUsage } from "./usage"

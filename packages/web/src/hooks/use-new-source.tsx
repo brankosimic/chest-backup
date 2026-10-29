@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, type ReactNode, type SubmitEvent } from "react"
 import { useNavigate } from "react-router-dom"
 import { useTranslation } from "react-i18next"
-import { useCreateSource } from "@/hooks/use-queries"
+import { useCreateSource } from "@/hooks/queries/sources"
 import { isDuplicateSourceError } from "@/lib/api-client"
 import type { NewSourceFormValue } from "@/types/sources"
 import { useDockerContainers } from "./use-docker-containers"

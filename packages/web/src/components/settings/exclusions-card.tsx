@@ -8,7 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useExclude, useUpdateExclude, useSourceExclusions } from "@/hooks/use-queries"
+import { useExclude, useUpdateExclude } from "@/hooks/queries/config"
+import { useSourceExclusions } from "@/hooks/queries/sources"
 import * as styles from "./exclusions-card.styles"
 
 const ExclusionsCard = () => {

@@ -8,43 +8,51 @@ const HEARTBEAT_MS = 20_000
 
 const formatFrame = (event: string, data: unknown): string => `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`
 
+interface StreamState {
+  encoder: TextEncoder
+  controller: ReadableStreamDefaultController<Uint8Array> | null
+  cleanup: (() => void) | null
+}
+
+const sendChunk = (state: StreamState, chunk: string): void => {
+  if (!state.controller) return
+  try {
+    state.controller.enqueue(state.encoder.encode(chunk))
+  } catch (err) {
+    console.error("failed to enqueue stream chunk", err)
+    state.cleanup?.()
+  }
+}
+
 const createStream = (): ReadableStream<Uint8Array> => {
-  const encoder = new TextEncoder()
-  let cleanup: (() => void) | null = null
+  const state: StreamState = { encoder: new TextEncoder(), controller: null, cleanup: null }
 
   return new ReadableStream<Uint8Array>({
     start(controller) {
-      const send = (chunk: string): void => {
-        try {
-          controller.enqueue(encoder.encode(chunk))
-        } catch (err) {
-          console.error("failed to enqueue stream chunk", err)
-          cleanup?.()
-        }
-      }
+      state.controller = controller
 
       const unsubscribe = subscribe((event) => {
-        if (event.type === "log") send(formatFrame("log", { entry: event.entry }))
-        if (event.type === "run") send(formatFrame("run", { run: event.run }))
+        if (event.type === "log") sendChunk(state, formatFrame("log", { entry: event.entry }))
+        if (event.type === "run") sendChunk(state, formatFrame("run", { run: event.run }))
       })
 
       const heartbeat = setInterval(() => {
-        send(formatFrame("ping", { at: new Date().toISOString() }))
+        sendChunk(state, formatFrame("ping", { at: new Date().toISOString() }))
       }, HEARTBEAT_MS)
 
-      cleanup = () => {
+      state.cleanup = () => {
         clearInterval(heartbeat)
         unsubscribe()
       }
 
-      send("retry: 3000\n\n")
-      send(formatFrame("hello", { at: new Date().toISOString() }))
+      sendChunk(state, "retry: 3000\n\n")
+      sendChunk(state, formatFrame("hello", { at: new Date().toISOString() }))
 
       const active = getActiveRun()
-      if (active) send(formatFrame("run", { run: active }))
+      if (active) sendChunk(state, formatFrame("run", { run: active }))
     },
     cancel() {
-      cleanup?.()
+      state.cleanup?.()
     },
   })
 }

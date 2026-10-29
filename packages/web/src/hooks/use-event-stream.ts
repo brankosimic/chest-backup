@@ -15,6 +15,54 @@ const parseFrame = (event: MessageEvent<string>): unknown => {
   }
 }
 
+interface StreamCallbacks {
+  onLog: (entry: LogEntry) => void
+  onRun: (run: BackupRunProgress) => void
+  onConnect: () => void
+  onDisconnect: () => void
+}
+
+interface StreamRefs {
+  source: React.RefObject<EventSource | null>
+  retry: React.RefObject<ReturnType<typeof setTimeout> | null>
+}
+
+const handleLogEvent = (event: MessageEvent<string>, callbacks: StreamCallbacks): void => {
+  const payload = parseFrame(event) as { entry?: LogEntry } | null
+  const entry = payload?.entry
+  if (!entry) return
+  callbacks.onLog(entry)
+}
+
+const handleRunEvent = (event: MessageEvent<string>, callbacks: StreamCallbacks): void => {
+  const payload = parseFrame(event) as { run?: BackupRunProgress } | null
+  if (payload?.run) callbacks.onRun(payload.run)
+}
+
+const connectStream = (refs: StreamRefs, callbacks: StreamCallbacks): void => {
+  const source = new EventSource("/api/events/stream")
+  refs.source.current = source
+  source.addEventListener("hello", () => {
+    callbacks.onConnect()
+  })
+  source.addEventListener("log", ((e: MessageEvent<string>) => {
+    handleLogEvent(e, callbacks)
+  }) as EventListener)
+  source.addEventListener("run", ((e: MessageEvent<string>) => {
+    handleRunEvent(e, callbacks)
+  }) as EventListener)
+  source.onopen = () => {
+    callbacks.onConnect()
+  }
+  source.onerror = () => {
+    callbacks.onDisconnect()
+    source.close()
+    refs.retry.current = setTimeout(() => {
+      connectStream(refs, callbacks)
+    }, RECONNECT_MS)
+  }
+}
+
 const useEventStream = (enabled = true): StreamState => {
   const [logs, setLogs] = useState<LogEntry[]>([])
   const [run, setRun] = useState<BackupRunProgress | null>(null)
@@ -26,49 +74,28 @@ const useEventStream = (enabled = true): StreamState => {
   useEffect(() => {
     if (!enabled) return
 
-    let disposed = false
-
-    const handleLog = (event: MessageEvent<string>): void => {
-      const payload = parseFrame(event) as { entry?: LogEntry } | null
-      const entry = payload?.entry
-      if (!entry) return
-
-      setLogs((previous) => {
-        const next = [...previous, entry]
-        return next.length > MAX_LIVE_LOGS ? next.slice(next.length - MAX_LIVE_LOGS) : next
-      })
-      setLastEventAt(entry.timestamp)
-    }
-
-    const handleRun = (event: MessageEvent<string>): void => {
-      const payload = parseFrame(event) as { run?: BackupRunProgress } | null
-      if (payload?.run) setRun(payload.run)
-    }
-
-    const connect = (): void => {
-      if (disposed) return
-
-      const source = new EventSource("/api/events/stream")
-      sourceRef.current = source
-      source.addEventListener("hello", () => {
+    const callbacks: StreamCallbacks = {
+      onLog: (entry) => {
+        setLogs((previous) => {
+          const next = [...previous, entry]
+          return next.length > MAX_LIVE_LOGS ? next.slice(next.length - MAX_LIVE_LOGS) : next
+        })
+        setLastEventAt(entry.timestamp)
+      },
+      onRun: (nextRun) => {
+        setRun(nextRun)
+      },
+      onConnect: () => {
         setConnected(true)
-      })
-      source.addEventListener("log", handleLog as EventListener)
-      source.addEventListener("run", handleRun as EventListener)
-      source.onopen = () => {
-        setConnected(true)
-      }
-      source.onerror = () => {
+      },
+      onDisconnect: () => {
         setConnected(false)
-        source.close()
-        retryRef.current = setTimeout(connect, RECONNECT_MS)
-      }
+      },
     }
 
-    connect()
+    connectStream({ source: sourceRef, retry: retryRef }, callbacks)
 
     return () => {
-      disposed = true
       if (retryRef.current) clearTimeout(retryRef.current)
       sourceRef.current?.close()
       sourceRef.current = null

@@ -233,7 +233,6 @@
     "followPaused": "Follow live",
     "clearLogs": "Clear stored logs",
     "logCount": "{{count}} log entries",
-    "logsForRun": "live run attached",
     "empty": {
       "title": "No backup runs found",
       "description": "Runs appear here as soon as the daemon completes one — or trigger one manually."

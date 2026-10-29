@@ -32,26 +32,24 @@ const setTheme = (theme: Theme): void => {
   window.dispatchEvent(new Event(THEME_EVENT))
 }
 
+const syncFromSystem = (): void => {
+  if (getStoredTheme() === "system") applyTheme("system")
+}
+
 const useThemeSync = (onChange: () => void): void => {
   useEffect(() => {
     const media = window.matchMedia(QUERY)
-    const syncFromSystem = (): void => {
-      if (getStoredTheme() === "system") applyTheme("system")
-    }
     const onStorageEvent = (event: StorageEvent): void => {
       if (event.key === STORAGE_KEY || event.key === null) onChange()
-    }
-    const onThemeEvent = (): void => {
-      onChange()
     }
 
     syncFromSystem()
     media.addEventListener("change", syncFromSystem)
-    window.addEventListener(THEME_EVENT, onThemeEvent)
+    window.addEventListener(THEME_EVENT, onChange)
     window.addEventListener("storage", onStorageEvent)
     return () => {
       media.removeEventListener("change", syncFromSystem)
-      window.removeEventListener(THEME_EVENT, onThemeEvent)
+      window.removeEventListener(THEME_EVENT, onChange)
       window.removeEventListener("storage", onStorageEvent)
     }
   }, [onChange])

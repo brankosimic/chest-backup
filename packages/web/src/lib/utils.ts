@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
+import type { Destination } from "@chest-backup/shared"
 import { TimeRange } from "@/types/activity"
 
 const cn = (...inputs: ClassValue[]): string => twMerge(clsx(inputs))
@@ -152,6 +153,8 @@ const formatUptime = (seconds: number): string => {
 
 const formatPercent = (value: number): string => `${String(Math.round(value))}%`
 
+const destLabel = (dest: Pick<Destination, "name" | "path">): string => dest.name ?? dest.path
+
 export {
   cn,
   setLocale,
@@ -168,4 +171,5 @@ export {
   formatNumber,
   formatPercent,
   formatUptime,
+  destLabel,
 }

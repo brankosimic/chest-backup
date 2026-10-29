@@ -10,102 +10,16 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
-import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
-import {
-  useDestinations,
-  useRestoreSnapshots,
-  useRestoreSnapshotFiles,
-  useStartRestore,
-  useActiveRestore,
-} from "@/hooks/use-queries"
-import { formatDateTime, formatNumber, formatSize, cn } from "@/lib/utils"
+import { useDestinations } from "@/hooks/queries/destinations"
+import { useRestoreSnapshots, useRestoreSnapshotFiles, useStartRestore, useActiveRestore } from "@/hooks/queries/restores"
+import { formatDateTime, formatNumber, formatSize, destLabel } from "@/lib/utils"
 import { DestinationType, RestoreStatus } from "@chest-backup/shared"
-import type { Destination } from "@chest-backup/shared"
-import type { RestoreStatusMeta, JobPanelProps } from "@/types/ui"
-import { FolderOpen, Search, RotateCcw, CheckCircle2, XCircle, Clock, Loader2 } from "lucide-react"
+import { FolderOpen, Search, RotateCcw, Clock } from "lucide-react"
 import { FileTree } from "./file-tree"
+import { JobPanel } from "./job-panel"
 import * as styles from "./page.styles"
-
-const destLabel = (dest: Pick<Destination, "name" | "path">): string => dest.name ?? dest.path
-
-const statusMeta: Record<RestoreStatus, RestoreStatusMeta> = {
-  [RestoreStatus.Running]: { variant: "default", labelKey: "restore.statusRunning" },
-  [RestoreStatus.Success]: { variant: "success", labelKey: "restore.statusSuccess" },
-  [RestoreStatus.Partial]: { variant: "warning", labelKey: "restore.statusPartial" },
-  [RestoreStatus.Failed]: { variant: "destructive", labelKey: "restore.statusFailed" },
-}
-
-const JobPanel = ({ job }: JobPanelProps) => {
-  const { t } = useTranslation()
-  const pct = job.totalFiles > 0 ? Math.round((job.completedFiles / job.totalFiles) * 100) : 0
-  const meta = statusMeta[job.status]
-
-  return (
-    <Card className={styles.jobCard}>
-      <div className={styles.jobHeader}>
-        <div className={styles.jobTitle}>
-          <RotateCcw className={styles.jobTitleIcon} />
-          <span className="font-medium">{t("restore.jobTitle")}</span>
-        </div>
-        <Badge variant={meta.variant}>
-          {job.status === RestoreStatus.Running ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : job.status === RestoreStatus.Success ? <CheckCircle2 className="mr-1 h-3 w-3" /> : job.status === RestoreStatus.Failed ? <XCircle className="mr-1 h-3 w-3" /> : null}
-          {t(meta.labelKey)}
-        </Badge>
-      </div>
-
-      <p className={styles.jobMeta}>
-        {destLabel({ name: job.destinationName, path: job.destinationPath })} · {job.periodKey} →{" "}
-        <span className="font-mono">{job.targetRoot}</span>
-      </p>
-
-      <div>
-        <div className={styles.progressTrack}>
-          <div className={styles.progressBar} style={{ width: `${String(pct)}%` }} />
-        </div>
-        <p className={styles.progressMeta}>
-          {formatNumber(job.completedFiles)} / {formatNumber(job.totalFiles)} ({String(pct)}%)
-        </p>
-      </div>
-
-      <div className={styles.statGrid}>
-        <div className={styles.statBox}>
-          <p className={styles.statValue}>{formatNumber(job.restoredCount)}</p>
-          <p className={styles.statLabel}>{t("restore.statRestored")}</p>
-        </div>
-        <div className={styles.statBox}>
-          <p className={styles.statValue}>{formatNumber(job.skippedCount)}</p>
-          <p className={styles.statLabel}>{t("restore.statSkipped")}</p>
-        </div>
-        <div className={styles.statBox}>
-          <p className={cn(styles.statValue, job.failedCount > 0 && "text-destructive")}>{formatNumber(job.failedCount)}</p>
-          <p className={styles.statLabel}>{t("restore.statFailed")}</p>
-        </div>
-        <div className={styles.statBox}>
-          <p className={styles.statValue}>{formatSize(job.restoredBytes)}</p>
-          <p className={styles.statLabel}>{t("restore.statBytes")}</p>
-        </div>
-      </div>
-
-      {job.currentPath && (
-        <div className={styles.currentFile} title={job.currentPath}>
-          {job.currentPath}
-        </div>
-      )}
-
-      {job.errors.length > 0 && (
-        <div className={styles.errorList}>
-          {job.errors.map((error, index) => (
-            <p key={`${error}-${String(index)}`} className={styles.errorItem}>
-              {error}
-            </p>
-          ))}
-        </div>
-      )}
-    </Card>
-  )
-}
 
 const RestorePage = () => {
   const { t } = useTranslation()

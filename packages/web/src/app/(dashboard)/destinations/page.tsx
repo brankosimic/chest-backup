@@ -6,7 +6,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { Header } from "@/components/layout/header"
 import { DestinationRow } from "@/components/destinations/destination-row"
 import { Plus } from "lucide-react"
-import { useDestinations } from "@/hooks/use-queries"
+import { useDestinations } from "@/hooks/queries/destinations"
 import * as styles from "./page.styles"
 
 const DestinationsPage = () => {

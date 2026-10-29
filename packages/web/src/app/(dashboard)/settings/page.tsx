@@ -14,7 +14,7 @@ import { ExclusionsCard } from "@/components/settings/exclusions-card"
 import { useTheme } from "@/lib/theme"
 import type { Theme } from "@/types/ui"
 import { formatDate } from "@/lib/utils"
-import { useSchedule, useUpdateSchedule, useRetention, useUpdateRetention, useNotifications, useUpdateNotifications, useTestNotification } from "@/hooks/use-queries"
+import { useSchedule, useUpdateSchedule, useRetention, useUpdateRetention, useNotifications, useUpdateNotifications, useTestNotification } from "@/hooks/queries/config"
 import type { RetentionSettings } from "@/types/mutations"
 import * as styles from "./page.styles"
 
