@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useState } from "react"
+import type { Theme } from "@/types/ui"
 
-export type Theme = "light" | "dark" | "system"
+const STORAGE_KEY = "chest-backup.theme"
+const QUERY = "(prefers-color-scheme: dark)"
+const THEME_EVENT = "chest-backup:theme"
 
-export const STORAGE_KEY = "chest-backup.theme"
-export const QUERY = "(prefers-color-scheme: dark)"
-export const THEME_EVENT = "chest-backup:theme"
-
-export const getStoredTheme = (): Theme => {
+const getStoredTheme = (): Theme => {
   if (typeof window === "undefined") return "system"
   const value = window.localStorage.getItem(STORAGE_KEY)
   return value === "light" || value === "dark" ? value : "system"
@@ -15,10 +14,10 @@ export const getStoredTheme = (): Theme => {
 const systemPrefersDark = (): boolean =>
   typeof window !== "undefined" && window.matchMedia(QUERY).matches
 
-export const resolveTheme = (theme: Theme): "light" | "dark" =>
+const resolveTheme = (theme: Theme): "light" | "dark" =>
   theme === "system" ? (systemPrefersDark() ? "dark" : "light") : theme
 
-export const applyTheme = (theme: Theme): void => {
+const applyTheme = (theme: Theme): void => {
   if (typeof document === "undefined") return
   document.documentElement.classList.toggle("dark", resolveTheme(theme) === "dark")
 }
@@ -33,19 +32,17 @@ const setTheme = (theme: Theme): void => {
   window.dispatchEvent(new Event(THEME_EVENT))
 }
 
-export const useTheme = () => {
-  const [theme, setThemeState] = useState<Theme>(() => getStoredTheme())
-
+const useThemeSync = (onChange: () => void): void => {
   useEffect(() => {
     const media = window.matchMedia(QUERY)
     const syncFromSystem = (): void => {
       if (getStoredTheme() === "system") applyTheme("system")
     }
     const onStorageEvent = (event: StorageEvent): void => {
-      if (event.key === STORAGE_KEY || event.key === null) setThemeState(getStoredTheme())
+      if (event.key === STORAGE_KEY || event.key === null) onChange()
     }
     const onThemeEvent = (): void => {
-      setThemeState(getStoredTheme())
+      onChange()
     }
 
     syncFromSystem()
@@ -57,7 +54,15 @@ export const useTheme = () => {
       window.removeEventListener(THEME_EVENT, onThemeEvent)
       window.removeEventListener("storage", onStorageEvent)
     }
-  }, [])
+  }, [onChange])
+}
+
+const useTheme = () => {
+  const [theme, setThemeState] = useState<Theme>(() => getStoredTheme())
+
+  useThemeSync(() => {
+    setThemeState(getStoredTheme())
+  })
 
   const changeTheme = useCallback((next: Theme): void => {
     setTheme(next)
@@ -65,3 +70,5 @@ export const useTheme = () => {
 
   return { theme, resolved: resolveTheme(theme), setTheme: changeTheme }
 }
+
+export { useTheme, useThemeSync, getStoredTheme, applyTheme, QUERY, THEME_EVENT }

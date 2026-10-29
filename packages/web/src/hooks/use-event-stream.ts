@@ -83,4 +83,4 @@ const useEventStream = (enabled = true): StreamState => {
   return useMemo(() => ({ logs, run, connected, lastEventAt, reset }), [logs, run, connected, lastEventAt, reset])
 }
 
-export { useEventStream, type StreamState }
+export { useEventStream }

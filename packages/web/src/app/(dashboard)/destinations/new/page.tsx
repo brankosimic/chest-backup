@@ -12,6 +12,8 @@ import { Switch } from "@/components/ui/switch"
 import { Header } from "@/components/layout/header"
 import { SftpFields } from "@/components/destinations/sftp-fields"
 import { useCreateDestination } from "@/hooks/use-queries"
+import { DestinationType } from "@chest-backup/shared"
+import { toDestinationType } from "@/lib/enums"
 import type { SyntheticEvent } from "react"
 import * as styles from "./page.styles"
 
@@ -19,7 +21,7 @@ const NewDestinationPage = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const createMutation = useCreateDestination()
-  const [type, setType] = useState<string>("local")
+  const [type, setType] = useState<DestinationType>(DestinationType.Local)
   const [name, setName] = useState("")
   const [path, setPath] = useState("")
   const [host, setHost] = useState("")
@@ -31,10 +33,17 @@ const NewDestinationPage = () => {
   const [timeout, setTimeout_] = useState<number | undefined>(undefined)
   const [skip, setSkip] = useState(false)
 
+  const sftpLabels = {
+    host: t("destinations.sftpHost"),
+    port: t("destinations.sftpPort"),
+    user: t("destinations.sftpUser"),
+    password: t("destinations.sftpPassword"),
+  }
+
   const buildBody = (): Record<string, unknown> => {
     const body: Record<string, unknown> = { type, name: name || undefined, path }
 
-    if (type === "sftp") {
+    if (type === DestinationType.Sftp) {
       body.host = host
       body.port = port
       body.user = user
@@ -76,10 +85,10 @@ const NewDestinationPage = () => {
               <Label>{t("destinations.destinationType")}</Label>
               <Select
                 value={type}
-                onChange={(e) => { setType(e.target.value); }}
+                onChange={(e) => { setType(toDestinationType(e.target.value)); }}
               >
-                <option value={"local"}>{t("destinations.local")}</option>
-                <option value={"sftp"}>{t("destinations.sftp")}</option>
+                <option value={DestinationType.Local}>{t("destinations.local")}</option>
+                <option value={DestinationType.Sftp}>{t("destinations.sftp")}</option>
               </Select>
             </div>
 
@@ -103,7 +112,7 @@ const NewDestinationPage = () => {
               />
             </div>
 
-            {type === "sftp" && (
+            {type === DestinationType.Sftp && (
               <SftpFields
                 props={{
                   host,
@@ -118,12 +127,7 @@ const NewDestinationPage = () => {
                   onPasswordChange: setPassword,
                   onPrivateKeyChange: setPrivateKey,
                   onTimeoutChange: setTimeout_,
-                  labels: {
-                    host: t("destinations.sftpHost"),
-                    port: t("destinations.sftpPort"),
-                    user: t("destinations.sftpUser"),
-                    password: t("destinations.sftpPassword"),
-                  },
+                  labels: sftpLabels,
                 }}
               />
             )}

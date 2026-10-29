@@ -3,17 +3,11 @@ import { existsSync } from "node:fs"
 import { join } from "node:path"
 import type { SqliteSource, SqliteContainerSource, Source } from "../types/config"
 import { logger } from "../utils/logger"
-
-const slugify = (value: string): string =>
-  value
-    .toLowerCase()
-    .replace(/[^a-z0-9._-]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 80) || "database"
+import { slugify } from "../utils/slug"
 
 const basename = (value: string): string => value.split("/").pop() ?? "database"
 
-const parentSlug = (value: string): string => slugify(value.split("/").slice(-2, -1)[0] ?? "")
+const parentSlug = (value: string): string => slugify(value.split("/").slice(-2, -1)[0] ?? "", "database")
 
 const getSqlite3Path = (): string => {
   const candidates = ["/usr/bin/sqlite3", "/usr/local/bin/sqlite3"]
@@ -30,29 +24,29 @@ const dumpSqliteDatabase = async (dbPath: string, outputPath: string): Promise<v
 }
 
 const dumpName = (source: SqliteSource | SqliteContainerSource): string => {
-  if (source.type === "sqlite-container") return `sqlite-backup-${slugify(`${source.containerName}-${basename(source.dbPath)}`)}`
-  return `sqlite-backup-${slugify(`${parentSlug(source.path)}-${basename(source.path)}`)}`
+  if (source.type === "sqlite-container") return `sqlite-backup-${slugify(`${source.containerName}-${basename(source.dbPath)}`, "database")}`
+  return `sqlite-backup-${slugify(`${parentSlug(source.path)}-${basename(source.path)}`, "database")}`
+}
+
+const dumpSingleSqliteSource = async (source: SqliteSource, tempFiles: string[], tempDir: string, errors: string[]): Promise<string | null> => {
+  const outputPath = join(tempDir, dumpName(source))
+  tempFiles.push(outputPath)
+  try {
+    await dumpSqliteDatabase(source.path, outputPath)
+    return outputPath
+  } catch (err) {
+    const message = `SQLite backup failed for ${source.path}: ${String(err)}`
+    logger.error({ source: source.path, err }, "sqlite backup failed")
+    errors.push(message)
+    return null
+  }
 }
 
 const dumpSqliteSources = async (sources: Source[], tempFiles: string[], tempDir: string, errors: string[]): Promise<string[]> => {
   const sqliteSources = sources.filter((s): s is SqliteSource => s.type === "sqlite")
   if (!sqliteSources.length) return []
 
-  const results = await Promise.all(
-    sqliteSources.map(async (source) => {
-      const outputPath = join(tempDir, dumpName(source))
-      tempFiles.push(outputPath)
-      try {
-        await dumpSqliteDatabase(source.path, outputPath)
-        return outputPath
-      } catch (err) {
-        const message = `SQLite backup failed for ${source.path}: ${String(err)}`
-        logger.error({ source: source.path, err }, "sqlite backup failed")
-        errors.push(message)
-        return null
-      }
-    }),
-  )
+  const results = await Promise.all(sqliteSources.map((s) => dumpSingleSqliteSource(s, tempFiles, tempDir, errors)))
   return results.filter((r): r is string => r !== null)
 }
 
@@ -77,30 +71,30 @@ const dumpSqliteContainerDatabase = async (
   }
 }
 
-const dumpSqliteContainerSources = async (
-  sources: Source[],
+const dumpSingleSqliteContainerSource = async (
+  source: SqliteContainerSource,
   tempFiles: string[],
   tempDir: string,
   errors: string[],
-): Promise<string[]> => {
+): Promise<string | null> => {
+  const outputPath = join(tempDir, dumpName(source))
+  tempFiles.push(outputPath)
+  try {
+    await dumpSqliteContainerDatabase(source.containerName, source.dbPath, outputPath)
+    return outputPath
+  } catch (err) {
+    const message = `SQLite container backup failed for ${source.containerName}:${source.dbPath}: ${String(err)}`
+    logger.error({ container: source.containerName, dbPath: source.dbPath, err }, "container sqlite backup failed")
+    errors.push(message)
+    return null
+  }
+}
+
+const dumpSqliteContainerSources = async (sources: Source[], tempFiles: string[], tempDir: string, errors: string[]): Promise<string[]> => {
   const containerSources = sources.filter((s): s is SqliteContainerSource => s.type === "sqlite-container")
   if (!containerSources.length) return []
 
-  const results = await Promise.all(
-    containerSources.map(async (source) => {
-      const outputPath = join(tempDir, dumpName(source))
-      tempFiles.push(outputPath)
-      try {
-        await dumpSqliteContainerDatabase(source.containerName, source.dbPath, outputPath)
-        return outputPath
-      } catch (err) {
-        const message = `SQLite container backup failed for ${source.containerName}:${source.dbPath}: ${String(err)}`
-        logger.error({ container: source.containerName, dbPath: source.dbPath, err }, "container sqlite backup failed")
-        errors.push(message)
-        return null
-      }
-    }),
-  )
+  const results = await Promise.all(containerSources.map((s) => dumpSingleSqliteContainerSource(s, tempFiles, tempDir, errors)))
   return results.filter((r): r is string => r !== null)
 }
 

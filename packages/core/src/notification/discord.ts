@@ -1,6 +1,7 @@
-import type { BackupResult, StoreResult } from "../types/index"
+import type { BackupResult } from "../types/index"
+import type { StoreResult } from "@chest-backup/shared"
 import type { Config } from "../types/config"
-import type { DiscordEmbed, DiscordPayload, EmbedStatus } from "../types/notification"
+import type { DiscordEmbed, DiscordEmbedField, DiscordPayload, EmbedStatus } from "../types/notification"
 import { logger } from "../utils/logger"
 
 const formatDuration = (ms: number): string => {
@@ -33,30 +34,31 @@ const describeFailures = (d: StoreResult): string | null => {
   return parts.length ? ` (${parts.join(", ")})` : null
 }
 
+const EMBED_COLORS = { info: 0x3498db, success: 0x00ff00, warning: 0xffa500, error: 0xff0000 } as const
+
+const embedStatusFor = (result: BackupResult, successCount: number, skippedCount: number): { color: number; title: string } => {
+  if (result.success && (result.filesChanged ?? 0) === 0) return { color: EMBED_COLORS.info, title: "Backup Skipped — No Changes" }
+  if (result.success) return { color: EMBED_COLORS.success, title: `Backup Successful — ${String(result.filesChanged ?? 0)} files updated` }
+  if (successCount > 0 || skippedCount > 0) return { color: EMBED_COLORS.warning, title: "Backup Partial Success" }
+  return { color: EMBED_COLORS.error, title: "Backup Failed" }
+}
+
 const calcEmbedStatus = (result: BackupResult): EmbedStatus => {
   const successCount = result.destinationResults.filter((r) => r.success && !r.skipped).length
   const skippedCount = result.destinationResults.filter((r) => r.skipped).length
   const failCount = result.destinationResults.length - successCount - skippedCount
-  const changed = result.filesChanged ?? 0
+  return { ...embedStatusFor(result, successCount, skippedCount), successCount, skippedCount, failCount }
+}
 
-  let color: number
-  let title: string
+const destinationField = (d: StoreResult): DiscordEmbedField => {
+  if (d.skipped) return { name: d.destLabel ?? "Destination", value: `Skipped — ${d.skippedReason ?? "no changes"}`, inline: true }
 
-  if (result.success && changed === 0) {
-    color = 0x3498db
-    title = "Backup Skipped — No Changes"
-  } else if (result.success) {
-    color = 0x00ff00
-    title = `Backup Successful — ${String(changed)} files updated`
-  } else if (successCount > 0 || skippedCount > 0) {
-    color = 0xffa500
-    title = "Backup Partial Success"
-  } else {
-    color = 0xff0000
-    title = "Backup Failed"
-  }
-
-  return { color, title, successCount, skippedCount, failCount }
+  const uploadedCount = d.uploaded?.length
+  const uploadedStr = uploadedCount === undefined ? "" : ` — ${String(uploadedCount)} files`
+  const speedStr = d.speed !== undefined ? ` | ${formatSpeed(d.speed)}` : ""
+  const failureStr = describeFailures(d)
+  const value = `${d.error ? "Failed" : "OK"}${d.durationMs !== undefined ? ` (${formatDuration(d.durationMs)})` : ""}${uploadedStr}${failureStr ?? ""}${speedStr}`
+  return { name: d.destLabel ?? "Destination", value, inline: true }
 }
 
 const buildEmbedFields = (
@@ -87,23 +89,7 @@ const buildEmbedFields = (
   fields.push({ name: "Destinations", value: destParts.join(", ") || "none", inline: false })
 
   result.destinationResults.forEach((d) => {
-    if (d.skipped) {
-      fields.push({
-        name: d.destLabel ?? "Destination",
-        value: `Skipped — ${d.skippedReason ?? "no changes"}`,
-        inline: true,
-      })
-      return
-    }
-    const uploadedCount = d.uploaded?.length
-    const uploadedStr = uploadedCount === undefined ? "" : ` — ${String(uploadedCount)} files`
-    const speedStr = d.speed !== undefined ? ` | ${formatSpeed(d.speed)}` : ""
-    const failureStr = describeFailures(d)
-    fields.push({
-      name: d.destLabel ?? "Destination",
-      value: `${d.error ? "Failed" : "OK"}${d.durationMs !== undefined ? ` (${formatDuration(d.durationMs)})` : ""}${uploadedStr}${failureStr ?? ""}${speedStr}`,
-      inline: true,
-    })
+    fields.push(destinationField(d))
   })
 
   if (result.errors.length)

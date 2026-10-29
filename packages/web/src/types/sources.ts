@@ -1,8 +1,7 @@
 import type { MouseEvent, ReactNode, SubmitEvent } from "react"
-import type { Source } from "@chest-backup/shared"
-import type { ContainerVolume } from "./backup"
+import type { ContainerVolume, Source } from "@chest-backup/shared"
 
-export interface TreeContextValue {
+interface TreeContextValue {
   expanded: Set<string>
   onToggle: (id: string) => void
   onDelete: (id: string, e: MouseEvent) => void
@@ -11,7 +10,7 @@ export interface TreeContextValue {
   excludedByPath: Map<string, number>
 }
 
-export interface TreeNode {
+interface TreeNode {
   id: string
   label: string
   icon: ReactNode
@@ -19,16 +18,16 @@ export interface TreeNode {
   source?: Source
 }
 
-export interface TreeNodeRowProps {
+interface TreeNodeRowProps {
   node: TreeNode
   depth: number
 }
 
-export interface SourceRowProps {
+interface SourceRowProps {
   source: Source
 }
 
-export interface SourceSection {
+interface SourceSection {
   type: string
   label: string
   icon: ReactNode
@@ -37,23 +36,25 @@ export interface SourceSection {
   flatItems: Source[]
 }
 
-export interface SourceExclusion {
+interface SourceExclusion {
   path: string
   total: number
   excluded: number
 }
 
-export interface SourceExclusions {
+interface SourceExclusions {
   patterns: string[]
   sources: SourceExclusion[]
 }
 
-export interface PathTrieNode {
+interface PathTrieNode {
   source?: Source
   children: Map<string, PathTrieNode>
 }
 
-export interface NewSourceFormValue {
+type SourceTypeValue = "path" | "postgres" | "postgres-container" | "container-volume" | "sqlite" | "sqlite-container"
+
+interface NewSourceFormValue {
   type: string
   setType: (v: string) => void
   path: string
@@ -90,6 +91,19 @@ export interface NewSourceFormValue {
   isContainer: boolean
   fieldsReady: boolean
   canCreate: boolean
-  createPending: boolean
-  handleCreate: (e: SubmitEvent<HTMLFormElement>) => void
+    createPending: boolean
+    handleCreate: (e: SubmitEvent<HTMLFormElement>) => void
+}
+
+export type {
+  TreeContextValue,
+  TreeNode,
+  TreeNodeRowProps,
+  SourceRowProps,
+  SourceSection,
+  SourceExclusion,
+  SourceExclusions,
+  PathTrieNode,
+  SourceTypeValue,
+  NewSourceFormValue,
 }

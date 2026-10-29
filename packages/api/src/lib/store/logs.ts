@@ -2,7 +2,7 @@ import { appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, rmSync
 import { resolve } from "node:path"
 import type { LogEntry } from "@chest-backup/shared"
 import { LogLevel } from "@chest-backup/shared"
-import type { PaginatedResult } from "../../types/api"
+import type { PaginatedResult, LogStats } from "../../types/api"
 import type { LogQuery } from "../../types/query"
 import { DATA_DIR } from "./config"
 import { publish } from "../event-bus"
@@ -26,15 +26,10 @@ const ensureDataDir = (): void => {
   if (!existsSync(DATA_DIR)) mkdirSync(DATA_DIR, { recursive: true })
 }
 
-const parseLevel = (value: unknown): LogLevel => {
-  if (Object.values(LogLevel).includes(value as LogLevel)) return value as LogLevel
-  return LogLevel.Info
-}
+const parseLevel = (value: unknown): LogLevel =>
+  Object.values(LogLevel).includes(value as LogLevel) ? (value as LogLevel) : LogLevel.Info
 
-const nextId = (): string => {
-  sequence += 1
-  return `log-${String(Date.now())}-${String(sequence)}`
-}
+const nextId = (): string => `log-${String(Date.now())}-${String(++sequence)}`
 
 const rotateIfNeeded = (): void => {
   ensureDataDir()
@@ -42,12 +37,6 @@ const rotateIfNeeded = (): void => {
 
   try {
     if (statSync(LOG_FILE).size < MAX_LOG_FILE_BYTES) return
-  } catch (err) {
-    console.error("failed to stat log file", err)
-    return
-  }
-
-  try {
     if (existsSync(LOG_FILE_ARCHIVE)) rmSync(LOG_FILE_ARCHIVE, { force: true })
     renameSync(LOG_FILE, LOG_FILE_ARCHIVE)
   } catch (err) {
@@ -178,12 +167,19 @@ const getLogs = (query: LogQuery = {}): PaginatedResult<LogEntry> => {
   return { data: filtered.slice(start, start + limit), total: filtered.length, page, limit }
 }
 
-const getLogStats = (): { total: number; debug: number; info: number; warn: number; error: number; fatal: number } => {
-  const stats = { total: logBuffer.length, debug: 0, info: 0, warn: 0, error: 0, fatal: 0 }
-
-  for (const entry of logBuffer) stats[entry.level] += 1
-  return stats
+const countLevel = (stats: LogStats, entry: LogEntry): void => {
+  stats[entry.level] += 1
 }
+
+const getLogStats = (): LogStats =>
+  logBuffer.reduce(
+    (stats, entry) => {
+      stats.total += 1
+      countLevel(stats, entry)
+      return stats
+    },
+    { total: 0, debug: 0, info: 0, warn: 0, error: 0, fatal: 0 },
+  )
 
 const clearLogs = (): void => {
   logBuffer.length = 0
@@ -201,4 +197,4 @@ const flushLogs = (): void => {
   flushToDisk()
 }
 
-export { addLogEntry, getLogs, getLogStats, clearLogs, flushLogs, nextId, LOG_FILE }
+export { addLogEntry, getLogs, getLogStats, clearLogs, flushLogs }

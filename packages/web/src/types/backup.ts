@@ -1,5 +1,5 @@
 import type { ReactNode } from "react"
-import type { BackupRecord, Destination, DestinationType, RunStatus, RunTrigger } from "@chest-backup/shared"
+import type { BackupRecord, Destination, DestinationType, ResourceUsage, RunStatus, RunTrigger } from "@chest-backup/shared"
 
 enum RunPhase {
   Queued = "queued",
@@ -55,21 +55,8 @@ interface BackupRunProgress {
   errors: string[]
 }
 
-interface ContainerVolume {
-  type: string
-  source: string
-  destination: string
-  name?: string
-  rw: boolean
-}
-
 interface DestCardProps {
   destination: Destination
-}
-
-interface DiskSpace {
-  used: number
-  total: number
 }
 
 interface DestinationUsage {
@@ -80,7 +67,7 @@ interface DestinationUsage {
   fileCount: number
   avgDurationMs: number
   available: boolean
-  diskSpace?: DiskSpace
+  diskSpace?: ResourceUsage
 }
 
 interface StatTileProps {
@@ -114,7 +101,6 @@ interface TriggerBadgeProps {
 
 export { RunPhase, DestRunStatus, StatTileTone }
 export type {
-  ContainerVolume,
   BackupRunProgress,
   DestProgress,
   DestCardProps,

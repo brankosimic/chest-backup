@@ -1,8 +1,9 @@
 "use client"
 
 import { useTranslation } from "react-i18next"
+import type { HeaderProps } from "@/types/ui"
 
-const Header = ({ title, subtitle, action }: { title: string; subtitle?: string; action?: React.ReactNode }) => {
+const Header = ({ title, subtitle, action }: HeaderProps) => {
   const { t } = useTranslation()
 
   return (

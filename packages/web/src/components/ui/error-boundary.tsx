@@ -1,17 +1,8 @@
 import { Component } from "react"
 import { useTranslation } from "react-i18next"
 import { AlertTriangle, RotateCw } from "lucide-react"
-import type { ErrorBoundaryProps } from "@/types/ui"
+import type { ErrorBoundaryProps, ErrorBoundaryState, ErrorFallbackProps } from "@/types/ui"
 import * as styles from "./error-boundary.styles"
-
-interface ErrorBoundaryState {
-  error: Error | null
-}
-
-interface ErrorFallbackProps {
-  message: string
-  onRetry: () => void
-}
 
 class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {

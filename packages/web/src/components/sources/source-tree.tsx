@@ -4,6 +4,7 @@ import { formatDate } from "@/lib/utils"
 import { sourceIcon, sourceTitle, sourceDetailLines } from "@/lib/sources"
 import { Badge } from "@/components/ui/badge"
 import type { TreeContextValue, TreeNodeRowProps, SourceRowProps } from "@/types/sources"
+import type { DeleteButtonProps } from "@/types/ui"
 import { cn } from "@/lib/utils"
 import * as styles from "./source-tree.styles"
 
@@ -13,6 +14,23 @@ const useTree = () => {
   const ctx = useContext(TreeContext)
   if (!ctx) throw new Error("useTree must be used within TreeContext.Provider")
   return ctx
+}
+
+const DeleteButton = ({ id }: DeleteButtonProps) => {
+  const ctx = useTree()
+
+  return (
+    <button
+      onClick={(e) => {
+        e.stopPropagation()
+        ctx.onDelete(id, e)
+      }}
+      className={styles.deleteButton}
+      title={ctx.t("common.delete")}
+    >
+      <Trash2 className={styles.trashIcon} />
+    </button>
+  )
 }
 
 const TreeNodeRow = ({ node, depth }: TreeNodeRowProps) => {
@@ -47,16 +65,7 @@ const TreeNodeRow = ({ node, depth }: TreeNodeRowProps) => {
         {node.source && (
           <div className={styles.meta}>
             <span className={styles.count}>{formatDate(node.source.createdAt)}</span>
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                ctx.onDelete(node.source?.id ?? "", e)
-              }}
-              className={styles.deleteButton}
-              title={ctx.t("common.delete")}
-            >
-              <Trash2 className={styles.trashIcon} />
-            </button>
+            <DeleteButton id={node.source.id} />
           </div>
         )}
       </div>
@@ -87,16 +96,7 @@ const SourceRow = ({ source }: SourceRowProps) => {
       </div>
       <div className={styles.meta}>
         <span className={styles.count}>{formatDate(source.createdAt)}</span>
-        <button
-          onClick={(e) => {
-            e.stopPropagation()
-            ctx.onDelete(source.id, e)
-          }}
-          className={styles.deleteButton}
-          title={ctx.t("common.delete")}
-        >
-          <Trash2 className={styles.trashIcon} />
-        </button>
+        <DeleteButton id={source.id} />
       </div>
     </div>
   )

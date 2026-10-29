@@ -6,11 +6,43 @@ import { AlertTriangle, Clock, HardDrive, Server } from "lucide-react"
 import { formatSize, formatDuration, cn } from "@/lib/utils"
 import { DestinationType } from "@chest-backup/shared"
 import { useDestinationUsage } from "@/hooks/use-queries"
-import type { Destination } from "@chest-backup/shared"
-import type { ConnectionRow } from "@/types/ui"
+import type { ConnectionRow, DiskUsageBlockProps } from "@/types/ui"
+import type { DestCardProps } from "@/types/backup"
 import * as styles from "./destination-row.styles"
 
-const DestinationRow = ({ destination }: { destination: Destination }) => {
+const DiskUsageBlock = ({ diskSpace, isLoading }: DiskUsageBlockProps) => {
+  const { t } = useTranslation()
+  const hasDisk = !!diskSpace && diskSpace.total > 0
+
+  return (
+    <div className={styles.disk}>
+      <div className={styles.row}>
+        <span className={styles.rowLabel}>{t("dashboard.diskUsage")}</span>
+        {isLoading ? (
+          <span className={styles.skeletonTextWide} />
+        ) : hasDisk ? (
+          <span className={styles.rowValue}>
+            {formatSize(diskSpace.used)} / {formatSize(diskSpace.total)}
+          </span>
+        ) : (
+          <span className={styles.rowValue}>-</span>
+        )}
+      </div>
+      <div className={styles.barTrack}>
+        {isLoading ? (
+          <div className={cn(styles.diskBar, styles.skeletonBar)} />
+        ) : hasDisk ? (
+          <div
+            className={styles.diskBar}
+            style={{ width: `${String((diskSpace.used / diskSpace.total) * 100)}%` }}
+          />
+        ) : null}
+      </div>
+    </div>
+  )
+}
+
+const DestinationRow = ({ destination }: DestCardProps) => {
   const { t } = useTranslation()
   const isLocal = destination.type === DestinationType.Local
   const skipped = !!destination.skip
@@ -85,30 +117,7 @@ const DestinationRow = ({ destination }: { destination: Destination }) => {
             )}
           </div>
 
-          <div className={styles.disk}>
-            <div className={styles.row}>
-              <span className={styles.rowLabel}>{t("dashboard.diskUsage")}</span>
-              {isLoading ? (
-                <span className={styles.skeletonTextWide} />
-              ) : usage?.diskSpace && usage.diskSpace.total > 0 ? (
-                <span className={styles.rowValue}>
-                  {formatSize(usage.diskSpace.used)} / {formatSize(usage.diskSpace.total)}
-                </span>
-              ) : (
-                <span className={styles.rowValue}>-</span>
-              )}
-            </div>
-            <div className={styles.barTrack}>
-              {isLoading ? (
-                <div className={cn(styles.diskBar, styles.skeletonBar)} />
-              ) : usage?.diskSpace && usage.diskSpace.total > 0 ? (
-                <div
-                  className={styles.diskBar}
-                  style={{ width: `${String((usage.diskSpace.used / usage.diskSpace.total) * 100)}%` }}
-                />
-              ) : null}
-            </div>
-          </div>
+          <DiskUsageBlock diskSpace={usage?.diskSpace} isLoading={isLoading} />
 
           <div className={styles.details}>
             {connectionRows.map((row) => (

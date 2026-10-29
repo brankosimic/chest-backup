@@ -3,15 +3,9 @@ import { existsSync } from "node:fs"
 import { join } from "node:path"
 import type { ParsedConnString, PostgresContainerSource, PostgresSource, Source } from "../types/config"
 import { logger } from "../utils/logger"
+import { slugify } from "../utils/slug"
 
 const UNMETADATA = "cluster"
-
-const slugify = (value: string): string =>
-  value
-    .toLowerCase()
-    .replace(/[^a-z0-9._-]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 80) || UNMETADATA
 
 const getPgDumpPath = (): string => {
   const versions = [18, 17, 16]
@@ -57,10 +51,10 @@ const dumpHostDatabase = async (connString: string, dbName: string | undefined, 
 }
 
 const hostDumpName = (source: PostgresSource): string =>
-  `db-dump-${slugify(`${source.host}-${String(source.port)}`)}.dump`
+  `db-dump-${slugify(`${source.host}-${String(source.port)}`, UNMETADATA)}.dump`
 
 const containerDumpName = (source: PostgresContainerSource): string =>
-  `db-dump-${slugify(`${source.containerName}-${source.database}`)}.dump`
+  `db-dump-${slugify(`${source.containerName}-${source.database}`, UNMETADATA)}.dump`
 
 const dumpDockerDatabase = async (
   containerName: string,
@@ -116,30 +110,30 @@ const dumpPostgresSources = async (sources: Source[], tempFiles: string[], tempD
   return results.filter((r): r is string => r !== null)
 }
 
-const dumpPostgresContainerSources = async (
-  sources: Source[],
+const dumpSingleContainerSource = async (
+  source: PostgresContainerSource,
   tempFiles: string[],
   tempDir: string,
   errors: string[],
-): Promise<string[]> => {
+): Promise<string | null> => {
+  const outputPath = join(tempDir, containerDumpName(source))
+  tempFiles.push(outputPath)
+  try {
+    await dumpDockerDatabase(source.containerName, source.database, source.user, source.password, outputPath)
+    return outputPath
+  } catch (err) {
+    const message = `Postgres container dump failed for ${source.containerName}/${source.database}: ${String(err)}`
+    logger.error({ source: source.containerName, err }, "container postgres dump failed")
+    errors.push(message)
+    return null
+  }
+}
+
+const dumpPostgresContainerSources = async (sources: Source[], tempFiles: string[], tempDir: string, errors: string[]): Promise<string[]> => {
   const containerSources = sources.filter((s): s is PostgresContainerSource => s.type === "postgres-container")
   if (!containerSources.length) return []
 
-  const results = await Promise.all(
-    containerSources.map(async (source) => {
-      const outputPath = join(tempDir, containerDumpName(source))
-      tempFiles.push(outputPath)
-      try {
-        await dumpDockerDatabase(source.containerName, source.database, source.user, source.password, outputPath)
-        return outputPath
-      } catch (err) {
-        const message = `Postgres container dump failed for ${source.containerName}/${source.database}: ${String(err)}`
-        logger.error({ source: source.containerName, err }, "container postgres dump failed")
-        errors.push(message)
-        return null
-      }
-    }),
-  )
+  const results = await Promise.all(containerSources.map((s) => dumpSingleContainerSource(s, tempFiles, tempDir, errors)))
   return results.filter((r): r is string => r !== null)
 }
 

@@ -25,4 +25,29 @@ interface TreeNode {
   totalSize: number
 }
 
-export type { FileTreeProps, TreeFileNode, TreeNode }
+interface FileRowProps {
+  file: TreeFileNode
+  selected: boolean
+  onToggle: () => void
+}
+
+interface DirRowProps {
+  node: TreeNode
+  expanded: boolean
+  selectionState: "none" | "some" | "all"
+  onToggleExpand: () => void
+  onToggleDir: () => void
+}
+
+interface TreeItemProps {
+  node: TreeNode
+  depth: number
+  expandedDirs: Set<string>
+  selected: Set<string>
+  needle: string
+  onToggleExpand: (path: string) => void
+  onTogglePath: (path: string) => void
+  onToggleMany: (paths: string[], select: boolean) => void
+}
+
+export type { FileTreeProps, TreeFileNode, TreeNode, FileRowProps, DirRowProps, TreeItemProps }

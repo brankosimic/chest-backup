@@ -12,8 +12,6 @@ const cpuBar = "h-full rounded-full bg-blue-500 transition-all"
 const memoryBar = "h-full rounded-full bg-green-500 transition-all"
 const diskBar = "h-full rounded-full bg-amber-500 transition-all"
 const footer = "mt-6 space-y-4"
-const spinnerContainer = "flex h-screen items-center justify-center"
-const spinner = "h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent"
 const playIcon = "mr-2 h-4 w-4"
 
 export {
@@ -31,7 +29,5 @@ export {
   memoryBar,
   diskBar,
   footer,
-  spinnerContainer,
-  spinner,
   playIcon,
 }

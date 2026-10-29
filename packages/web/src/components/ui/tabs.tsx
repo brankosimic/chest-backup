@@ -1,12 +1,7 @@
 import { createContext, useContext, useMemo, useState } from "react"
 import { cn } from "@/lib/utils"
-import type { TabsContentProps, TabsProps, TabsTriggerProps } from "@/types/ui"
+import type { TabsContentProps, TabsProps, TabsTriggerProps, TabsContextValue } from "@/types/ui"
 import * as styles from "./tabs.styles"
-
-interface TabsContextValue {
-  value: string
-  setValue: (value: string) => void
-}
 
 const TabsContext = createContext<TabsContextValue | null>(null)
 

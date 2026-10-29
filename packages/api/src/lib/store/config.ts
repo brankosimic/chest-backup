@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync, statSync } from "node:fs"
 import { homedir } from "node:os"
 import { resolve } from "node:path"
+import { stableId } from "@chest-backup/shared"
 import type { CachedConfig, ConfigFile } from "../../types/store"
 
 const CONFIG_PATH = process.env.CHEST_CONFIG_PATH ?? resolve(process.cwd(), "chest-backup.json")
@@ -21,11 +22,6 @@ const getConfig = (): CachedConfig => {
 const writeConfig = (config: ConfigFile): void => {
   writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2) + "\n")
   cachedConfig = null
-}
-
-const stableId = (obj: Record<string, unknown>): string => {
-  const hash = Number(Bun.hash(JSON.stringify(obj)))
-  return Math.abs(hash).toString(36)
 }
 
 const now = (): string => new Date().toISOString()

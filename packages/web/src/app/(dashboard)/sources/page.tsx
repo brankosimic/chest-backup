@@ -9,7 +9,7 @@ import { Header } from "@/components/layout/header"
 import { Plus } from "lucide-react"
 import { useSources, useDeleteSource, useSourceExclusions } from "@/hooks/use-queries"
 import type { Source } from "@chest-backup/shared"
-import type { TreeNode, SourceSection } from "@/types/sources"
+import type { TreeNode, SourceSection, TreeContextValue } from "@/types/sources"
 import { sourceIcon, sourceTypeLabelKey, buildPathTree, SOURCE_TYPES, SourceType } from "@/lib/sources"
 import { TreeContext, TreeNodeRow, SourceRow } from "@/components/sources/source-tree"
 import * as styles from "./page.styles"
@@ -93,6 +93,15 @@ const SourcesPage = () => {
   const sections = buildSections(sources ?? [])
   const excludedByPath = new Map((exclusions?.sources ?? []).map((source) => [source.path, source.excluded]))
 
+  const treeContextValue: TreeContextValue = {
+    expanded,
+    onToggle: toggle,
+    onDelete: handleDelete,
+    onNavigate: (path) => void navigate(path),
+    t,
+    excludedByPath,
+  }
+
   return (
     <div className={styles.page}>
       <Header
@@ -124,16 +133,7 @@ const SourcesPage = () => {
               </div>
 
               {section.dirTree.length ? (
-                <TreeContext.Provider
-                  value={{
-                    expanded,
-                    onToggle: toggle,
-                    onDelete: handleDelete,
-                    onNavigate: (path) => void navigate(path),
-                    t,
-                    excludedByPath,
-                  }}
-                >
+                <TreeContext.Provider value={treeContextValue}>
                   <div className={styles.treePanel}>
                     {section.dirTree.map((node) => (
                       <TreeNodeRow key={node.id} node={node} depth={0} />
@@ -141,16 +141,7 @@ const SourcesPage = () => {
                   </div>
                 </TreeContext.Provider>
               ) : (
-                <TreeContext.Provider
-                  value={{
-                    expanded,
-                    onToggle: toggle,
-                    onDelete: handleDelete,
-                    onNavigate: (path) => void navigate(path),
-                    t,
-                    excludedByPath,
-                  }}
-                >
+                <TreeContext.Provider value={treeContextValue}>
                   <div className={styles.treePanel}>
                     {section.flatItems.map((source) => (
                       <SourceRow key={source.id} source={source} />

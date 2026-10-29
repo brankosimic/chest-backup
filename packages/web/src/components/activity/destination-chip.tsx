@@ -5,6 +5,7 @@ import { CheckCircle2, XCircle, SkipForward, HardDrive, Network, Clock, RotateCc
 import { cn, formatDuration, formatSize } from "@/lib/utils"
 import { DestOutcome } from "@/types/activity"
 import type { DestResultProps } from "@/types/activity"
+import type { RestoreButtonProps } from "@/types/ui"
 import * as styles from "./destination-chip.styles"
 
 const outcomeOf = (result: StoreResult): DestOutcome => {
@@ -17,6 +18,23 @@ const outcomeTone = (outcome: DestOutcome): string => {
   if (outcome === DestOutcome.Done) return styles.chipDone
   if (outcome === DestOutcome.Error) return styles.chipError
   return styles.chipMuted
+}
+
+const RestoreButton = ({ destinationId, onRestore }: RestoreButtonProps) => {
+  const { t } = useTranslation()
+
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        onRestore(destinationId)
+      }}
+      className={styles.restoreButton}
+    >
+      <RotateCcw className={styles.restoreIcon} />
+      {t("activity.detail.restore")}
+    </button>
+  )
 }
 
 const DestinationChip = ({ result }: DestResultProps) => {
@@ -62,17 +80,8 @@ const DestinationOutcomeRow = ({ result, onRestore }: DestResultProps) => {
           {result.speed !== undefined && result.speed > 0 && (
             <span className={styles.outcomeTiming}>{formatSize(result.speed)}/s</span>
           )}
-          {restorable && result.destId && onRestore && (
-            <button
-              type="button"
-              onClick={() => {
-                onRestore(result.destId as string)
-              }}
-              className={styles.restoreButton}
-            >
-              <RotateCcw className={styles.restoreIcon} />
-              {t("activity.detail.restore")}
-            </button>
+          {restorable && result.destId !== undefined && onRestore && (
+            <RestoreButton destinationId={result.destId} onRestore={onRestore} />
           )}
         </div>
       </div>

@@ -25,4 +25,4 @@ const exec = async (command: string, opts?: ExecOpts): Promise<ExecResult> => {
   return { stdout: stdout.trim(), stderr: stderr.trim(), exitCode }
 }
 
-export { exec, type ExecResult, type ExecOpts }
+export { exec }

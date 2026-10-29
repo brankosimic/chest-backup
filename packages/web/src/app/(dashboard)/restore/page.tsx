@@ -22,27 +22,19 @@ import {
 } from "@/hooks/use-queries"
 import { formatDateTime, formatNumber, formatSize, cn } from "@/lib/utils"
 import { DestinationType, RestoreStatus } from "@chest-backup/shared"
-import type { Destination, RestoreJob } from "@chest-backup/shared"
+import type { Destination } from "@chest-backup/shared"
+import type { RestoreStatusMeta, JobPanelProps } from "@/types/ui"
 import { FolderOpen, Search, RotateCcw, CheckCircle2, XCircle, Clock, Loader2 } from "lucide-react"
 import { FileTree } from "./file-tree"
 import * as styles from "./page.styles"
 
 const destLabel = (dest: Pick<Destination, "name" | "path">): string => dest.name ?? dest.path
 
-interface StatusMeta {
-  variant: "default" | "secondary" | "destructive" | "outline" | "success" | "warning"
-  labelKey: string
-}
-
-const statusMeta: Record<RestoreStatus, StatusMeta> = {
+const statusMeta: Record<RestoreStatus, RestoreStatusMeta> = {
   [RestoreStatus.Running]: { variant: "default", labelKey: "restore.statusRunning" },
   [RestoreStatus.Success]: { variant: "success", labelKey: "restore.statusSuccess" },
   [RestoreStatus.Partial]: { variant: "warning", labelKey: "restore.statusPartial" },
   [RestoreStatus.Failed]: { variant: "destructive", labelKey: "restore.statusFailed" },
-}
-
-interface JobPanelProps {
-  job: RestoreJob
 }
 
 const JobPanel = ({ job }: JobPanelProps) => {

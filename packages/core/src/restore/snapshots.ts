@@ -1,9 +1,9 @@
-import { readdirSync, statSync, type Dirent } from "node:fs"
+import { readdirSync, statSync } from "node:fs"
 import { join } from "node:path"
 import SFTPClient from "ssh2-sftp-client"
 import { DestinationType, type RestoreSnapshot, type RestoreSnapshotFile } from "@chest-backup/shared"
-import type { Destination } from "../types/config"
-import type { RetentionMode } from "../types/config"
+import type { Destination, RetentionMode } from "../types/config"
+import type { SftpFileInfo } from "../types/manifest"
 import { connectClient } from "../destinations/sftp"
 import { isPeriodKey } from "../backup/periods"
 import { normalizeBase } from "../utils/mirror"
@@ -19,20 +19,16 @@ const assertSnapshotKey = (key: string): void => {
 const joinRelative = (parent: string, name: string): string =>
   parent ? `${parent}${SNAPSHOT_DIR_SEPARATOR}${name}` : name
 
-const addLocalEntry = (root: string, relative: string, entry: Dirent, acc: RestoreSnapshotFile[]): void => {
-  const child = joinRelative(relative, entry.name)
-  const full = join(root, child)
-  if (entry.isDirectory()) {
-    walkLocal(root, child, acc)
-    return
-  }
-  if (entry.isFile()) acc.push({ path: child, size: statSync(full).size })
-}
-
 const walkLocal = (root: string, relative: string, acc: RestoreSnapshotFile[]): void => {
   const entries = readdirSync(join(root, relative), { withFileTypes: true })
-
-  for (const entry of entries) addLocalEntry(root, relative, entry, acc)
+  for (const entry of entries) {
+    const child = joinRelative(relative, entry.name)
+    if (entry.isDirectory()) {
+      walkLocal(root, child, acc)
+      continue
+    }
+    if (entry.isFile()) acc.push({ path: child, size: statSync(join(root, child)).size })
+  }
 }
 
 const localSnapshotFiles = (root: string): RestoreSnapshotFile[] => {
@@ -64,21 +60,16 @@ const listLocalSnapshots = (dest: Destination, mode: RetentionMode): RestoreSnap
   }
 }
 
-type SftpFileInfo = Awaited<ReturnType<SFTPClient["list"]>>[number]
-
-const addSftpEntry = async (sftp: SFTPClient, root: string, relative: string, entry: SftpFileInfo, acc: RestoreSnapshotFile[]): Promise<void> => {
-  const child = joinRelative(relative, entry.name)
-  if (entry.type === "d") {
-    await walkSftp(sftp, root, child, acc)
-    return
-  }
-  if (entry.type === "-") acc.push({ path: child, size: entry.size })
-}
-
 const walkSftp = async (sftp: SFTPClient, root: string, relative: string, acc: RestoreSnapshotFile[]): Promise<void> => {
   const entries = await sftp.list(relative ? `${root}/${relative}` : root)
-
-  for (const entry of entries) await addSftpEntry(sftp, root, relative, entry, acc)
+  for (const entry of entries) {
+    const child = joinRelative(relative, entry.name)
+    if (entry.type === "d") {
+      await walkSftp(sftp, root, child, acc)
+      continue
+    }
+    if (entry.type === "-") acc.push({ path: child, size: entry.size })
+  }
 }
 
 const sftpSnapshotFiles = async (sftp: SFTPClient, root: string): Promise<RestoreSnapshotFile[]> => {

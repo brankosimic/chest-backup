@@ -28,10 +28,13 @@ import { formatDateTime, formatNumber, rangeToFrom } from "@/lib/utils"
 import { toActivityTab } from "@/lib/enums"
 import { downloadCsv } from "@/lib/export"
 import { ActivityTab, TimeRange } from "@/types/activity"
-import { RunSort } from "@/types/api"
-import { isTerminalRunPhase } from "@/lib/run-phase"
+import type { LogEntry } from "@chest-backup/shared"
+import { RunSort } from "@chest-backup/shared"
+import type { RunQuery } from "@/types/api"
+import { isActiveRunPhase, isTerminalRunPhase } from "@/lib/run-phase"
 import { invalidateRunQueries } from "@/lib/query-keys"
 import type { ActivityFiltersState } from "@/types/activity"
+import type { LogLevelButtonProps } from "@/types/ui"
 import { Activity as ActivityIcon, Download, Eraser, ChevronLeft, ChevronRight, Play, Radio, Pause, Search } from "lucide-react"
 import * as styles from "./page.styles"
 
@@ -47,6 +50,38 @@ const DEFAULT_FILTERS: ActivityFiltersState = {
   destinationId: null,
   range: TimeRange.All,
   sort: RunSort.Newest,
+}
+
+const LogLevelButton = ({ level, active, onToggle }: LogLevelButtonProps) => (
+  <button
+    type="button"
+    onClick={() => {
+      onToggle(level)
+    }}
+    className={`${styles.logLevel} ${active ? styles.logLevelActive : styles.logLevelInactive}`}
+  >
+    {level}
+  </button>
+)
+
+const mergeLogEntries = (streamLogs: LogEntry[], storedLogs: LogEntry[]): LogEntry[] => {
+  const seen = new Set<string>()
+  return [...streamLogs, ...storedLogs]
+    .filter((entry) => {
+      if (seen.has(entry.id)) return false
+      seen.add(entry.id)
+      return true
+    })
+    .sort((a, b) => b.timestamp.localeCompare(a.timestamp))
+}
+
+const filterLogEntries = (logs: LogEntry[], levels: LogLevel[], search: string): LogEntry[] => {
+  const needle = search.trim().toLowerCase()
+  return logs.filter((entry) => {
+    if (levels.length && !levels.includes(entry.level)) return false
+    if (!needle) return true
+    return entry.message.toLowerCase().includes(needle) || entry.runId?.toLowerCase().includes(needle)
+  })
 }
 
 const ActivityPage = () => {
@@ -76,7 +111,7 @@ const ActivityPage = () => {
   }, [streamPhase, streamRunId, qc])
 
   const query = useMemo(
-    () => ({
+    (): RunQuery => ({
       page,
       limit: PAGE_SIZE,
       status: filters.status,
@@ -93,7 +128,7 @@ const ActivityPage = () => {
   const { data: stats, isLoading: statsLoading } = useBackupStats(query)
   const { data: logsData } = useLogs({ limit: LOG_LIMIT })
   const clearLogs = useClearLogs()
-  const triggerMutation = useTriggerBackup(destinations ?? [])
+  const triggerMutation = useTriggerBackup()
 
   useEffect(() => {
     setPage(1)
@@ -104,27 +139,11 @@ const ActivityPage = () => {
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
 
   const liveRun =
-    stream.run && ["queued", "resolving", "archiving", "uploading"].includes(stream.run.phase) ? stream.run : null
+    stream.run && isActiveRunPhase(stream.run.phase) ? stream.run : null
 
-  const mergedLogs = useMemo(() => {
-    const seen = new Set<string>()
-    return [...stream.logs, ...(logsData?.data ?? [])]
-      .filter((entry) => {
-        if (seen.has(entry.id)) return false
-        seen.add(entry.id)
-        return true
-      })
-      .sort((a, b) => b.timestamp.localeCompare(a.timestamp))
-  }, [logsData, stream.logs])
+  const mergedLogs = useMemo(() => mergeLogEntries(stream.logs, logsData?.data ?? []), [logsData, stream.logs])
 
-  const filteredLogs = useMemo(() => {
-    const needle = logSearch.trim().toLowerCase()
-    return mergedLogs.filter((entry) => {
-      if (logLevels.length && !logLevels.includes(entry.level)) return false
-      if (!needle) return true
-      return entry.message.toLowerCase().includes(needle) || entry.runId?.toLowerCase().includes(needle)
-    })
-  }, [mergedLogs, logLevels, logSearch])
+  const filteredLogs = useMemo(() => filterLogEntries(mergedLogs, logLevels, logSearch), [mergedLogs, logLevels, logSearch])
 
   const toggleLevel = useCallback((level: LogLevel) => {
     setLogLevels((previous) =>
@@ -274,16 +293,7 @@ const ActivityPage = () => {
 
                 <div className="flex flex-wrap items-center gap-1">
                   {LOG_LEVELS.map((level) => (
-                    <button
-                      key={level}
-                      type="button"
-                      onClick={() => {
-                        toggleLevel(level)
-                      }}
-                      className={`${styles.logLevel} ${logLevels.includes(level) ? styles.logLevelActive : styles.logLevelInactive}`}
-                    >
-                      {level}
-                    </button>
+                    <LogLevelButton key={level} level={level} active={logLevels.includes(level)} onToggle={toggleLevel} />
                   ))}
                 </div>
 

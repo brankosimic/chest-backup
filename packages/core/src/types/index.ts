@@ -10,7 +10,8 @@ import type {
   DiscordConfig,
   NotificationsConfig,
 } from "./config"
-import type { StoreResult, BackupProgressEvent, BackupProgressCallback } from "./destination"
+import type { StoreResult } from "@chest-backup/shared"
+import type { BackupProgressEvent, BackupProgressCallback } from "./destination"
 import type { RestoreContext, FileOutcome, RestoreCounters, ProgressTotals, RestoreProgressCallback, RestoreRunArgs, ProcessFilesArgs, FileSelection, RestoreHandlerArgs } from "./restore"
 import type { FileStat } from "./manifest"
 import type { RunOptions } from "./run"
@@ -66,7 +67,6 @@ export type {
   NotificationsConfig,
   DestOutcome,
   BackupSummary,
-  StoreResult,
   VerifyResult,
   BackupResult,
   RunOptions,

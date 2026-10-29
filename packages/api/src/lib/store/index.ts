@@ -1,8 +1,11 @@
-import type { PaginatedResult, BackupStats } from "../../types/api"
-import { addLogEntry, getLogs, getLogStats, clearLogs, flushLogs, nextId } from "./logs"
+import { addLogEntry, getLogs, getLogStats, clearLogs, flushLogs } from "./logs"
 import { getSystem } from "./system"
-import { getSources, findSourceById, createSource, updateSource, deleteSource } from "./entities"
 import {
+  getSources,
+  findSourceById,
+  createSource,
+  updateSource,
+  deleteSource,
   getDestinations,
   findDestinationById,
   createDestination,
@@ -31,8 +34,6 @@ import {
 import { persistBackupResult } from "./backup-result"
 
 export {
-  type PaginatedResult,
-  type BackupStats,
   addBackupRecord,
   addLogEntry,
   clearLogs,
@@ -58,7 +59,6 @@ export {
   getSources,
   getSystem,
   invalidateBackupCache,
-  nextId,
   persistBackupResult,
   updateDestination,
   updateExclude,

@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import { Header } from "@/components/layout/header"
 import { ExclusionsCard } from "@/components/settings/exclusions-card"
 import { useTheme } from "@/lib/theme"
-import type { Theme } from "@/lib/theme"
+import type { Theme } from "@/types/ui"
 import { formatDate } from "@/lib/utils"
 import { useSchedule, useUpdateSchedule, useRetention, useUpdateRetention, useNotifications, useUpdateNotifications, useTestNotification } from "@/hooks/use-queries"
 import type { RetentionSettings } from "@/types/mutations"
@@ -169,7 +169,7 @@ export default function SettingsPage() {
                 }}
                 placeholder="0 3 * * *"
               />
-              <p className="text-xs text-muted-foreground">Format: minute hour day-of-month month day-of-week</p>
+              <p className="text-xs text-muted-foreground">{t("settings.cronFormatHint")}</p>
             </div>
 
             <div className="flex items-center justify-between rounded-lg border p-3">

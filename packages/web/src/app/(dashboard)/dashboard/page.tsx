@@ -12,6 +12,7 @@ import { HealthStrip } from "@/components/dashboard/health-strip"
 import { formatSize, formatDuration, formatUptime, formatRelative, formatNumber } from "@/lib/utils"
 import { useBackupStats, useBackups, useSystem, useDestinations, useSchedule } from "@/hooks/use-queries"
 import { StatTileTone } from "@/types/backup"
+import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { CheckCircle2, Clock, Activity, CalendarClock, HardDrive } from "lucide-react"
 import * as styles from "./page.styles"
 
@@ -26,11 +27,7 @@ const DashboardPage = () => {
   const loading = statsLoading || systemLoading
 
   if (loading) {
-    return (
-      <div className={styles.spinnerContainer}>
-        <div className={styles.spinner} />
-      </div>
-    )
+    return <LoadingSpinner className="h-screen" />
   }
 
   const recentBackups = backupsData?.data ?? []

@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs"
 import { resolve } from "node:path"
 import type { Config, Source } from "../types/config"
-import { stableId } from "../utils/stable-id"
+import { stableId } from "@chest-backup/shared"
 import { ConfigSchema } from "./schema"
 
 const expandSources = (config: Config): Config => ({

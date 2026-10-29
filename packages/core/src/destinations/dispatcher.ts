@@ -1,5 +1,6 @@
 import type { Config, Destination } from "../types/config"
-import type { StoreResult, BackupProgressCallback } from "../types/index"
+import type { StoreResult } from "@chest-backup/shared"
+import type { BackupProgressCallback } from "../types/destination"
 import type { FileStat } from "../types/manifest"
 import { storeLocalIncremental } from "./local"
 import { storeSftpIncremental } from "./sftp"

@@ -1,11 +1,5 @@
-import type { LogLevel, RunStatus, RunTrigger } from "@chest-backup/shared"
-
-enum RunSort {
-  Newest = "newest",
-  Oldest = "oldest",
-  Duration = "duration",
-  Size = "size",
-}
+import type { LogLevel, RunSort, RunStatus, RunTrigger } from "@chest-backup/shared"
+import type { ResourceUsage } from "@chest-backup/shared"
 
 interface Paginated<T> {
   data: T[]
@@ -36,5 +30,29 @@ interface LogQuery {
   limit?: number
 }
 
-export { RunSort }
-export type { Paginated, RunQuery, LogQuery }
+interface ScheduleInfo {
+  schedule: string
+  enabled: boolean
+  lastRun?: string
+  nextRun?: string
+}
+
+interface LogStats {
+  total: number
+  debug: number
+  info: number
+  warn: number
+  error: number
+  fatal: number
+}
+
+interface SystemInfo {
+  status: string
+  uptime: number
+  version: string
+  cpuUsage: number
+  memoryUsage: ResourceUsage
+  diskUsage: ResourceUsage
+}
+
+export type { Paginated, RunQuery, LogQuery, ScheduleInfo, LogStats, SystemInfo }

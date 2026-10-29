@@ -6,20 +6,40 @@ import { cn } from "@/lib/utils"
 import { Tooltip } from "@/components/ui/tooltip"
 import { Play } from "lucide-react"
 import { Logo } from "./logo"
-import { useBackupProgress, useDestinations, useSystem, useTriggerBackup } from "@/hooks/use-queries"
+import { useBackupProgress, useSystem, useTriggerBackup } from "@/hooks/use-queries"
 import { isActiveRunPhase } from "@/lib/run-phase"
 import { formatUptime } from "@/lib/utils"
 import { navItems } from "./nav-items"
+import type { SidebarProps } from "@/types/ui"
 import * as styles from "./sidebar.styles"
 
-const Sidebar = ({ collapsed = false }: { collapsed?: boolean }) => {
+const Sidebar = ({ collapsed = false }: SidebarProps) => {
   const { t } = useTranslation()
   const { pathname } = useLocation()
-  const { data: destinations } = useDestinations()
   const { data: progress } = useBackupProgress()
   const { data: system } = useSystem()
-  const triggerMutation = useTriggerBackup(destinations ?? [])
+  const triggerMutation = useTriggerBackup()
   const isRunning = !!progress && isActiveRunPhase(progress.phase)
+
+  const renderNavLink = (item: (typeof navItems)[number]) => {
+    const Icon = item.icon
+    const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href))
+    return (
+      <Link
+        to={item.href}
+        aria-current={isActive ? "page" : undefined}
+        className={cn(
+          styles.link,
+          collapsed && styles.linkCollapsed,
+          isActive ? styles.linkActive : styles.linkIdle,
+        )}
+      >
+        {isActive && <span className={styles.activeBar} />}
+        <Icon className={cn(styles.linkIcon, !isActive && styles.linkIconIdle)} />
+        {!collapsed && <span className="flex-1">{t(item.label)}</span>}
+      </Link>
+    )
+  }
 
   return (
     <aside className={styles.aside}>
@@ -34,33 +54,15 @@ const Sidebar = ({ collapsed = false }: { collapsed?: boolean }) => {
 
       <nav className={styles.nav}>
 
-        {navItems.map((item) => {
-          const Icon = item.icon
-          const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href))
-          const link = (
-            <Link
-              to={item.href}
-              aria-current={isActive ? "page" : undefined}
-              className={cn(
-                styles.link,
-                collapsed && styles.linkCollapsed,
-                isActive ? styles.linkActive : styles.linkIdle,
-              )}
-            >
-              {isActive && <span className={styles.activeBar} />}
-              <Icon className={cn(styles.linkIcon, !isActive && styles.linkIconIdle)} />
-              {!collapsed && <span className="flex-1">{t(item.label)}</span>}
-            </Link>
-          )
-
-          return collapsed ? (
+        {navItems.map((item) =>
+          collapsed ? (
             <Tooltip key={item.href} content={t(item.label)} side="top">
-              {link}
+              {renderNavLink(item)}
             </Tooltip>
           ) : (
-            <div key={item.href}>{link}</div>
-          )
-        })}
+            <div key={item.href}>{renderNavLink(item)}</div>
+          ),
+        )}
       </nav>
 
       <div className={styles.footer}>

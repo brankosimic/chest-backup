@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react"
 import { useTranslation } from "react-i18next"
 import { fetchContainerVolumes } from "@/lib/api-client"
 import { SourceType } from "@/lib/sources"
-import type { ContainerVolume } from "@/types/backup"
+import type { ContainerVolume } from "@chest-backup/shared"
 
 const useContainerVolumes = (props: { containerName: string; type: string }) => {
   const { t } = useTranslation()

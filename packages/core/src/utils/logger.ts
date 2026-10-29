@@ -2,15 +2,8 @@ import { AsyncLocalStorage } from "node:async_hooks"
 import { Writable } from "node:stream"
 import pino from "pino"
 import { logLevel } from "../env"
-
-interface LogRecord {
-  level: number
-  time?: number
-  msg?: string
-  [key: string]: unknown
-}
-
-type LogSink = (record: LogRecord) => void
+import type { LogRecord, LogSink } from "../types/logger"
+export type { LogRecord, LogSink } from "../types/logger"
 
 const sinks = new Set<LogSink>()
 const runContext = new AsyncLocalStorage<{ runId: string }>()
@@ -63,4 +56,4 @@ const withRunContext = <T>(runId: string, fn: () => T): T => runContext.run({ ru
 
 const currentRunId = (): string | undefined => runContext.getStore()?.runId
 
-export { logger, subscribeToLogs, withRunContext, currentRunId, type LogRecord, type LogSink }
+export { logger, subscribeToLogs, withRunContext, currentRunId }

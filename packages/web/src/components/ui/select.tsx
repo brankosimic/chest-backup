@@ -1,15 +1,7 @@
 import { cn } from "@/lib/utils"
+import type { SelectProps } from "@/types/ui"
 
-const Select = ({
-  value,
-  onChange,
-  children,
-  className,
-  ...props
-}: React.SelectHTMLAttributes<HTMLSelectElement> & {
-  value: string
-  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void
-}) => {
+const Select = ({ value, onChange, children, className, ...props }: SelectProps) => {
   return (
     <select
       value={value}

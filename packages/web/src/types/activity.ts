@@ -4,12 +4,12 @@ import type {
   Destination,
   LogEntry,
   LogLevel,
+  RunSort,
   RunStats,
   RunStatus,
   RunTrigger,
   StoreResult,
 } from "@chest-backup/shared"
-import { RunSort } from "./api"
 import type { BackupRunProgress } from "./backup"
 import type { BadgeVariant } from "./ui"
 

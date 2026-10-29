@@ -1,14 +1,10 @@
 import type { Config, Destination } from "../types/config"
 import type { DiffResult, FileStat, Manifest } from "../types/manifest"
-import type { StoreResult } from "../types/index"
+import type { StoreResult } from "@chest-backup/shared"
+import type { IncrementalPrep } from "../types/incremental"
 import { computeDiff, loadManifest, manifestPathFor, buildFileStats, removeDeletedFromManifest, saveManifest, stampDigests, updateManifest } from "./manifest"
 import { digestFile } from "./digest"
 import { logger } from "../utils/logger"
-
-interface IncrementalPrep {
-  diff: DiffResult
-  manifest: Manifest
-}
 
 const prepareIncremental = async (config: Config, dest: Destination, files: string[], periodKey: string): Promise<IncrementalPrep> => {
   const current = buildFileStats(files)

@@ -171,7 +171,8 @@
     "noDestinations": "No destinations configured",
     "noDestinationsDesc": "Add your first backup destination to get started.",
     "unavailable": "Unavailable",
-    "namePlaceholder": "My Server"
+    "namePlaceholder": "My Server",
+    "typeLabel": "Type"
   },
   "schedule": {
     "title": "Schedule",
@@ -372,7 +373,8 @@
     "excludePatternAdd": "Add",
     "excludePatternHint": "Supports directory globs (**/cache/**), absolute paths (/data/drafts) and file names (*.log). Excluded files are never uploaded and never deleted from a destination.",
     "excludePatternsEmpty": "No exclusion patterns — every file is backed up.",
-    "exclusionsSkipped": "{{count}} files are currently skipped"
+    "exclusionsSkipped": "{{count}} files are currently skipped",
+    "cronFormatHint": "Cron format: minute hour day-of-month month day-of-week"
   },
   "status": {
     "running": "Running",

@@ -7,7 +7,31 @@ import { formatSize, formatDuration, cn } from "@/lib/utils"
 import { DestinationType } from "@chest-backup/shared"
 import { useDestinationUsage } from "@/hooks/use-queries"
 import type { DestCardProps } from "@/types/backup"
+import type { DiskUsageRowProps } from "@/types/ui"
 import * as styles from "./dest-card.styles"
+
+const DiskUsageRow = ({ diskSpace }: DiskUsageRowProps) => {
+  const { t } = useTranslation()
+
+  return (
+    <div className={styles.diskGroup}>
+      <div className={styles.row}>
+        <span className={styles.rowLabel}>{t("dashboard.diskUsage")}</span>
+        <span className={styles.rowValue}>
+          {formatSize(diskSpace.used)} / {formatSize(diskSpace.total)}
+        </span>
+      </div>
+      <div className={styles.barTrack}>
+        <div
+          className={styles.diskBar}
+          style={{
+            width: `${String((diskSpace.used / diskSpace.total) * 100)}%`,
+          }}
+        />
+      </div>
+    </div>
+  )
+}
 
 const DestCard = ({ props }: { props: DestCardProps }) => {
   const { t } = useTranslation()
@@ -75,22 +99,7 @@ const DestCard = ({ props }: { props: DestCardProps }) => {
                 </div>
               </div>
               {usage?.diskSpace && usage.diskSpace.total > 0 && (
-                <div className={styles.diskGroup}>
-                  <div className={styles.row}>
-                    <span className={styles.rowLabel}>{t("dashboard.diskUsage")}</span>
-                    <span className={styles.rowValue}>
-                      {formatSize(usage.diskSpace.used)} / {formatSize(usage.diskSpace.total)}
-                    </span>
-                  </div>
-                  <div className={styles.barTrack}>
-                    <div
-                      className={styles.diskBar}
-                      style={{
-                        width: `${String((usage.diskSpace.used / usage.diskSpace.total) * 100)}%`,
-                      }}
-                    />
-                  </div>
-                </div>
+                <DiskUsageRow diskSpace={usage.diskSpace} />
               )}
               <div className={styles.footer}>
                 <Clock className={styles.clockIcon} />

@@ -8,27 +8,29 @@ interface ScheduleUpdateData {
   enabled: boolean
 }
 
-interface RetentionMode {
-  Monthly: "months"
-  Weekly: "weeks"
-  Forever: "forever"
-}
+type RetentionMode = "months" | "weeks" | "forever"
 
 interface RetentionSettings {
   globalRetention: number
-  retentionMode: RetentionMode[keyof RetentionMode]
+  retentionMode: RetentionMode
 }
 
 interface RetentionUpdateData {
   globalRetention: number
-  retentionMode: RetentionSettings["retentionMode"]
+  retentionMode: RetentionMode
+}
+
+interface DiscordNotification {
+  webhookUrl: string
+  enabled: boolean
+}
+
+interface NotificationInfo {
+  discord?: DiscordNotification
 }
 
 interface NotificationUpdateData {
-  discord?: {
-    webhookUrl: string
-    enabled: boolean
-  }
+  discord?: DiscordNotification
 }
 
 interface ExcludeUpdateData {
@@ -45,6 +47,8 @@ export type {
   RetentionMode,
   RetentionSettings,
   RetentionUpdateData,
+  DiscordNotification,
+  NotificationInfo,
   NotificationUpdateData,
   ExcludeUpdateData,
   ExcludeSettings,

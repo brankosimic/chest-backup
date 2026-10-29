@@ -4,7 +4,7 @@ import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { ChevronRight, Folder, FolderOpen, File as FileIcon } from "lucide-react"
 import { buildTree, collectPaths } from "@/lib/restore-tree"
-import type { FileTreeProps, TreeNode, TreeFileNode } from "@/types/restore"
+import type { FileTreeProps, TreeNode, TreeFileNode, FileRowProps, DirRowProps, TreeItemProps } from "@/types/restore"
 import { formatNumber, formatSize, cn } from "@/lib/utils"
 import * as styles from "./file-tree.styles"
 
@@ -12,12 +12,6 @@ const matchesSearch = (node: TreeNode | TreeFileNode, needle: string): boolean =
 
 const nodeMatches = (node: TreeNode, needle: string): boolean =>
   matchesSearch(node, needle) || node.files.some((f) => matchesSearch(f, needle)) || node.children.some((child) => nodeMatches(child, needle))
-
-interface FileRowProps {
-  file: TreeFileNode
-  selected: boolean
-  onToggle: () => void
-}
 
 const FileRow = ({ file, selected, onToggle }: FileRowProps) => (
   <label className={cn(styles.row, styles.fileRow, selected && styles.rowSelected)}>
@@ -28,14 +22,6 @@ const FileRow = ({ file, selected, onToggle }: FileRowProps) => (
     <span className={styles.fileSize}>{formatSize(file.size)}</span>
   </label>
 )
-
-interface DirRowProps {
-  node: TreeNode
-  expanded: boolean
-  selectionState: "none" | "some" | "all"
-  onToggleExpand: () => void
-  onToggleDir: () => void
-}
 
 const DirRow = ({ node, expanded, selectionState, onToggleExpand, onToggleDir }: DirRowProps) => {
   const { t } = useTranslation()
@@ -59,17 +45,6 @@ const DirRow = ({ node, expanded, selectionState, onToggleExpand, onToggleDir }:
       <span className={styles.count}>({formatNumber(node.fileCount)})</span>
     </div>
   )
-}
-
-interface TreeItemProps {
-  node: TreeNode
-  depth: number
-  expandedDirs: Set<string>
-  selected: Set<string>
-  needle: string
-  onToggleExpand: (path: string) => void
-  onTogglePath: (path: string) => void
-  onToggleMany: (paths: string[], select: boolean) => void
 }
 
 const TreeItem = ({ node, depth, expandedDirs, selected, needle, onToggleExpand, onTogglePath, onToggleMany }: TreeItemProps) => {

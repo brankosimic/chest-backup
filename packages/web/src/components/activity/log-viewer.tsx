@@ -7,7 +7,7 @@ import { FileText, ChevronDown, ChevronRight } from "lucide-react"
 import { LogLevel as LogLevelEnum } from "@chest-backup/shared"
 import * as styles from "./log-viewer.styles"
 
-const LEVEL_CLASSES: Record<string, { level: string; message: string }> = {
+const levelClasses: Record<string, { level: string; message: string }> = {
   debug: { level: styles.levelDebug, message: styles.messageDebug },
   info: { level: styles.levelInfo, message: styles.messageInfo },
   warn: { level: styles.levelWarn, message: styles.messageWarn },
@@ -42,7 +42,7 @@ const LogViewer = ({ entries, emptyLabel, follow = true, className }: LogViewerP
   return (
     <div ref={containerRef} onScroll={onScroll} className={cn(styles.container, className)}>
       {rows.map((entry) => {
-        const tone = LEVEL_CLASSES[entry.level] ?? LEVEL_CLASSES[LogLevelEnum.Info]
+        const tone = levelClasses[entry.level] ?? levelClasses[LogLevelEnum.Info]
         const hasMetadata = entry.metadata && Object.keys(entry.metadata).length > 0
         const isExpanded = expanded === entry.id
 
@@ -75,4 +75,4 @@ const LogViewer = ({ entries, emptyLabel, follow = true, className }: LogViewerP
   )
 }
 
-export { LogViewer, LEVEL_CLASSES }
+export { LogViewer }

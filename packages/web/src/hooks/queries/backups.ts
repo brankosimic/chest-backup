@@ -1,7 +1,8 @@
 import { useEffect, useRef } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import type { Destination } from "@chest-backup/shared"
+import { RunStatus, RunTrigger } from "@chest-backup/shared"
 import type { BackupRunProgress } from "@/types/backup"
+import { RunPhase } from "@/types/backup"
 import { isActiveRunPhase, isTerminalRunPhase } from "@/lib/run-phase"
 import { invalidateRunQueries } from "@/lib/query-keys"
 import {
@@ -12,9 +13,8 @@ import {
   fetchLogs,
   fetchLogStats,
   clearStoredLogs,
-  type RunQuery,
-  type LogQuery,
 } from "@/lib/api-client"
+import type { RunQuery, LogQuery } from "@/types/api"
 
 const IDLE_REFETCH_MS = 10_000
 
@@ -56,29 +56,24 @@ const useBackupProgress = () => {
   return query
 }
 
-const useTriggerBackup = (destinations: Destination[]) => {
+const useTriggerBackup = () => {
   const qc = useQueryClient()
 
   return useMutation({
     mutationFn: triggerBackup,
     onMutate: () => {
-      qc.setQueryData(["backup-progress"], {
+      const progress: BackupRunProgress = {
         runId: "pending",
-        status: "running" as const,
-        phase: "queued" as const,
-        trigger: "manual" as const,
+        status: RunStatus.Running,
+        phase: RunPhase.Queued,
+        trigger: RunTrigger.Manual,
         startedAt: new Date().toISOString(),
         finishedAt: "",
         timestamp: "",
-        destinations: destinations.map((d) => ({
-          id: d.id,
-          name: d.name ?? d.path,
-          path: d.path,
-          type: d.type,
-          status: "pending" as const,
-        })),
+        destinations: [],
         errors: [],
-      })
+      }
+      qc.setQueryData<BackupRunProgress>(["backup-progress"], progress)
     },
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["backup-progress"] })

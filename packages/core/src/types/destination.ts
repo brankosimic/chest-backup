@@ -1,5 +1,4 @@
 import type SFTPClient from "ssh2-sftp-client"
-import type { StoreResult } from "@chest-backup/shared"
 
 type UploadProgress = {
   uploadedSize: number
@@ -66,7 +65,6 @@ interface SftpUsage {
 
 export {
   UploadOutcomeKind,
-  type StoreResult,
   type UploadProgress,
   type FileUploadResult,
   type UploadOutcome,

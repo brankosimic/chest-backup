@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils"
+import type { LoadingSpinnerProps } from "@/types/ui"
 
 const dims: Record<string, string> = {
   sm: "h-4 w-4",
@@ -6,7 +7,7 @@ const dims: Record<string, string> = {
   lg: "h-12 w-12",
 }
 
-const LoadingSpinner = ({ className, size = "md" }: { className?: string; size?: "sm" | "md" | "lg" }) => {
+const LoadingSpinner = ({ className, size = "md" }: LoadingSpinnerProps) => {
   return (
     <div className={cn("flex items-center justify-center", className)}>
       <div className={cn("animate-spin rounded-full border-2 border-primary border-t-transparent", dims[size])} />

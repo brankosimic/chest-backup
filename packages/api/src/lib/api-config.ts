@@ -5,8 +5,7 @@ import { logger } from "@core/utils/logger"
 import type { Config } from "@core/types/config"
 import type { BackupProgressEvent, BackupResult } from "@core/types/index"
 import { RunTrigger } from "@chest-backup/shared"
-import { invalidateBackupCache, persistBackupResult } from "./store"
-import { applyProgressEvent, completeRun, startRun } from "./progress"
+import { applyProgressEvent, completeRun, startRun, invalidateBackupCache, persistBackupResult } from "./progress"
 
 let activeConfig: Config | null = null
 let activeConfigPath: string | null = null

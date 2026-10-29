@@ -66,6 +66,21 @@ interface SourceExclusions {
   sources: SourceExclusion[]
 }
 
+interface LogStats {
+  total: number
+  debug: number
+  info: number
+  warn: number
+  error: number
+  fatal: number
+}
+
+interface DestinationRef {
+  id?: string
+  name?: string
+  path: string
+}
+
 export type {
   PaginatedResult,
   BackupStats,
@@ -78,4 +93,6 @@ export type {
   ExcludeSettings,
   SourceExclusion,
   SourceExclusions,
+  LogStats,
+  DestinationRef,
 }

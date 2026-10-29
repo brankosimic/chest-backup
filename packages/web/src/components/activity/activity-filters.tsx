@@ -1,12 +1,11 @@
 import { useTranslation } from "react-i18next"
-import { RunStatus as RunStatusEnum, RunTrigger as RunTriggerEnum } from "@chest-backup/shared"
+import { RunSort, RunStatus as RunStatusEnum, RunTrigger as RunTriggerEnum } from "@chest-backup/shared"
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { toRunSort, toRunStatus, toRunTrigger, toTimeRange } from "@/lib/enums"
 import { Search, X } from "lucide-react"
 import { TimeRange } from "@/types/activity"
-import { RunSort } from "@/types/api"
 import type { ActivityFiltersProps } from "@/types/activity"
 import * as styles from "./activity-filters.styles"
 

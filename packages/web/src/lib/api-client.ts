@@ -1,8 +1,9 @@
-import type { ContainerVolume, BackupRunProgress, DestinationUsage } from "../types/backup"
-import type { RetentionSettings, ExcludeUpdateData, ExcludeSettings } from "../types/mutations"
-import type { SourceExclusions } from "../types/sources"
-import type { LogQuery, Paginated, RunQuery } from "../types/api"
+import type { BackupRunProgress, DestinationUsage } from "../types/backup"
+import type { RetentionSettings, ScheduleUpdateData, NotificationInfo, NotificationUpdateData, ExcludeUpdateData, ExcludeSettings } from "../types/mutations"
+import type { LogQuery, Paginated, ScheduleInfo, SystemInfo, LogStats, RunQuery } from "../types/api"
 import type {
+  ContainerVolume,
+  SourceExclusions,
   Source,
   Destination,
   BackupRecord,
@@ -68,10 +69,9 @@ const updateDestination = (id: string, data: Record<string, unknown>) =>
   apiFetch<Destination>(`/api/destinations/${id}`, { method: "PUT", body: JSON.stringify(data) })
 const deleteDestination = (id: string) => apiFetch<undefined>(`/api/destinations/${id}`, { method: "DELETE" })
 
-const fetchSchedule = () =>
-  apiFetch<{ schedule: string; enabled: boolean; lastRun?: string; nextRun?: string }>("/api/schedule")
-const updateSchedule = (data: { schedule: string; enabled: boolean }) =>
-  apiFetch<{ schedule: string; enabled: boolean }>("/api/schedule", { method: "PUT", body: JSON.stringify(data) })
+const fetchSchedule = () => apiFetch<ScheduleInfo>("/api/schedule")
+const updateSchedule = (data: ScheduleUpdateData) =>
+  apiFetch<ScheduleInfo>("/api/schedule", { method: "PUT", body: JSON.stringify(data) })
 
 const fetchRetention = () => apiFetch<RetentionSettings>("/api/retention")
 const updateRetention = (data: RetentionSettings) =>
@@ -81,9 +81,9 @@ const fetchExclude = () => apiFetch<ExcludeSettings>("/api/exclude")
 const updateExclude = (data: ExcludeUpdateData) =>
   apiFetch<ExcludeSettings>("/api/exclude", { method: "PUT", body: JSON.stringify(data) })
 
-const fetchNotifications = () => apiFetch<{ discord?: { webhookUrl: string; enabled: boolean } }>("/api/notifications")
-const updateNotifications = (data: { discord?: { webhookUrl: string; enabled: boolean } }) =>
-  apiFetch<{ discord?: { webhookUrl: string; enabled: boolean } }>("/api/notifications", {
+const fetchNotifications = () => apiFetch<NotificationInfo>("/api/notifications")
+const updateNotifications = (data: NotificationUpdateData) =>
+  apiFetch<NotificationInfo>("/api/notifications", {
     method: "PUT",
     body: JSON.stringify(data),
   })
@@ -151,20 +151,11 @@ const fetchLogs = (query: LogQuery = {}) =>
     })}`,
   )
 
-const fetchLogStats = () =>
-  apiFetch<{ total: number; debug: number; info: number; warn: number; error: number; fatal: number }>("/api/logs/stats")
+const fetchLogStats = () => apiFetch<LogStats>("/api/logs/stats")
 
 const clearStoredLogs = () => apiFetch<{ cleared: boolean }>("/api/logs", { method: "DELETE" })
 
-const fetchSystem = () =>
-  apiFetch<{
-    status: string
-    uptime: number
-    version: string
-    cpuUsage: number
-    memoryUsage: { used: number; total: number }
-    diskUsage: { used: number; total: number }
-  }>("/api/system")
+const fetchSystem = () => apiFetch<SystemInfo>("/api/system")
 
 const testNotification = (webhookUrl: string) =>
   apiFetch<{ success: boolean; message: string }>("/api/notifications/test", {
@@ -247,7 +238,4 @@ export {
   startRestore,
   fetchRestoreJob,
   fetchActiveRestore,
-  type Paginated,
-  type RunQuery,
-  type LogQuery,
 }

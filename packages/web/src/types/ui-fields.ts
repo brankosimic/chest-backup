@@ -1,4 +1,4 @@
-import type { ContainerVolume } from "./backup"
+import type { ContainerVolume } from "@chest-backup/shared"
 
 interface SftpFieldsProps {
   host: string
@@ -67,4 +67,15 @@ interface ContainerSelectProps {
   allowCustomValue?: boolean
 }
 
-export type { SftpFieldsProps, PostgresFieldsProps, SqliteFieldsProps, ContainerVolumeFieldsProps, EditSourceFieldsProps, ContainerSelectProps }
+interface PostgresDatabasesParams {
+  type: string
+  host: string
+  port: number
+  user: string
+  password: string
+  containerName: string
+  isPostgres: boolean
+  fieldsReady: boolean
+}
+
+export type { SftpFieldsProps, PostgresFieldsProps, SqliteFieldsProps, ContainerVolumeFieldsProps, EditSourceFieldsProps, ContainerSelectProps, PostgresDatabasesParams }

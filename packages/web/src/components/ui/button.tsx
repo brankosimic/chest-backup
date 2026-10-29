@@ -1,8 +1,6 @@
 import { forwardRef } from "react"
 import { cn } from "@/lib/utils"
-
-type ButtonVariant = "default" | "destructive" | "outline" | "secondary" | "ghost" | "link"
-type ButtonSize = "default" | "sm" | "lg" | "icon"
+import type { ButtonVariant, ButtonSize, ButtonProps } from "@/types/ui"
 
 const variantClasses: Record<ButtonVariant, string> = {
   default: "bg-primary text-primary-foreground hover:bg-primary/90",
@@ -18,11 +16,6 @@ const sizeClasses: Record<ButtonSize, string> = {
   sm: "h-9 rounded-md px-3",
   lg: "h-11 rounded-md px-8",
   icon: "h-10 w-10",
-}
-
-export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: ButtonVariant
-  size?: ButtonSize
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(

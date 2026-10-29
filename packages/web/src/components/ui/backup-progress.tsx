@@ -8,7 +8,7 @@ import { isActiveRunPhase, isTerminalRunPhase } from "@/lib/run-phase"
 import { formatSize, formatSpeed } from "@/lib/utils"
 import { DestinationType } from "@chest-backup/shared"
 import { DestRunStatus, RunPhase } from "@/types/backup"
-import type { BadgeVariant } from "@/types/ui"
+import type { StatusBadgeProps } from "@/types/ui"
 import { CheckCircle2, XCircle, Clock, Upload, SkipForward, HardDrive, Network, Sparkles } from "lucide-react"
 import * as styles from "./backup-progress.styles"
 
@@ -25,11 +25,6 @@ const statusIcon = (status: DestRunStatus) => {
     default:
       return <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
   }
-}
-
-interface StatusBadgeProps {
-  variant: BadgeVariant
-  labelKey: string
 }
 
 const statusBadgeProps = (status: DestRunStatus): StatusBadgeProps => {

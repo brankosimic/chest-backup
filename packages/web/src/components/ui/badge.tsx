@@ -1,8 +1,5 @@
 import { cn } from "@/lib/utils"
-
-interface BadgeProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: "default" | "secondary" | "destructive" | "outline" | "success" | "warning"
-}
+import type { BadgeProps } from "@/types/ui"
 
 const badgeVariants: Record<string, string> = {
   default: "bg-primary text-primary-foreground",

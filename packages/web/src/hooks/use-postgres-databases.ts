@@ -2,19 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react"
 import { useTranslation } from "react-i18next"
 import { fetchPostgresDatabases } from "@/lib/api-client"
 import { SourceType } from "@/lib/sources"
-
-type PgType = "postgres" | "postgres-container"
-
-interface PostgresDatabasesParams {
-  type: string
-  host: string
-  port: number
-  user: string
-  password: string
-  containerName: string
-  isPostgres: boolean
-  fieldsReady: boolean
-}
+import type { PostgresDatabasesParams } from "@/types/ui-fields"
 
 const usePostgresDatabases = (params: PostgresDatabasesParams) => {
   const { t } = useTranslation()
@@ -29,7 +17,7 @@ const usePostgresDatabases = (params: PostgresDatabasesParams) => {
     setError("")
     try {
       const res = await fetchPostgresDatabases({
-        type: params.type as PgType,
+        type: params.type === SourceType.PostgresContainer ? "postgres-container" : "postgres",
         host: params.type === SourceType.Postgres ? params.host : undefined,
         port: params.type === SourceType.Postgres ? params.port : undefined,
         user: params.user,

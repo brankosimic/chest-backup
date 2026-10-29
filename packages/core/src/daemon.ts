@@ -5,7 +5,38 @@ import { loadConfig } from "./config/loader"
 import type { BackupResult } from "./types/index"
 import { RunTrigger } from "@chest-backup/shared"
 import { DaemonStatus } from "./types/daemon"
+import type { Config } from "./types/config"
 import type { DaemonOptions, DaemonHandle } from "./types/daemon"
+
+interface DaemonState {
+  config: Config
+  options?: DaemonOptions
+  onBackupComplete?: (result: BackupResult) => void
+  isBackupRunning: boolean
+}
+
+const emitStarted = (options?: DaemonOptions): void => {
+  options?.onStateChange?.(DaemonStatus.Running, "Backup in progress")
+  options?.onNotify?.("Backup Started", "Backup operation is in progress…")
+}
+
+const runBackupIfIdle = async (state: DaemonState, trigger: RunTrigger = RunTrigger.Scheduled): Promise<void> => {
+  if (state.isBackupRunning) return
+
+  state.isBackupRunning = true
+  emitStarted(state.options)
+
+  const result = await runBackup(state.config, state.options?.onProgress, { trigger })
+  state.isBackupRunning = false
+  emitAfterBackup(result, state.options)
+  logger.info({ success: result.success, durationMs: result.durationMs }, "backup completed")
+  state.onBackupComplete?.(result)
+}
+
+const stopDaemon = (scheduler: Scheduler): void => {
+  scheduler.stop()
+  process.exit(0)
+}
 
 const createDaemon = (
   onBackupComplete?: (result: BackupResult) => void,
@@ -17,35 +48,17 @@ const createDaemon = (
     throw new Error("CHEST_CONFIG_PATH not set")
   }
 
-  const config = loadConfig(configPath)
-  let isBackupRunning = false
-  const { onStateChange, onNotify, onProgress } = options ?? {}
-
-  const runBackupIfIdle = async (trigger: RunTrigger = RunTrigger.Scheduled): Promise<void> => {
-    if (isBackupRunning) return
-
-    isBackupRunning = true
-    onStateChange?.(DaemonStatus.Running, "Backup in progress")
-    onNotify?.("Backup Started", "Backup operation is in progress…")
-
-    const result = await runBackup(config, onProgress, { trigger })
-    isBackupRunning = false
-    emitAfterBackup(result, onStateChange, onNotify)
-    logger.info({ success: result.success, durationMs: result.durationMs }, "backup completed")
-    onBackupComplete?.(result)
-  }
-
-  const scheduler = new Scheduler(config.schedule as string, () => runBackupIfIdle(RunTrigger.Scheduled))
+  const state: DaemonState = { config: loadConfig(configPath), options, onBackupComplete, isBackupRunning: false }
+  const scheduler = new Scheduler(state.config.schedule as string, () => runBackupIfIdle(state, RunTrigger.Scheduled))
   scheduler.start()
-  logger.info({ schedule: config.schedule }, "daemon mode started")
-  onStateChange?.(DaemonStatus.Idle, "Waiting for schedule")
+  logger.info({ schedule: state.config.schedule }, "daemon mode started")
+  options?.onStateChange?.(DaemonStatus.Idle, "Waiting for schedule")
   setupShutdownHandlers(scheduler)
 
   return {
-    runBackupNow: () => runBackupIfIdle(RunTrigger.Manual),
+    runBackupNow: () => runBackupIfIdle(state, RunTrigger.Manual),
     stop: () => {
-      scheduler.stop()
-      process.exit(0)
+      stopDaemon(scheduler)
     },
   }
 }
@@ -72,11 +85,7 @@ const setupShutdownHandlers = (scheduler: Scheduler): void => {
   }
 }
 
-const emitAfterBackup = (
-  result: BackupResult,
-  onStateChange?: DaemonOptions["onStateChange"],
-  onNotify?: DaemonOptions["onNotify"],
-): void => {
+const emitAfterBackup = (result: BackupResult, options?: DaemonOptions): void => {
   const allSkipped = !!result.destinationResults.length && result.destinationResults.every((r) => r.skipped)
   const someSkipped = result.destinationResults.some((r) => r.skipped)
 
@@ -91,14 +100,12 @@ const emitAfterBackup = (
       ? `Completed — ${String(changed)}/${String(total)} files changed`
       : `Failed — ${result.errors[0] ?? "unknown error"}`
 
-  onStateChange?.(status, message)
+  options?.onStateChange?.(status, message)
 
-  if (!result.success) onNotify?.("Backup Failed", result.errors[0] ?? "unknown error")
-  else if (allSkipped)
-    onNotify?.("Backup Skipped", "All destinations already have the latest backup — no changes needed")
-  else if (someSkipped)
-    onNotify?.("Backup Successful", `${String(changed)}/${String(total)} files changed (some destinations skipped)`)
-  else onNotify?.("Backup Successful", `${String(changed)}/${String(total)} files changed`)
+  if (!result.success) options?.onNotify?.("Backup Failed", result.errors[0] ?? "unknown error")
+  else if (allSkipped) options?.onNotify?.("Backup Skipped", "All destinations already have the latest backup — no changes needed")
+  else if (someSkipped) options?.onNotify?.("Backup Successful", `${String(changed)}/${String(total)} files changed (some destinations skipped)`)
+  else options?.onNotify?.("Backup Successful", `${String(changed)}/${String(total)} files changed`)
 }
 
-export { DaemonStatus, createDaemon, startDaemon, type DaemonOptions, type DaemonHandle }
+export { createDaemon, startDaemon }

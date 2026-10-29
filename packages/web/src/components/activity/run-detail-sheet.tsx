@@ -7,12 +7,8 @@ import { formatDateTime, formatDuration, formatNumber, formatRelative, formatSiz
 import { resolveRunStatus } from "@/lib/run-status"
 import { AlertTriangle, Files, Timer, Upload } from "lucide-react"
 import type { RunDetailSheetProps } from "@/types/activity"
+import type { DetailRowProps } from "@/types/ui"
 import * as styles from "./run-detail-sheet.styles"
-
-interface DetailRowProps {
-  label: string
-  value: React.ReactNode
-}
 
 const DetailRow = ({ label, value }: DetailRowProps) => (
   <div className={styles.detailRow}>

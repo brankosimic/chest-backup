@@ -7,33 +7,45 @@ import { AnimatePresence, motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { Menu, X, Play } from "lucide-react"
 import { Logo } from "./logo"
-import { useBackupProgress, useDestinations, useSystem, useTriggerBackup } from "@/hooks/use-queries"
+import { useBackupProgress, useSystem, useTriggerBackup } from "@/hooks/use-queries"
 import { isActiveRunPhase } from "@/lib/run-phase"
 import { formatUptime } from "@/lib/utils"
 import { navItems } from "./nav-items"
+import type { MobileNavItemProps } from "@/types/ui"
 import * as styles from "./mobile-nav.styles"
 
-const onKeydown = (setOpen: React.Dispatch<React.SetStateAction<boolean>>) => (event: KeyboardEvent) => {
-  if (event.key === "Escape") {
-    setOpen(false)
-  }
+const MobileNavItem = ({ item, pathname, onNavigate }: MobileNavItemProps) => {
+  const { t } = useTranslation()
+  const Icon = item.icon
+  const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href))
+
+  return (
+    <li>
+      <Link to={item.href} onClick={onNavigate} className={cn(styles.item, isActive && styles.itemActive)}>
+        <Icon className="h-4 w-4 shrink-0" />
+        <span>{t(item.label)}</span>
+      </Link>
+    </li>
+  )
 }
 
 const MobileNav = () => {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const { pathname } = useLocation()
-  const { data: destinations } = useDestinations()
   const { data: progress } = useBackupProgress()
   const { data: system } = useSystem()
-  const triggerMutation = useTriggerBackup(destinations ?? [])
+  const triggerMutation = useTriggerBackup()
   const isRunning = !!progress && isActiveRunPhase(progress.phase)
 
   useEffect(() => {
     if (!open) return
-    document.addEventListener("keydown", onKeydown(setOpen))
+    const onKeydown = (event: KeyboardEvent): void => {
+      if (event.key === "Escape") setOpen(false)
+    }
+    document.addEventListener("keydown", onKeydown)
     return () => {
-      document.removeEventListener("keydown", onKeydown(setOpen))
+      document.removeEventListener("keydown", onKeydown)
     }
   }, [open])
 
@@ -81,25 +93,9 @@ const MobileNav = () => {
             >
               <ul className={styles.nav}>
 
-                {navItems.map((item) => {
-                  const Icon = item.icon
-                  const isActive =
-                    pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href))
-                  return (
-                    <li key={item.href}>
-                      <Link
-                        to={item.href}
-                        onClick={() => {
-                          setOpen(false)
-                        }}
-                        className={cn(styles.item, isActive && styles.itemActive)}
-                      >
-                        <Icon className="h-4 w-4 shrink-0" />
-                        <span>{t(item.label)}</span>
-                      </Link>
-                    </li>
-                  )
-                })}
+                {navItems.map((item) => (
+                  <MobileNavItem key={item.href} item={item} pathname={pathname} onNavigate={() => { setOpen(false) }} />
+                ))}
               </ul>
               <div className={styles.footer}>
                 <button

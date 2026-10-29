@@ -1,14 +1,7 @@
 import { cn } from "@/lib/utils"
+import type { SwitchProps } from "@/types/ui"
 
-const Switch = ({
-  checked,
-  onCheckedChange,
-  className,
-}: {
-  checked: boolean
-  onCheckedChange: (checked: boolean) => void
-  className?: string
-}) => {
+const Switch = ({ checked, onCheckedChange, className }: SwitchProps) => {
   return (
     <button
       type="button"

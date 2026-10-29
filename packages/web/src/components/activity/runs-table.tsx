@@ -8,7 +8,53 @@ import { formatDateTimeCompact, formatDuration, formatNumber, formatRelative, fo
 import { resolveRunStatus } from "@/lib/run-status"
 import { History, AlertTriangle } from "lucide-react"
 import type { RunsTableProps } from "@/types/activity"
+import type { MobileRunRowProps } from "@/types/ui"
 import * as styles from "./runs-table.styles"
+
+const MobileRunRow = ({ run, onSelect }: MobileRunRowProps) => {
+  const { t } = useTranslation()
+
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        onSelect(run)
+      }}
+      className={styles.mobileRow}
+    >
+      <div className={styles.mobileHeader}>
+        <RunStatusBadge status={resolveRunStatus(run)} />
+        <span className={styles.mobileTime}>{formatRelative(run.startedAt)}</span>
+      </div>
+      <span className={styles.mobileAbsolute}>{formatDateTimeCompact(run.startedAt)}</span>
+
+      <div className={styles.mobileMetrics}>
+        <div className={styles.mobileMetric}>
+          <span className={styles.mobileMetricLabel}>{t("activity.table.duration")}</span>
+          <span className={styles.mobileMetricValue}>{formatDuration(run.durationMs)}</span>
+        </div>
+        <div className={styles.mobileMetric}>
+          <span className={styles.mobileMetricLabel}>{t("activity.table.files")}</span>
+          <span className={styles.mobileMetricValue}>
+            {formatNumber(run.filesChanged ?? 0)} / {formatNumber(run.filesBackedUp ?? 0)}
+          </span>
+        </div>
+        <div className={styles.mobileMetric}>
+          <span className={styles.mobileMetricLabel}>{t("activity.table.transferred")}</span>
+          <span className={styles.mobileMetricValue}>
+            {run.totalUploadedBytes ? formatSize(run.totalUploadedBytes) : "-"}
+          </span>
+        </div>
+      </div>
+
+      <div className={styles.mobileDestinations}>
+        {run.destinationResults.map((result, index) => (
+          <DestinationChip key={`${result.destId ?? result.destName ?? "dest"}-${String(index)}`} result={result} />
+        ))}
+      </div>
+    </button>
+  )
+}
 
 const RunsTable = ({ runs, loading, onSelect }: RunsTableProps) => {
   const { t } = useTranslation()
@@ -114,45 +160,7 @@ const RunsTable = ({ runs, loading, onSelect }: RunsTableProps) => {
 
       <div className={styles.mobileList}>
         {runs.map((run) => (
-          <button
-            key={run.id}
-            type="button"
-            onClick={() => {
-              onSelect(run)
-            }}
-            className={styles.mobileRow}
-          >
-            <div className={styles.mobileHeader}>
-              <RunStatusBadge status={resolveRunStatus(run)} />
-              <span className={styles.mobileTime}>{formatRelative(run.startedAt)}</span>
-            </div>
-            <span className={styles.mobileAbsolute}>{formatDateTimeCompact(run.startedAt)}</span>
-
-            <div className={styles.mobileMetrics}>
-              <div className={styles.mobileMetric}>
-                <span className={styles.mobileMetricLabel}>{t("activity.table.duration")}</span>
-                <span className={styles.mobileMetricValue}>{formatDuration(run.durationMs)}</span>
-              </div>
-              <div className={styles.mobileMetric}>
-                <span className={styles.mobileMetricLabel}>{t("activity.table.files")}</span>
-                <span className={styles.mobileMetricValue}>
-                  {formatNumber(run.filesChanged ?? 0)} / {formatNumber(run.filesBackedUp ?? 0)}
-                </span>
-              </div>
-              <div className={styles.mobileMetric}>
-                <span className={styles.mobileMetricLabel}>{t("activity.table.transferred")}</span>
-                <span className={styles.mobileMetricValue}>
-                  {run.totalUploadedBytes ? formatSize(run.totalUploadedBytes) : "-"}
-                </span>
-              </div>
-            </div>
-
-            <div className={styles.mobileDestinations}>
-              {run.destinationResults.map((result, index) => (
-                <DestinationChip key={`${result.destId ?? result.destName ?? "dest"}-${String(index)}`} result={result} />
-              ))}
-            </div>
-          </button>
+          <MobileRunRow key={run.id} run={run} onSelect={onSelect} />
         ))}
       </div>
     </>

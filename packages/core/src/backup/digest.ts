@@ -35,20 +35,16 @@ const hashBytes = async (filePath: string, skip: number): Promise<string> => {
   return hash.digest("hex")
 }
 
-const maskNonces = (hash: ReturnType<typeof createHash>, filePath: string): Promise<string> => {
+const maskNonces = async (hash: ReturnType<typeof createHash>, filePath: string): Promise<string> => {
   let carry = ""
-
-  const feed = async (): Promise<void> => {
-    for await (const chunk of openChunks(filePath, 0)) {
-      const text = carry + chunk.toString("utf8")
-      const lastBreak = text.lastIndexOf("\n")
-      carry = lastBreak === -1 ? text : text.slice(lastBreak + 1)
-      if (lastBreak !== -1) hash.update(text.slice(0, lastBreak + 1).replace(NONCE_LINE, MASKED_NONCE))
-    }
-    hash.update(carry.replace(NONCE_LINE, MASKED_NONCE))
+  for await (const chunk of openChunks(filePath, 0)) {
+    const text = carry + chunk.toString("utf8")
+    const lastBreak = text.lastIndexOf("\n")
+    carry = lastBreak === -1 ? text : text.slice(lastBreak + 1)
+    if (lastBreak !== -1) hash.update(text.slice(0, lastBreak + 1).replace(NONCE_LINE, MASKED_NONCE))
   }
-
-  return feed().then(() => hash.digest("hex"))
+  hash.update(carry.replace(NONCE_LINE, MASKED_NONCE))
+  return hash.digest("hex")
 }
 
 const digestFile: DigestFn = async (filePath) => {

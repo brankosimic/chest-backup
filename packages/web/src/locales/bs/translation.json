@@ -171,7 +171,8 @@
     "noDestinations": "Nema konfigurisanih odredišta",
     "noDestinationsDesc": "Dodajte prvo odredište za backup.",
     "unavailable": "Nedostupno",
-    "namePlaceholder": "Moj server"
+    "namePlaceholder": "Moj server",
+    "typeLabel": "Tip"
   },
   "schedule": {
     "title": "Raspored",
@@ -372,7 +373,8 @@
     "excludePatternAdd": "Dodaj",
     "excludePatternHint": "Podržava direktorijum globove (**/cache/**), apsolutne putanje (/data/drafts) i imena fajlova (*.log). Izuzeti fajlovi se nikada ne šalju niti brišu sa odredišta.",
     "excludePatternsEmpty": "Nema šablona za izuzimanje — svaki fajl se backup-uje.",
-    "exclusionsSkipped": "Trenutno je preskočeno {{count}} fajlova"
+    "exclusionsSkipped": "Trenutno je preskočeno {{count}} fajlova",
+    "cronFormatHint": "Cron format: minuta sat dan u mjesecu mjesec dan u tjednu"
   },
   "status": {
     "running": "U toku",

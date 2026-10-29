@@ -12,7 +12,8 @@ import { isDuplicateSourceError } from "@/lib/api-client"
 import { useDockerContainers } from "@/hooks/use-docker-containers"
 import { useContainerVolumes } from "@/hooks/use-container-volumes"
 import { getSourceTypeDefault, parseIncludePatterns, SourceType } from "@/lib/sources"
-import type { SourceTypeValue } from "@/lib/sources"
+import { LoadingSpinner } from "@/components/ui/loading-spinner"
+import type { SourceTypeValue } from "@/types/sources"
 import * as styles from "./page.styles"
 
 const buildUpdateBody = (type: string, form: Record<string, unknown>): Record<string, unknown> => {
@@ -71,6 +72,10 @@ const SourceEditPage = () => {
   const docker = useDockerContainers(needsContainers)
   const cv = useContainerVolumes({ containerName: form.containerName as string, type })
 
+  const updateField = (key: string, value: unknown): void => {
+    setForm((prev) => ({ ...prev, [key]: value }))
+  }
+
   useEffect(() => {
     if (source) {
       setType(source.type)
@@ -89,11 +94,7 @@ const SourceEditPage = () => {
   }
 
   if (isLoading) {
-    return (
-      <div className={styles.spinnerContainer}>
-        <div className={styles.spinner} />
-      </div>
-    )
+    return <LoadingSpinner className="h-screen" />
   }
 
   if (!source || !isFormReady) return null
@@ -130,7 +131,7 @@ const SourceEditPage = () => {
             props={{
               type,
               form,
-              update: (key, value) => { setForm((prev) => ({ ...prev, [key]: value })); },
+              update: updateField,
               containers: docker.containers,
               containersLoading: docker.loading,
               containersError: docker.error,

@@ -1,3 +1,7 @@
+import type SFTPClient from "ssh2-sftp-client"
+
+type SftpFileInfo = Awaited<ReturnType<SFTPClient["list"]>>[number]
+
 interface ManifestEntry {
   size: number
   mtimeMs: number
@@ -22,4 +26,4 @@ interface DiffResult {
   unchanged: number
 }
 
-export type { Manifest, ManifestEntry, DigestFn, FileStat, DiffResult }
+export type { SftpFileInfo, Manifest, ManifestEntry, DigestFn, FileStat, DiffResult }

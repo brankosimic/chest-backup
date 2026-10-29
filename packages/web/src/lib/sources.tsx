@@ -1,6 +1,6 @@
 import type { ReactNode } from "react"
 import type { Source } from "@chest-backup/shared"
-import type { TreeNode, PathTrieNode } from "@/types/sources"
+import type { TreeNode, PathTrieNode, SourceTypeValue } from "@/types/sources"
 import { Folder, Database, Container, File, FolderOpen, HardDrive } from "lucide-react"
 import * as styles from "./sources.styles"
 
@@ -12,8 +12,6 @@ const SourceType = {
   Sqlite: "sqlite",
   SqliteContainer: "sqlite-container",
 } as const
-
-export type SourceTypeValue = (typeof SourceType)[keyof typeof SourceType]
 
 const SOURCE_TYPES: string[] = Object.values(SourceType)
 

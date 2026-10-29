@@ -9,7 +9,10 @@ import { Select } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Header } from "@/components/layout/header"
 import { SftpFields } from "@/components/destinations/sftp-fields"
+import { DestinationType } from "@chest-backup/shared"
 import { useDestination, useUpdateDestination } from "@/hooks/use-queries"
+import { toDestinationType } from "@/lib/enums"
+import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import * as styles from "./page.styles"
 
 const DestinationEditPage = () => {
@@ -20,6 +23,17 @@ const DestinationEditPage = () => {
   const { data: dest, isLoading } = useDestination(id)
   const updateMutation = useUpdateDestination()
   const [form, setForm] = useState<Record<string, unknown>>({})
+
+  const updateField = (key: string, value: unknown): void => {
+    setForm((prev) => ({ ...prev, [key]: value }))
+  }
+
+  const sftpLabels = {
+    host: t("destinations.host"),
+    port: t("destinations.port"),
+    user: t("destinations.user"),
+    password: t("destinations.password"),
+  }
 
   useEffect(() => {
     if (dest) setForm(dest as unknown as Record<string, unknown>)
@@ -35,20 +49,16 @@ const DestinationEditPage = () => {
   }
 
   if (isLoading) {
-    return (
-      <div className={styles.spinnerContainer}>
-        <div className={styles.spinner} />
-      </div>
-    )
+    return <LoadingSpinner className="h-screen" />
   }
 
   if (!dest) return null
 
-  const type = form.type as string
+  const type = toDestinationType(typeof form.type === "string" ? form.type : "")
 
   return (
     <div className={styles.page}>
-      <Header title={t("destinations.editDestination")} subtitle={`Type: ${type}`} />
+      <Header title={t("destinations.editDestination")} subtitle={`${t("destinations.typeLabel")}: ${type}`} />
 
       <Card>
         <CardHeader>
@@ -59,10 +69,10 @@ const DestinationEditPage = () => {
             <Label>{t("destinations.destinationType")}</Label>
             <Select
               value={type}
-              onChange={(e) => { setForm({ ...form, type: e.target.value }); }}
+              onChange={(e) => { updateField("type", e.target.value); }}
             >
-              <option value={"local"}>{t("destinations.local")}</option>
-              <option value={"sftp"}>{t("destinations.sftp")}</option>
+              <option value={DestinationType.Local}>{t("destinations.local")}</option>
+              <option value={DestinationType.Sftp}>{t("destinations.sftp")}</option>
             </Select>
           </div>
 
@@ -70,7 +80,7 @@ const DestinationEditPage = () => {
             <Label>{t("destinations.name")}</Label>
             <Input
               value={form.name as string}
-              onChange={(e) => { setForm({ ...form, name: e.target.value }); }}
+              onChange={(e) => { updateField("name", e.target.value); }}
               placeholder={t("destinations.namePlaceholder")}
             />
           </div>
@@ -79,11 +89,11 @@ const DestinationEditPage = () => {
             <Label>{t("destinations.path")}</Label>
             <Input
               value={form.path as string}
-              onChange={(e) => { setForm({ ...form, path: e.target.value }); }}
+              onChange={(e) => { updateField("path", e.target.value); }}
             />
           </div>
 
-          {type === "sftp" && (
+          {type === DestinationType.Sftp && (
             <SftpFields
               props={{
                 host: form.host as string,
@@ -92,36 +102,31 @@ const DestinationEditPage = () => {
                 password: form.password as string,
                 privateKey: form.privateKey as string,
                 timeout: form.timeout as number | undefined,
-                onHostChange: (v) => { setForm({ ...form, host: v }); },
-                onPortChange: (v) => { setForm({ ...form, port: v }); },
-                onUserChange: (v) => { setForm({ ...form, user: v }); },
-                onPasswordChange: (v) => { setForm({ ...form, password: v }); },
-                onPrivateKeyChange: (v) => { setForm({ ...form, privateKey: v }); },
-                onTimeoutChange: (v) => { setForm({ ...form, timeout: v }); },
-                labels: {
-                  host: t("destinations.host"),
-                  port: t("destinations.port"),
-                  user: t("destinations.user"),
-                  password: t("destinations.password"),
-                },
+                onHostChange: (v) => { updateField("host", v); },
+                onPortChange: (v) => { updateField("port", v); },
+                onUserChange: (v) => { updateField("user", v); },
+                onPasswordChange: (v) => { updateField("password", v); },
+                onPrivateKeyChange: (v) => { updateField("privateKey", v); },
+                onTimeoutChange: (v) => { updateField("timeout", v); },
+                labels: sftpLabels,
               }}
             />
           )}
 
           <div className={styles.toggleRow}>
             <span className={styles.toggleLabel}>{t("destinations.parallel")}</span>
-            <Switch
-              checked={form.parallel as boolean}
-              onCheckedChange={(v) => { setForm({ ...form, parallel: v }); }}
-            />
+              <Switch
+                checked={form.parallel as boolean}
+                onCheckedChange={(v) => { updateField("parallel", v); }}
+              />
           </div>
 
           <div className={styles.toggleRow}>
             <span className={styles.toggleLabel}>{t("destinations.skip")}</span>
-            <Switch
-              checked={form.skip as boolean}
-              onCheckedChange={(v) => { setForm({ ...form, skip: v }); }}
-            />
+              <Switch
+                checked={form.skip as boolean}
+                onCheckedChange={(v) => { updateField("skip", v); }}
+              />
           </div>
 
           <div className={styles.actions}>

@@ -37,30 +37,33 @@ class Scheduler {
       const interval = CronExpressionParser.parse(this.expression)
       const next = interval.next().getTime()
       const delay = Math.max(0, next - Date.now())
-
       this.timeoutId = setTimeout(() => {
-        if (!this.active) return
-
-        if (this.running) {
-          logger.warn("previous backup still running, skipping scheduled run")
-          this.scheduleNext()
-          return
-        }
-
-        this.running = true
-        void (async () => {
-          try {
-            await this.callback()
-          } catch (err) {
-            logger.error({ err }, "scheduled backup failed")
-          } finally {
-            this.running = false
-            this.scheduleNext()
-          }
-        })()
+        this.onTick()
       }, delay)
     } catch (err) {
       logger.error({ err }, "failed to parse cron expression")
+    }
+  }
+
+  private onTick(): void {
+    if (!this.active) return
+    if (this.running) {
+      logger.warn("previous backup still running, skipping scheduled run")
+      this.scheduleNext()
+      return
+    }
+    this.running = true
+    void this.runCallback()
+  }
+
+  private async runCallback(): Promise<void> {
+    try {
+      await this.callback()
+    } catch (err) {
+      logger.error({ err }, "scheduled backup failed")
+    } finally {
+      this.running = false
+      this.scheduleNext()
     }
   }
 }
