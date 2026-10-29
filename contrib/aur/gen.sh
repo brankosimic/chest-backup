@@ -3,7 +3,7 @@ set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 template="$root/contrib/aur/PKGBUILD.template"
-sha256="d021c026889b0ee4fe7e79111dff34408ff0c11a87d239b597beb7f2e9ba6697"
+sha256="45d6053cb89c42f3dcf8820e11a729c7abba384f8d12d8505cbf87caa57d290b"
 
 make_makedepends() {
   printf "makedepends=(\n  'nodejs'\n  'pnpm'\n  'python'\n)\n"
