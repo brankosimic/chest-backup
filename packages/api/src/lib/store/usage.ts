@@ -4,7 +4,7 @@ import type { Destination } from "@core/types/config"
 import { DestinationType } from "@chest-backup/shared"
 import type { DestinationUsage } from "../../types/api"
 import { scanSftpUsage } from "@core/destinations/sftp"
-import { scanLocalUsage, withTimeout } from "../utils"
+import { SFTP_SCAN_TIMEOUT_MS, scanLocalUsage, withTimeout } from "../utils"
 import { getLocalDiskSpace, getSftpDiskSpace } from "./disk-space"
 import { readBackupHistory } from "./backups"
 
@@ -40,7 +40,7 @@ const buildLocalUsage = (dest: Destination, avgDurationMs: number): DestinationU
 
 const buildSftpUsage = async (dest: Destination, avgDurationMs: number): Promise<DestinationUsage | null> => {
   const [usage, diskSpace] = await Promise.all([
-    withTimeout(scanSftpUsage(dest), 30_000, null),
+    withTimeout(scanSftpUsage(dest), SFTP_SCAN_TIMEOUT_MS, null),
     getSftpDiskSpace(dest),
   ])
   if (!usage) return null

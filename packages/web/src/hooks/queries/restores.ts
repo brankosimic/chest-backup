@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { RestoreStatus } from "@chest-backup/shared"
 import {
   fetchRestoreSnapshots,
+  fetchRestoreSnapshotCount,
   fetchRestoreSnapshotFiles,
   startRestore,
   fetchRestoreJob,
@@ -13,6 +14,13 @@ const useRestoreSnapshots = (destinationId: string | null) =>
     queryKey: ["restore-snapshots", destinationId],
     queryFn: () => fetchRestoreSnapshots(destinationId ?? ""),
     enabled: !!destinationId,
+  })
+
+const useRestoreSnapshotCount = (destinationId: string | null, periodKey: string | null) =>
+  useQuery({
+    queryKey: ["restore-snapshot-count", destinationId, periodKey],
+    queryFn: () => fetchRestoreSnapshotCount(destinationId ?? "", periodKey ?? ""),
+    enabled: !!destinationId && !!periodKey,
   })
 
 const useRestoreSnapshotFiles = (destinationId: string | null, periodKey: string | null) =>
@@ -54,4 +62,4 @@ const useActiveRestore = () =>
     },
   })
 
-export { useRestoreSnapshots, useRestoreSnapshotFiles, useStartRestore, useRestoreJob, useActiveRestore }
+export { useRestoreSnapshots, useRestoreSnapshotCount, useRestoreSnapshotFiles, useStartRestore, useRestoreJob, useActiveRestore }

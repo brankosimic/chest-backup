@@ -2,6 +2,8 @@ import { readdirSync, statSync } from "node:fs"
 import { join } from "node:path"
 import type { LocalUsage } from "../types/api"
 
+const SFTP_SCAN_TIMEOUT_MS = 30_000
+
 const withTimeout = <T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> => {
   const timer = new Promise<T>((resolve) => setTimeout(() => {
     resolve(fallback)
@@ -29,5 +31,5 @@ const collectLocalUsage = (dir: string, acc: LocalUsage): LocalUsage => {
 
 const scanLocalUsage = (dir: string): LocalUsage => collectLocalUsage(dir, { totalSize: 0, fileCount: 0 })
 
-export { withTimeout, scanLocalUsage }
+export { SFTP_SCAN_TIMEOUT_MS, withTimeout, scanLocalUsage }
 

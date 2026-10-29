@@ -3,6 +3,7 @@ set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 template="$root/contrib/aur/PKGBUILD.template"
+pkgver="$(node -p "require('$root/package.json').version")"
 sha256="45d6053cb89c42f3dcf8820e11a729c7abba384f8d12d8505cbf87caa57d290b"
 
 make_makedepends() {
@@ -16,6 +17,7 @@ build_fn() {
 emit() {
   local out="$1" name="$2" suffix="$3" sha="$4" makedeps="$5" build="$6" tmp
   sed -e "s|__PKGNAME__|$name|" \
+      -e "s|__PKGVER__|$pkgver|" \
       -e "s|__SUFFIX__|$suffix|" \
       -e "s|__SHA256__|$sha|" \
       -e "/^__MAKEDEPENDS__$/d" \

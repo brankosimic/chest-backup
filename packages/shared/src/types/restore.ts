@@ -2,8 +2,8 @@ import type { DestinationType, RestoreFileStatus, RestorePhase, RestoreStatus } 
 
 interface RestoreSnapshot {
   key: string
-  fileCount: number
-  totalSize: number
+  fileCount: number | null
+  totalSize: number | null
   createdAt?: string
 }
 

@@ -16,10 +16,10 @@ const liveDot = "relative flex h-2.5 w-2.5 shrink-0"
 const liveDotPing = "absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75"
 const liveDotCore = "relative inline-flex h-2.5 w-2.5 rounded-full bg-blue-500"
 const destIcon = "h-3.5 w-3.5"
-const jobHeaderRow = "flex flex-row items-center justify-between space-y-0 pb-2"
-const jobTitleGroup = "flex items-center gap-2"
+const jobHeaderRow = "flex flex-row flex-wrap items-center justify-between gap-x-3 space-y-0 pb-2"
+const jobTitleGroup = "flex min-w-0 items-center gap-2"
 const jobHeaderStats = "flex items-center gap-3 text-xs text-muted-foreground"
-const jobMeta = "text-sm text-muted-foreground"
+const jobMeta = "flex flex-wrap items-center gap-x-2 text-sm text-muted-foreground"
 const progressTrack = "relative h-2 w-full overflow-hidden rounded-full bg-muted"
 const progressBarBase = "h-full rounded-full transition-all duration-700 ease-out"
 const progressBarActive = "bg-gradient-to-r from-blue-600 via-blue-400 to-blue-600 bg-[length:200%_100%] animate-shimmer"
@@ -38,8 +38,9 @@ const sectionTitle = "text-sm font-medium"
 const emptyText = "py-8 text-center text-sm text-muted-foreground"
 const progressMeta = "mt-1 text-xs text-muted-foreground"
 const cardContent = "space-y-4"
-const skeletonList = "space-y-2"
-const skeletonRow = "h-9 w-full"
+const skeletonList = "space-y-2.5"
+const skeletonRow = "h-8 rounded-md bg-gradient-to-r from-muted via-muted/60 to-muted bg-[length:200%_100%] animate-skeleton-shimmer"
+const fileTreeWrap = "flex flex-col gap-3 animate-fade-in-up"
 const searchInput = "pl-8"
 const fieldHint = "mt-1 text-xs text-muted-foreground"
 const busyHint = "flex items-center gap-1 text-xs text-muted-foreground"
@@ -94,6 +95,7 @@ export {
   cardContent,
   skeletonList,
   skeletonRow,
+  fileTreeWrap,
   searchInput,
   fieldHint,
   busyHint,

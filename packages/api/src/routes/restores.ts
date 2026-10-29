@@ -3,7 +3,8 @@ import { RestoreRequestSchema } from "../lib/validation"
 import { findDestinationById, getRetention } from "../lib/store"
 import { getActiveRestoreJob, getRestoreJob, startRestoreJob } from "../lib/store/restore"
 import { notFound, validateBody } from "../lib/routes"
-import { assertSnapshotKey, listSnapshotFiles, listSnapshots } from "@core/restore/snapshots"
+import { assertSnapshotKey, countSnapshotFiles, listSnapshotFiles, listSnapshots } from "@core/restore/snapshots"
+import { SFTP_SCAN_TIMEOUT_MS, withTimeout } from "../lib/utils"
 
 const restores = new Hono()
 
@@ -15,8 +16,28 @@ restores.get("/snapshots", async (c) => {
   if (!destination) return notFound(c, "Destination")
 
   const { retentionMode } = getRetention()
-  const data = await listSnapshots(destination, retentionMode)
-  return c.json({ success: true, data })
+  try {
+    const data = await withTimeout(listSnapshots(destination, retentionMode), SFTP_SCAN_TIMEOUT_MS, [])
+    return c.json({ success: true, data })
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    return c.json({ success: false, error: `Failed to list snapshots: ${message}` }, 502)
+  }
+})
+
+restores.get("/snapshots/:destinationId/count", async (c) => {
+  const destination = findDestinationById(c.req.param("destinationId"))
+  if (!destination) return notFound(c, "Destination")
+
+  const periodKey = c.req.query("periodKey") ?? ""
+  try {
+    assertSnapshotKey(periodKey)
+    const data = await withTimeout(countSnapshotFiles(destination, periodKey), SFTP_SCAN_TIMEOUT_MS, { fileCount: 0, totalSize: 0 })
+    return c.json({ success: true, data })
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    return c.json({ success: false, error: `Failed to count snapshot files: ${message}` }, 502)
+  }
 })
 
 restores.get("/snapshots/:destinationId/:periodKey/files", async (c) => {

@@ -1,6 +1,6 @@
 const bar = "sticky top-0 z-40 flex h-14 items-center gap-3 border-b border-sidebar-border bg-sidebar-background px-4 md:hidden"
 const toggle = "flex h-9 w-9 items-center justify-center rounded-lg text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-primary-foreground cursor-pointer"
-const brand = "flex items-center gap-2 text-base font-semibold text-sidebar-primary-foreground"
+const brand = "flex items-center gap-2 text-base font-semibold text-foreground"
 const drawer = "h-full w-72 max-w-[85vw] flex flex-col border-r border-sidebar-border bg-sidebar-background shadow-2xl"
 const nav = "flex-1 space-y-1 overflow-y-auto px-3 py-4"
 const item = "group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"

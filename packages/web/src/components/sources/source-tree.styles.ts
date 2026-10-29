@@ -6,10 +6,10 @@ const title = "break-words font-medium"
 const chevron = "h-4 w-4 text-muted-foreground transition-transform"
 const label = "min-w-0 flex-1 break-words font-medium"
 const count = "text-xs text-muted-foreground"
-const meta = "flex shrink-0 items-center gap-2"
+const meta = "flex shrink-0 items-center gap-2 whitespace-nowrap"
 const deleteButton =
   "rounded p-1 text-muted-foreground opacity-0 transition-all hover:text-destructive group-hover:opacity-100"
-const detailText = "text-xs text-muted-foreground"
+const detailText = "break-all text-xs text-muted-foreground"
 const trashIcon = "h-3.5 w-3.5"
 const skippedBadge = "shrink-0"
 

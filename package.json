@@ -1,6 +1,6 @@
 {
   "name": "@chest-backup/monorepo",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "private": true,
   "scripts": {
     "dev": "pnpm --filter @chest-backup/api dev & pnpm --filter @chest-backup/web dev",
@@ -14,9 +14,9 @@
     "lint": "eslint packages/",
     "typecheck": "tsc --noEmit",
     "test": "bun test --bail --timeout 120000 --path-ignore-patterns 'dist/**'",
-    "release:patch": "npm version patch -m \"chore(release): v%s\" && git push --follow-tags",
-    "release:minor": "npm version minor -m \"chore(release): v%s\" && git push --follow-tags",
-    "release:major": "npm version major -m \"chore(release): v%s\" && git push --follow-tags"
+    "release:patch": "npm version patch -m \"chore(release): v%s\" && pnpm aur:gen && git add contrib/aur/PKGBUILD contrib/aur-bin/PKGBUILD && git commit --amend --no-edit && git push --follow-tags",
+    "release:minor": "npm version minor -m \"chore(release): v%s\" && pnpm aur:gen && git add contrib/aur/PKGBUILD contrib/aur-bin/PKGBUILD && git commit --amend --no-edit && git push --follow-tags",
+    "release:major": "npm version major -m \"chore(release): v%s\" && pnpm aur:gen && git add contrib/aur/PKGBUILD contrib/aur-bin/PKGBUILD && git commit --amend --no-edit && git push --follow-tags"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

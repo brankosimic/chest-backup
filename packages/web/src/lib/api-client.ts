@@ -187,6 +187,11 @@ const fetchPostgresDatabases = (data: {
 const fetchRestoreSnapshots = (destinationId: string) =>
   apiFetch<RestoreSnapshot[]>(`/api/restores/snapshots?destinationId=${encodeURIComponent(destinationId)}`)
 
+const fetchRestoreSnapshotCount = (destinationId: string, periodKey: string) =>
+  apiFetch<{ fileCount: number; totalSize: number }>(
+    `/api/restores/snapshots/${encodeURIComponent(destinationId)}/count?periodKey=${encodeURIComponent(periodKey)}`,
+  )
+
 const fetchRestoreSnapshotFiles = (destinationId: string, periodKey: string) =>
   apiFetch<RestoreSnapshotFile[]>(
     `/api/restores/snapshots/${encodeURIComponent(destinationId)}/${encodeURIComponent(periodKey)}/files`,
@@ -234,6 +239,7 @@ export {
   fetchContainerVolumes,
   fetchPostgresDatabases,
   fetchRestoreSnapshots,
+  fetchRestoreSnapshotCount,
   fetchRestoreSnapshotFiles,
   startRestore,
   fetchRestoreJob,

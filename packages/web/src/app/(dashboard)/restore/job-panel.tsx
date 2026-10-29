@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next"
 import { motion } from "framer-motion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { formatNumber, formatSize, cn, destLabel } from "@/lib/utils"
+import { formatNumber, formatSize, formatDuration, cn, destLabel } from "@/lib/utils"
 import { DestinationType, RestoreStatus } from "@chest-backup/shared"
 import type { JobPanelProps, RestoreStatusMeta } from "@/types/ui"
 import { RotateCcw, CheckCircle2, XCircle, AlertTriangle, HardDrive, Network, Clock } from "lucide-react"
@@ -61,19 +61,19 @@ const JobPanel = ({ job }: JobPanelProps) => {
           )}
         </div>
 
-        <p className={styles.jobMeta}>
+        <div className={styles.jobMeta}>
           <span className="inline-flex items-center gap-1.5">
             {job.destinationType === DestinationType.Local ? <HardDrive className={styles.destIcon} /> : <Network className={styles.destIcon} />}
             {destLabel({ name: job.destinationName, path: job.destinationPath })}
           </span>
-          · {job.periodKey} → <span className="font-mono">{job.targetRoot}</span>
+          <span>· {job.periodKey} → <span className="font-mono">{job.targetRoot}</span></span>
           {!isRunning && (
-            <>
-              {" "}· <Clock className="inline h-3 w-3" /> {formatNumber(job.completedFiles)} files
-              {typeof job.durationMs === "number" && ` · ${String(Math.round(job.durationMs / 1000))}s`}
-            </>
+            <span>
+              · <Clock className="inline h-3 w-3" /> {formatNumber(job.completedFiles)} files
+              {typeof job.durationMs === "number" && ` · ${formatDuration(job.durationMs)}`}
+            </span>
           )}
-        </p>
+        </div>
 
         <div className={styles.statGrid}>
           <div className={styles.statBox}>

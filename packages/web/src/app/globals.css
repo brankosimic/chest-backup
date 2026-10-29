@@ -173,12 +173,24 @@
   }
 }
 
+@keyframes fade-in-up {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @theme {
   --animate-shimmer: shimmer 2s linear infinite;
   --animate-float-up: float-up 1.8s ease-in-out infinite;
   --animate-pulse-glow: pulse-glow 2s ease-in-out infinite;
   --animate-bar-ripple: bar-ripple 1.2s ease-out infinite;
   --animate-skeleton-shimmer: skeleton-shimmer 1.6s linear infinite;
+  --animate-fade-in-up: fade-in-up 0.35s ease-out both;
 }
 
 @layer utilities {

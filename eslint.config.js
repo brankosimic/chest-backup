@@ -2,7 +2,7 @@ import eslint from "@eslint/js"
 import tseslint from "typescript-eslint"
 
 export default tseslint.config(
-  { ignores: ["**/dist/", "**/.next/", "node_modules/"] },
+  { ignores: ["**/dist/", "**/.next/", "node_modules/", "packages/api/src/**/*.js", "packages/core/src/**/*.js", "packages/daemon/src/**/*.js", "packages/shared/src/**/*.js"] },
   eslint.configs.recommended,
   ...tseslint.configs.strictTypeChecked,
   {

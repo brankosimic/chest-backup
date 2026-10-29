@@ -1,6 +1,6 @@
 const cardHeader = "flex flex-row items-center justify-between space-y-0 pb-2"
 const headerGroup = "flex items-center gap-2"
-const headerStats = "flex items-center gap-3 text-xs text-muted-foreground"
+const headerStats = "flex shrink-0 items-center gap-2 text-xs text-muted-foreground"
 const archivingRow = "flex items-center gap-2 text-sm text-muted-foreground"
 const progressTrack = "relative h-2 overflow-hidden rounded-full bg-muted"
 const progressBarBase = "h-full rounded-full transition-all duration-700 ease-out"

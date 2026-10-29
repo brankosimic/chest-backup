@@ -13,7 +13,7 @@ import { Switch } from "@/components/ui/switch"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { useDestinations } from "@/hooks/queries/destinations"
-import { useRestoreSnapshots, useRestoreSnapshotFiles, useStartRestore, useActiveRestore } from "@/hooks/queries/restores"
+import { useRestoreSnapshots, useRestoreSnapshotCount, useRestoreSnapshotFiles, useStartRestore, useActiveRestore } from "@/hooks/queries/restores"
 import { formatDateTime, formatNumber, formatSize, destLabel } from "@/lib/utils"
 import { DestinationType, RestoreStatus } from "@chest-backup/shared"
 import { FolderOpen, Search, RotateCcw, Clock, HardDrive, Network } from "lucide-react"
@@ -46,6 +46,7 @@ const RestorePage = () => {
   }, [preselectPeriod])
 
   const { data: snapshots, isLoading: snapLoading } = useRestoreSnapshots(destId)
+  const { data: snapshotCount } = useRestoreSnapshotCount(destId, periodKey)
   const { data: files, isLoading: filesLoading } = useRestoreSnapshotFiles(destId, periodKey)
 
   const startRestore = useStartRestore()
@@ -147,11 +148,17 @@ const RestorePage = () => {
                 disabled={!destId || snapLoading}
               >
                 <option value="">{snapLoading ? t("common.loading") : t("restore.selectSnapshot")}</option>
-                {(snapshots ?? []).map((s) => (
-                  <option key={s.key} value={s.key}>
-                    {s.key} · {formatNumber(s.fileCount)} files · {formatSize(s.totalSize)}
-                  </option>
-                ))}
+                {(snapshots ?? []).map((s) => {
+                  const isCurrent = s.key === periodKey
+                  const fileCount = isCurrent && snapshotCount ? snapshotCount.fileCount : s.fileCount
+                  const totalSize = isCurrent && snapshotCount ? snapshotCount.totalSize : s.totalSize
+                  return (
+                    <option key={s.key} value={s.key}>
+                      {s.key}
+                      {fileCount !== null ? ` · ${formatNumber(fileCount)} files · ${formatSize(totalSize ?? 0)}` : ""}
+                    </option>
+                  )
+                })}
               </Select>
               {snapshot?.createdAt && <p className={styles.fieldHint}>{formatDateTime(snapshot.createdAt)}</p>}
             </div>
@@ -169,14 +176,14 @@ const RestorePage = () => {
               <p className={styles.emptyText}>{t("restore.selectSnapshotFirst")}</p>
             ) : filesLoading ? (
               <div className={styles.skeletonList}>
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <Skeleton key={i} className={styles.skeletonRow} />
+                {["100%", "82%", "92%", "64%", "78%", "55%"].map((width, i) => (
+                  <Skeleton key={i} style={{ width }} className={styles.skeletonRow} />
                 ))}
               </div>
             ) : !files?.length ? (
               <p className={styles.emptyText}>{t("restore.noFiles")}</p>
             ) : (
-              <>
+              <div className={styles.fileTreeWrap}>
                 <div className={styles.fileToolbar}>
                   <div className={styles.searchWrap}>
                     <Search className={styles.searchIcon} />
@@ -197,7 +204,7 @@ const RestorePage = () => {
                 </div>
 
                 <FileTree files={files} search={search} selected={selected} onTogglePath={toggleOne} onToggleMany={toggleMany} />
-              </>
+              </div>
             )}
           </CardContent>
         </Card>

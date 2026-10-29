@@ -1,9 +1,50 @@
 import type { CpuTimes } from "../../types/api"
-import { readFileSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
+import { dirname, join, resolve } from "node:path"
 import { totalmem, freemem, uptime as osUptime } from "node:os"
 import { execSync } from "node:child_process"
 import type { SystemInfo } from "@chest-backup/shared"
-import pkg from "../../../package.json" with { type: "json" }
+
+interface RootPackage {
+  name?: string
+  version?: string
+}
+
+const findRootPackageJson = (startDir: string): string | null => {
+  let dir = startDir
+
+  for (let i = 0; i < 8; i++) {
+    const candidate = join(dir, "package.json")
+    if (existsSync(candidate)) {
+      try {
+        const pkg = JSON.parse(readFileSync(candidate, "utf-8")) as RootPackage
+        if (pkg.name === "@chest-backup/monorepo") return candidate
+      } catch {
+        // ignore malformed package.json and keep walking up
+      }
+    }
+    const parent = dirname(dir)
+    if (parent === dir) break
+    dir = parent
+  }
+
+  return null
+}
+
+const getAppVersion = (): string => {
+  const rootPkg = findRootPackageJson(resolve(import.meta.dirname, ".."))
+  if (!rootPkg) {
+    console.warn("failed to locate monorepo package.json for version")
+    return "unknown"
+  }
+  try {
+    const pkg = JSON.parse(readFileSync(rootPkg, "utf-8")) as RootPackage
+    return pkg.version ?? "unknown"
+  } catch {
+    console.warn("failed to read app version from root package.json")
+    return "unknown"
+  }
+}
 
 let prevCpuTimes: CpuTimes | null = null
 
@@ -64,7 +105,7 @@ const getSystem = (): SystemInfo => {
   }
 
   return {
-    version: pkg.version,
+    version: getAppVersion(),
     uptime: Math.floor(osUptime()),
     status: "running",
     cpuUsage: cpuPercent,

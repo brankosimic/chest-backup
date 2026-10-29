@@ -1,7 +1,7 @@
 const aside = "hidden h-full w-64 flex-col border-r border-sidebar-border bg-sidebar-background md:flex"
 const brandBar = "flex h-16 shrink-0 items-center border-b border-sidebar-border px-4"
 const brand = "flex items-center gap-2.5 text-base font-semibold text-sidebar-primary-foreground"
-const brandIcon = "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sidebar-accent"
+const brandIcon = "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
 const nav = "flex-1 space-y-1 overflow-y-auto px-3 py-4"
 const link = "group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors"
 const linkCollapsed = "justify-center px-0"
