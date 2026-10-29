@@ -16,6 +16,7 @@ import type { Theme } from "@/lib/theme"
 import { formatDate } from "@/lib/utils"
 import { useSchedule, useUpdateSchedule, useRetention, useUpdateRetention, useNotifications, useUpdateNotifications, useTestNotification } from "@/hooks/use-queries"
 import type { RetentionSettings } from "@/types/mutations"
+import * as styles from "./page.styles"
 
 const cronPresets = [
   { label: "schedule.hourly", value: "0 * * * *" },
@@ -199,6 +200,7 @@ export default function SettingsPage() {
                     key={preset.value}
                     variant="outline"
                     size="sm"
+                    className={styles.presetButton}
                     onClick={() => {
                       setSchedule(preset.value)
                     }}

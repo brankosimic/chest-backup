@@ -28,6 +28,7 @@ import {
   useClearLogs,
 } from "./queries/backups"
 import { useSystem } from "./queries/system"
+import { useRestoreSnapshots, useRestoreSnapshotFiles, useStartRestore, useRestoreJob, useActiveRestore } from "./queries/restores"
 import { useEventStream } from "./use-event-stream"
 
 export {
@@ -60,5 +61,10 @@ export {
   useLogStats,
   useClearLogs,
   useSystem,
+  useRestoreSnapshots,
+  useRestoreSnapshotFiles,
+  useStartRestore,
+  useRestoreJob,
+  useActiveRestore,
   useEventStream,
 }

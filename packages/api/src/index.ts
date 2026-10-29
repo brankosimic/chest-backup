@@ -10,6 +10,7 @@ import { exclude } from "./routes/exclude"
 import { logs } from "./routes/logs"
 import { notifications } from "./routes/notifications"
 import { retention } from "./routes/retention"
+import { restores } from "./routes/restores"
 import { schedule } from "./routes/schedule"
 import { sources } from "./routes/sources"
 import { system } from "./routes/system"
@@ -72,6 +73,7 @@ app.route("/api/retention", retention)
 app.route("/api/exclude", exclude)
 app.route("/api/notifications", notifications)
 app.route("/api/backups", backups)
+app.route("/api/restores", restores)
 app.route("/api/logs", logs)
 app.route("/api/events", events)
 app.route("/api/system", system)

@@ -29,6 +29,26 @@ enum LogLevel {
   Fatal = "fatal",
 }
 
+enum RestoreStatus {
+  Running = "running",
+  Success = "success",
+  Partial = "partial",
+  Failed = "failed",
+}
+
+enum RestorePhase {
+  Queued = "queued",
+  Restoring = "restoring",
+  Completed = "completed",
+  Failed = "failed",
+}
+
+enum RestoreFileStatus {
+  Restored = "restored",
+  Skipped = "skipped",
+  Failed = "failed",
+}
+
 interface Source {
   id: string
   type: "path" | "postgres" | "postgres-container" | "container-volume" | "sqlite" | "sqlite-container"
@@ -98,6 +118,89 @@ interface StoreResult {
   deletedCount?: number
   failedCount?: number
   vanishedCount?: number
+}
+
+interface RestoreSnapshot {
+  key: string
+  fileCount: number
+  totalSize: number
+  createdAt?: string
+}
+
+interface RestoreSnapshotFile {
+  path: string
+  size: number
+}
+
+interface RestoreFileResult {
+  path: string
+  target: string
+  size: number
+  status: RestoreFileStatus
+  error?: string
+}
+
+interface RestoreOptions {
+  files?: string[]
+  targetRoot?: string
+  overwrite?: boolean
+  dryRun?: boolean
+}
+
+interface RestoreRequest extends RestoreOptions {
+  destinationId: string
+  periodKey: string
+}
+
+interface RestoreResult {
+  success: boolean
+  files: RestoreFileResult[]
+  restoredCount: number
+  skippedCount: number
+  failedCount: number
+  totalFiles: number
+  totalBytes: number
+  restoredBytes: number
+  durationMs: number
+  errors: string[]
+}
+
+interface RestoreProgressEvent {
+  phase: RestorePhase
+  totalFiles: number
+  completedFiles: number
+  restoredCount: number
+  skippedCount: number
+  failedCount: number
+  restoredBytes: number
+  currentPath?: string
+}
+
+interface RestoreJob {
+  id: string
+  status: RestoreStatus
+  phase: RestorePhase
+  destinationId: string
+  destinationName?: string
+  destinationPath: string
+  destinationType: DestinationType
+  periodKey: string
+  targetRoot: string
+  overwrite: boolean
+  dryRun: boolean
+  startedAt: string
+  finishedAt?: string
+  totalFiles: number
+  completedFiles: number
+  restoredCount: number
+  skippedCount: number
+  failedCount: number
+  totalBytes: number
+  restoredBytes: number
+  currentPath?: string
+  files: RestoreFileResult[]
+  errors: string[]
+  durationMs?: number
 }
 
 interface BackupRecord {
@@ -194,6 +297,9 @@ export {
   RunStatus,
   RunTrigger,
   LogLevel,
+  RestoreStatus,
+  RestorePhase,
+  RestoreFileStatus,
   deriveRunStatus,
   type Source,
   type Destination,
@@ -201,6 +307,14 @@ export {
   type NotificationConfig,
   type BackupRecord,
   type StoreResult,
+  type RestoreSnapshot,
+  type RestoreSnapshotFile,
+  type RestoreFileResult,
+  type RestoreOptions,
+  type RestoreRequest,
+  type RestoreResult,
+  type RestoreProgressEvent,
+  type RestoreJob,
   type LogEntry,
   type RunStats,
   type ResourceUsage,

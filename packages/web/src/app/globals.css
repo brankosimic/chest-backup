@@ -164,11 +164,21 @@
   }
 }
 
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
 @theme {
   --animate-shimmer: shimmer 2s linear infinite;
   --animate-float-up: float-up 1.8s ease-in-out infinite;
   --animate-pulse-glow: pulse-glow 2s ease-in-out infinite;
   --animate-bar-ripple: bar-ripple 1.2s ease-out infinite;
+  --animate-skeleton-shimmer: skeleton-shimmer 1.6s linear infinite;
 }
 
 @layer utilities {

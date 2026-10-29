@@ -1,5 +1,6 @@
 import { z } from "zod"
 import { DestinationType } from "@chest-backup/shared"
+import { isPeriodKey } from "@core/backup/periods"
 import { RetentionMode } from "@core/types/config"
 
 const PathSourceSchema = z.object({
@@ -100,6 +101,19 @@ const PostgresDatabasesSchema = z.object({
   database: z.string().optional(),
 })
 
+const SnapshotKeySchema = z.string().refine((key) => isPeriodKey(RetentionMode.Monthly, key) || isPeriodKey(RetentionMode.Weekly, key), {
+  message: "Invalid snapshot key",
+})
+
+const RestoreRequestSchema = z.object({
+  destinationId: z.string().min(1, "Destination is required"),
+  periodKey: SnapshotKeySchema,
+  files: z.array(z.string().min(1)).optional(),
+  targetRoot: z.string().optional(),
+  overwrite: z.boolean().optional().default(true),
+  dryRun: z.boolean().optional().default(false),
+})
+
 export {
   ContainerVolumeSourceSchema,
   DestinationSchema,
@@ -109,6 +123,7 @@ export {
   PostgresContainerSourceSchema,
   PostgresDatabasesSchema,
   PostgresSourceSchema,
+  RestoreRequestSchema,
   RetentionSchema,
   ScheduleSchema,
   SqliteSourceSchema,

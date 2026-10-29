@@ -17,6 +17,11 @@ const errorList = "space-y-1.5"
 const errorItem = "break-words rounded-md bg-destructive/10 px-3 py-2 font-mono text-xs text-destructive"
 const destinationList = "space-y-2"
 const emptyDestinations = "rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground"
+const sheetBody = "space-y-5 p-5"
+const titleName = "truncate"
+const dot = "text-muted-foreground"
+const metricIcon = "h-3.5 w-3.5"
+const destCount = "font-normal text-muted-foreground"
 
 export {
   titleRow,
@@ -38,4 +43,9 @@ export {
   errorItem,
   destinationList,
   emptyDestinations,
+  sheetBody,
+  titleName,
+  dot,
+  metricIcon,
+  destCount,
 }

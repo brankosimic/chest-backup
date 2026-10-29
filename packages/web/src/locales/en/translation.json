@@ -29,7 +29,9 @@
     "no": "No",
     "close": "Close",
     "errorTitle": "Something went wrong",
-    "tryAgain": "Try again"
+    "tryAgain": "Try again",
+    "expand": "Expand",
+    "collapse": "Collapse"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -37,6 +39,7 @@
     "destinations": "Destinations",
     "notifications": "Notifications",
     "activity": "Activity",
+    "restore": "Restore",
     "history": "History",
     "logs": "Logs",
     "settings": "Settings",
@@ -46,8 +49,7 @@
     "languages": {
       "en": "English",
       "bs": "Bosanski"
-    },
-    "menu": "Menu"
+    }
   },
   "dashboard": {
     "title": "Dashboard",
@@ -182,7 +184,7 @@
     "presets": "Presets",
     "hourly": "Hourly",
     "daily": "Daily at 3:00 AM",
-    "weekly": "Weekly on Sunday at 2:00 AM",
+    "weekly": "Sunday 2:00 AM",
     "custom": "Custom"
   },
   "retention": {
@@ -288,7 +290,8 @@
       "deleted": "Deleted",
       "failed": "Failed",
       "skippedReason": "Skipped ({{reason}})",
-      "showFiles": "Show {{count}} files"
+      "showFiles": "Show {{count}} files",
+      "restore": "Restore"
     },
     "logs": {
       "empty": "No log entries yet",
@@ -298,6 +301,41 @@
       "manual": "Manual",
       "scheduled": "Scheduled"
     }
+  },
+  "restore": {
+    "title": "Restore",
+    "subtitle": "Bring files back from a backup snapshot",
+    "snapshot": "Snapshot",
+    "destination": "Destination",
+    "selectDestination": "Select a destination",
+    "snapshotPeriod": "Snapshot period",
+    "selectSnapshot": "Select a snapshot",
+    "noDestinationHint": "Choose a destination to list its snapshots.",
+    "files": "Files",
+    "selectSnapshotFirst": "Pick a destination and snapshot to browse its files.",
+    "noFiles": "This snapshot contains no files.",
+    "searchFiles": "Search files…",
+    "selected": "selected",
+    "options": "Restore options",
+    "targetRoot": "Restore into",
+    "targetHint": "Leave as / to restore each file to its original location.",
+    "overwrite": "Overwrite existing files",
+    "overwriteHint": "Replace files that already exist at the target.",
+    "dryRun": "Preview only (dry run)",
+    "dryRunHint": "Report what would be restored without writing anything.",
+    "restore": "Restore",
+    "preview": "Preview",
+    "busy": "A restore is already in progress.",
+    "jobTitle": "Restore in progress",
+    "statRestored": "Restored",
+    "statSkipped": "Skipped",
+    "statFailed": "Failed",
+    "statBytes": "Transferred",
+    "noDestinations": "No destinations configured yet.",
+    "statusRunning": "Running",
+    "statusSuccess": "Success",
+    "statusPartial": "Partial",
+    "statusFailed": "Failed"
   },
   "settings": {
     "title": "Settings",

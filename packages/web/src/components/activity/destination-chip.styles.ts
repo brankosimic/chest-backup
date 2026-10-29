@@ -19,6 +19,9 @@ const outcomeValue = "font-medium text-foreground"
 const outcomeError = "mt-2 rounded-md bg-destructive/10 px-2 py-1.5 font-mono text-xs text-destructive"
 const outcomeFiles = "mt-2"
 const outcomeFileList = "mt-1 max-h-48 space-y-0.5 overflow-y-auto rounded-md bg-muted/50 p-2 font-mono text-xs text-muted-foreground"
+const restoreButton = "inline-flex items-center gap-1 cursor-pointer rounded-md border border-input bg-background px-2 py-0.5 text-xs font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
+const restoreIcon = "h-3 w-3"
+const fileSummary = "cursor-pointer text-xs text-muted-foreground hover:text-foreground"
 
 export {
   chip,
@@ -41,4 +44,7 @@ export {
   outcomeError,
   outcomeFiles,
   outcomeFileList,
+  restoreButton,
+  restoreIcon,
+  fileSummary,
 }

@@ -10,10 +10,12 @@ const footer = "flex items-center gap-1.5 border-t pt-2 text-xs text-muted-foreg
 const footerValue = "font-medium text-foreground"
 const cardShell = "relative transition-colors hover:border-primary"
 const unavailableIcon = "absolute right-2 top-2 h-4 w-4 text-destructive"
-const skeletonWide = "h-7 w-16 animate-pulse rounded bg-muted"
-const skeletonNarrow = "h-7 w-10 animate-pulse rounded bg-muted"
-const skeletonTextWide = "h-3 w-16 animate-pulse rounded bg-muted"
-const skeletonTextNarrow = "h-3 w-10 animate-pulse rounded bg-muted"
+const skeletonBase =
+  "animate-skeleton-shimmer rounded bg-[linear-gradient(90deg,var(--muted)_25%,color-mix(in_srgb,var(--muted)_40%,var(--background))_50%,var(--muted)_75%)] bg-[length:200%_100%]"
+const skeletonWide = `${skeletonBase} h-7 w-16`
+const skeletonNarrow = `${skeletonBase} h-7 w-10`
+const skeletonTextWide = `${skeletonBase} h-3 w-16`
+const skeletonTextNarrow = `${skeletonBase} h-3 w-10`
 const clockIcon = "h-3 w-3"
 const linkShell = "block"
 const diskGroup = "space-y-1"
@@ -22,7 +24,7 @@ const rowLabel = "text-muted-foreground"
 const rowValue = "font-medium tabular-nums"
 const barTrack = "h-1.5 w-full overflow-hidden rounded-full bg-muted"
 const diskBar = "h-full rounded-full bg-primary transition-all"
-const skeletonBar = "w-full animate-pulse bg-muted"
+const skeletonBar = `w-full ${skeletonBase}`
 
 export {
   header,

@@ -4,15 +4,11 @@ import { TimeRange } from "@/types/activity"
 
 const cn = (...inputs: ClassValue[]): string => twMerge(clsx(inputs))
 
-/** Locale used for date/number formatting — kept in sync with the active UI language. */
 let currentLocale = "en"
 
 const setLocale = (locale: string): void => {
   currentLocale = locale
 }
-
-/** Chromium lacks Bosnian Intl data, so formatting falls back to root patterns. */
-const intlLocale = (): string => (currentLocale === "bs" ? "sr-Latn-BA" : currentLocale)
 
 const RANGE_DAYS: Partial<Record<TimeRange, number>> = {
   [TimeRange.Day]: 1,
@@ -64,31 +60,35 @@ const formatSize = (bytes: number): string => {
   return `${tb.toFixed(2)} TB`
 }
 
-const formatNumber = (value: number): string => new Intl.NumberFormat(intlLocale()).format(value)
+const formatNumber = (value: number): string => new Intl.NumberFormat(currentLocale).format(value)
+
+const pad = (value: number, size = 2): string => String(value).padStart(size, "0")
+
+const bsDateParts = (date: Date, withYear: boolean): string => {
+  const month = pad(date.getMonth() + 1)
+  const day = pad(date.getDate())
+  return withYear ? `${day}.${month}.${String(date.getFullYear())}` : `${day}.${month}.`
+}
 
 const formatDate = (dateStr: string): string => {
   const date = new Date(dateStr)
   if (Number.isNaN(date.getTime())) return "-"
-  return date.toLocaleString(intlLocale())
+  if (currentLocale === "bs") return `${bsDateParts(date, true)} ${date.toLocaleTimeString("bs")}`
+  return date.toLocaleString(currentLocale, { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" })
 }
 
 const formatDateTime = (dateStr: string): string => {
   const date = new Date(dateStr)
   if (Number.isNaN(date.getTime())) return "-"
-  return date.toLocaleString(intlLocale(), {
-    year: "numeric",
-    month: "short",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  })
+  if (currentLocale === "bs") return `${bsDateParts(date, true)} ${date.toLocaleTimeString("bs")}`
+  return date.toLocaleString(currentLocale, { year: "numeric", month: "short", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" })
 }
 
 const formatDateOnly = (dateStr: string): string => {
   const date = new Date(dateStr)
   if (Number.isNaN(date.getTime())) return "-"
-  return date.toLocaleDateString(intlLocale(), { year: "numeric", month: "short", day: "2-digit" })
+  if (currentLocale === "bs") return bsDateParts(date, true)
+  return date.toLocaleDateString(currentLocale, { year: "numeric", month: "short", day: "2-digit" })
 }
 
 /**
@@ -99,19 +99,19 @@ const formatDateTimeCompact = (dateStr: string): string => {
   if (Number.isNaN(date.getTime())) return "-"
 
   const sameYear = date.getFullYear() === new Date().getFullYear()
-  return date.toLocaleString(intlLocale(), {
+  if (currentLocale === "bs") return `${bsDateParts(date, !sameYear)} ${date.toLocaleTimeString("bs", { hour: "2-digit", minute: "2-digit" })}`
+  const datePart = date.toLocaleDateString(currentLocale, {
     ...(sameYear ? {} : { year: "numeric" as const }),
     month: "short",
     day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
   })
+  const timePart = date.toLocaleTimeString(currentLocale, { hour: "2-digit", minute: "2-digit" })
+  return `${datePart} ${timePart}`
 }
 
 const formatClock = (dateStr: string): string => {
   const date = new Date(dateStr)
   if (Number.isNaN(date.getTime())) return "-"
-  const pad = (value: number, size = 2): string => String(value).padStart(size, "0")
   return `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}.${pad(date.getMilliseconds(), 3)}`
 }
 
@@ -130,7 +130,7 @@ const formatRelative = (dateStr: string, now = Date.now()): string => {
     ["second", 1000],
   ]
 
-  const formatter = new Intl.RelativeTimeFormat(intlLocale(), { numeric: "auto" })
+  const formatter = new Intl.RelativeTimeFormat(currentLocale, { numeric: "auto" })
 
   for (const [unit, ms] of units) {
     if (abs >= ms || unit === "second") {

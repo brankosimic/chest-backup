@@ -11,6 +11,7 @@ import type {
   NotificationsConfig,
 } from "./config"
 import type { StoreResult, BackupProgressEvent, BackupProgressCallback } from "./destination"
+import type { RestoreContext, FileOutcome, RestoreCounters, ProgressTotals, RestoreProgressCallback, RestoreRunArgs, ProcessFilesArgs, FileSelection, RestoreHandlerArgs } from "./restore"
 import type { FileStat } from "./manifest"
 import type { RunOptions } from "./run"
 import type { RunTrigger } from "@chest-backup/shared"
@@ -71,4 +72,13 @@ export type {
   RunOptions,
   BackupProgressEvent,
   BackupProgressCallback,
+  RestoreContext,
+  FileOutcome,
+  RestoreCounters,
+  ProgressTotals,
+  RestoreProgressCallback,
+  RestoreRunArgs,
+  ProcessFilesArgs,
+  FileSelection,
+  RestoreHandlerArgs,
 }

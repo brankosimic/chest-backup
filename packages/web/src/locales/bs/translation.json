@@ -29,7 +29,9 @@
     "no": "Ne",
     "close": "Zatvori",
     "errorTitle": "Došlo je do greške",
-    "tryAgain": "Pokušaj ponovo"
+    "tryAgain": "Pokušaj ponovo",
+    "expand": "Proširi",
+    "collapse": "Skupi"
   },
   "nav": {
     "dashboard": "Naslovna",
@@ -37,6 +39,7 @@
     "destinations": "Odredišta",
     "notifications": "Obavijesti",
     "activity": "Aktivnost",
+    "restore": "Vrati",
     "history": "Istorija",
     "logs": "Logovi",
     "settings": "Postavke",
@@ -46,8 +49,7 @@
     "languages": {
       "en": "English",
       "bs": "Bosanski"
-    },
-    "menu": "Meni"
+    }
   },
   "dashboard": {
     "title": "Naslovna",
@@ -182,7 +184,7 @@
     "presets": "Preddefinirano",
     "hourly": "Svaki sat",
     "daily": "Dnevno u 3:00",
-    "weekly": "Nedjeljno u 2:00",
+    "weekly": "Nedjelja 2:00",
     "custom": "Prilagođeno"
   },
   "retention": {
@@ -288,7 +290,8 @@
       "deleted": "Obrisano",
       "failed": "Neuspjelo",
       "skippedReason": "Preskočeno ({{reason}})",
-      "showFiles": "Prikaži {{count}} fajlova"
+      "showFiles": "Prikaži {{count}} fajlova",
+      "restore": "Vrati"
     },
     "logs": {
       "empty": "Još nema log linija",
@@ -298,6 +301,41 @@
       "manual": "Ručno",
       "scheduled": "Zakazano"
     }
+  },
+  "restore": {
+    "title": "Vrati",
+    "subtitle": "Povrat datoteka iz sigurnosne kopije",
+    "snapshot": "Sigurnosna kopija",
+    "destination": "Odredište",
+    "selectDestination": "Odaberi odredište",
+    "snapshotPeriod": "Period kopije",
+    "selectSnapshot": "Odaberi kopiju",
+    "noDestinationHint": "Izaberi odredište da bi se navela njegova kopija.",
+    "files": "Datoteke",
+    "selectSnapshotFirst": "Odaberi odredište i period da pregledaš datoteke.",
+    "noFiles": "Ova kopija ne sadrži datoteke.",
+    "searchFiles": "Pretraži datoteke…",
+    "selected": "odabrano",
+    "options": "Opcije vraćanja",
+    "targetRoot": "Vrati u",
+    "targetHint": "Ostavi / za vraćanje svake datoteke na izvorno mjesto.",
+    "overwrite": "Pregazi postojeće datoteke",
+    "overwriteHint": "Zamijeni datoteke koje već postoje na odredištu.",
+    "dryRun": "Samo pregled (bez pisanja)",
+    "dryRunHint": "Prikaži šta bi se vratilo bez bilo kakvog pisanja.",
+    "restore": "Vrati",
+    "preview": "Pregled",
+    "busy": "Vraćanje je već u toku.",
+    "jobTitle": "Vraćanje u toku",
+    "statRestored": "Vraćeno",
+    "statSkipped": "Preskočeno",
+    "statFailed": "Neuspjelo",
+    "statBytes": "Preneseno",
+    "noDestinations": "Još nema konfigurisanih odredišta.",
+    "statusRunning": "U toku",
+    "statusSuccess": "Uspješno",
+    "statusPartial": "Dijelomice",
+    "statusFailed": "Neuspjelo"
   },
   "settings": {
     "title": "Postavke",

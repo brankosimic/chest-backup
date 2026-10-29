@@ -89,6 +89,7 @@ interface SummaryStripProps {
 
 interface DestResultProps {
   result: StoreResult
+  onRestore?: (destinationId: string) => void
 }
 
 interface LogLevelOption {

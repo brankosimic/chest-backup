@@ -2,7 +2,18 @@ import type { ContainerVolume, BackupRunProgress, DestinationUsage } from "../ty
 import type { RetentionSettings, ExcludeUpdateData, ExcludeSettings } from "../types/mutations"
 import type { SourceExclusions } from "../types/sources"
 import type { LogQuery, Paginated, RunQuery } from "../types/api"
-import type { Source, Destination, BackupRecord, ApiResponse, LogEntry, RunStats } from "@chest-backup/shared"
+import type {
+  Source,
+  Destination,
+  BackupRecord,
+  ApiResponse,
+  LogEntry,
+  RunStats,
+  RestoreSnapshot,
+  RestoreSnapshotFile,
+  RestoreJob,
+  RestoreRequest,
+} from "@chest-backup/shared"
 import { SourceErrorCode } from "@chest-backup/shared"
 
 const BASE_URL = ""
@@ -182,6 +193,20 @@ const fetchPostgresDatabases = (data: {
     body: JSON.stringify(data),
   })
 
+const fetchRestoreSnapshots = (destinationId: string) =>
+  apiFetch<RestoreSnapshot[]>(`/api/restores/snapshots?destinationId=${encodeURIComponent(destinationId)}`)
+
+const fetchRestoreSnapshotFiles = (destinationId: string, periodKey: string) =>
+  apiFetch<RestoreSnapshotFile[]>(
+    `/api/restores/snapshots/${encodeURIComponent(destinationId)}/${encodeURIComponent(periodKey)}/files`,
+  )
+
+const startRestore = (data: RestoreRequest) => apiFetch<RestoreJob>("/api/restores", { method: "POST", body: JSON.stringify(data) })
+
+const fetchRestoreJob = (id: string) => apiFetch<RestoreJob>(`/api/restores/jobs/${encodeURIComponent(id)}`)
+
+const fetchActiveRestore = () => apiFetch<RestoreJob | null>("/api/restores/active")
+
 export {
   apiFetch,
   isDuplicateSourceError,
@@ -217,6 +242,11 @@ export {
   fetchDockerContainers,
   fetchContainerVolumes,
   fetchPostgresDatabases,
+  fetchRestoreSnapshots,
+  fetchRestoreSnapshotFiles,
+  startRestore,
+  fetchRestoreJob,
+  fetchActiveRestore,
   type Paginated,
   type RunQuery,
   type LogQuery,

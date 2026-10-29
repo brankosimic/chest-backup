@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next"
 import type { StoreResult } from "@chest-backup/shared"
 import { DestinationType } from "@chest-backup/shared"
-import { CheckCircle2, XCircle, SkipForward, HardDrive, Network, Clock } from "lucide-react"
+import { CheckCircle2, XCircle, SkipForward, HardDrive, Network, Clock, RotateCcw } from "lucide-react"
 import { cn, formatDuration, formatSize } from "@/lib/utils"
 import { DestOutcome } from "@/types/activity"
 import type { DestResultProps } from "@/types/activity"
@@ -34,12 +34,13 @@ const DestinationChip = ({ result }: DestResultProps) => {
   )
 }
 
-const DestinationOutcomeRow = ({ result }: DestResultProps) => {
+const DestinationOutcomeRow = ({ result, onRestore }: DestResultProps) => {
   const { t } = useTranslation()
   const TypeIcon = result.destType === DestinationType.Local ? HardDrive : Network
   const uploaded = result.uploadedCount ?? result.uploaded?.length ?? 0
   const deleted = result.deletedCount ?? result.deleted?.length ?? 0
   const failed = result.failedCount ?? 0
+  const restorable = !result.skipped
 
   return (
     <div className={styles.outcomeCard}>
@@ -60,6 +61,18 @@ const DestinationOutcomeRow = ({ result }: DestResultProps) => {
           )}
           {result.speed !== undefined && result.speed > 0 && (
             <span className={styles.outcomeTiming}>{formatSize(result.speed)}/s</span>
+          )}
+          {restorable && result.destId && onRestore && (
+            <button
+              type="button"
+              onClick={() => {
+                onRestore(result.destId as string)
+              }}
+              className={styles.restoreButton}
+            >
+              <RotateCcw className={styles.restoreIcon} />
+              {t("activity.detail.restore")}
+            </button>
           )}
         </div>
       </div>
@@ -85,7 +98,7 @@ const DestinationOutcomeRow = ({ result }: DestResultProps) => {
 
       {result.uploaded && result.uploaded.length > 0 && (
         <details className={styles.outcomeFiles}>
-          <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground">
+          <summary className={styles.fileSummary}>
             {t("activity.detail.showFiles", { count: result.uploaded.length })}
           </summary>
           <ul className={styles.outcomeFileList}>
