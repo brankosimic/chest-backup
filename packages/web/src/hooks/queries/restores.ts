@@ -5,6 +5,7 @@ import {
   fetchRestoreSnapshotCount,
   fetchRestoreSnapshotFiles,
   startRestore,
+  cancelRestore,
   fetchRestoreJob,
   fetchActiveRestore,
 } from "@/lib/api-client"
@@ -41,6 +42,17 @@ const useStartRestore = () => {
   })
 }
 
+const useCancelRestore = () => {
+  const qc = useQueryClient()
+
+  return useMutation({
+    mutationFn: cancelRestore,
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["restore-active"] })
+    },
+  })
+}
+
 const useRestoreJob = (id: string | null) =>
   useQuery({
     queryKey: ["restore-job", id],
@@ -58,8 +70,8 @@ const useActiveRestore = () =>
     queryFn: fetchActiveRestore,
     refetchInterval: (query) => {
       const job = query.state.data
-      return job && job.status === RestoreStatus.Running ? 3_000 : false
+      return job && job.status === RestoreStatus.Running ? 1_000 : false
     },
   })
 
-export { useRestoreSnapshots, useRestoreSnapshotCount, useRestoreSnapshotFiles, useStartRestore, useRestoreJob, useActiveRestore }
+export { useRestoreSnapshots, useRestoreSnapshotCount, useRestoreSnapshotFiles, useStartRestore, useCancelRestore, useRestoreJob, useActiveRestore }

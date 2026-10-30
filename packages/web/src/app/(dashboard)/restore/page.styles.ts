@@ -19,7 +19,7 @@ const destIcon = "h-3.5 w-3.5"
 const jobHeaderRow = "flex flex-row flex-wrap items-center justify-between gap-x-3 space-y-0 pb-2"
 const jobTitleGroup = "flex min-w-0 items-center gap-2"
 const jobHeaderStats = "flex items-center gap-3 text-xs text-muted-foreground"
-const jobMeta = "flex flex-wrap items-center gap-x-2 text-sm text-muted-foreground"
+const jobMeta = "flex flex-wrap text-sm text-muted-foreground [&>*]:inline-flex [&>*]:items-center [&>*]:gap-1.5"
 const progressTrack = "relative h-2 w-full overflow-hidden rounded-full bg-muted"
 const progressBarBase = "h-full rounded-full transition-all duration-700 ease-out"
 const progressBarActive = "bg-gradient-to-r from-blue-600 via-blue-400 to-blue-600 bg-[length:200%_100%] animate-shimmer"
@@ -32,6 +32,12 @@ const statBox = "rounded-lg border p-3"
 const statValue = "text-lg font-semibold"
 const statLabel = "text-xs text-muted-foreground"
 const currentFile = "flex items-center gap-2 truncate rounded-md bg-muted px-2 py-1 font-mono text-xs"
+const currentFileWrap = "space-y-1.5"
+const currentFilePath = "flex-1 truncate"
+const currentFileBytes = "shrink-0 tabular-nums text-muted-foreground"
+const fileProgressTrack = "relative h-1 w-full overflow-hidden rounded-full bg-muted"
+const speedLabel = "tabular-nums text-blue-500"
+const monoText = "font-mono"
 const errorList = "max-h-40 space-y-1 overflow-auto rounded-md border border-destructive/40 bg-destructive/5 p-2"
 const errorItem = "break-all text-xs text-destructive"
 const sectionTitle = "text-sm font-medium"
@@ -43,6 +49,7 @@ const skeletonRow = "h-8 rounded-md bg-gradient-to-r from-muted via-muted/60 to-
 const fileTreeWrap = "flex flex-col gap-3 animate-fade-in-up"
 const searchInput = "pl-8"
 const fieldHint = "mt-1 text-xs text-muted-foreground"
+const busyRow = "flex items-center justify-between gap-2"
 const busyHint = "flex items-center gap-1 text-xs text-muted-foreground"
 const busyIcon = "h-3 w-3"
 const emptyState = "py-8 text-center text-sm text-muted-foreground"
@@ -87,6 +94,12 @@ export {
   statValue,
   statLabel,
   currentFile,
+  currentFileWrap,
+  currentFilePath,
+  currentFileBytes,
+  fileProgressTrack,
+  speedLabel,
+  monoText,
   errorList,
   errorItem,
   sectionTitle,
@@ -98,6 +111,7 @@ export {
   fileTreeWrap,
   searchInput,
   fieldHint,
+  busyRow,
   busyHint,
   busyIcon,
   emptyState,

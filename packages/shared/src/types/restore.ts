@@ -54,6 +54,9 @@ interface RestoreProgressEvent {
   failedCount: number
   restoredBytes: number
   currentPath?: string
+  currentFileBytes: number
+  currentFileTotal: number
+  speed: number
 }
 
 interface RestoreJob {
@@ -78,6 +81,9 @@ interface RestoreJob {
   totalBytes: number
   restoredBytes: number
   currentPath?: string
+  currentFileBytes: number
+  currentFileTotal: number
+  speed: number
   files: RestoreFileResult[]
   errors: string[]
   durationMs?: number

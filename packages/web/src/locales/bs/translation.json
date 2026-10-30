@@ -341,7 +341,13 @@
     "statusRunning": "U toku",
     "statusSuccess": "Uspješno",
     "statusPartial": "Dijelomice",
-    "statusFailed": "Neuspjelo"
+    "statusFailed": "Neuspjelo",
+    "filesCount": "{{files}} datoteka",
+    "cancel": "Prekini vraćanje",
+    "cancelTitle": "Prekini vraćanje",
+    "cancelQuestion": "Da li sigurno želiš prekinuti vraćanje kopije \"{{snapshot}}\" u {{target}}? Datoteke koje su već vraćene neće biti povučene.",
+    "cancelConfirm": "Prekini vraćanje",
+    "statusCancelled": "Prekinuto"
   },
   "settings": {
     "title": "Postavke",

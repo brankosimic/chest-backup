@@ -13,10 +13,10 @@ import { Switch } from "@/components/ui/switch"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { useDestinations } from "@/hooks/queries/destinations"
-import { useRestoreSnapshots, useRestoreSnapshotCount, useRestoreSnapshotFiles, useStartRestore, useActiveRestore } from "@/hooks/queries/restores"
+import { useRestoreSnapshots, useRestoreSnapshotCount, useRestoreSnapshotFiles, useStartRestore, useCancelRestore, useActiveRestore } from "@/hooks/queries/restores"
 import { formatDateTime, formatNumber, formatSize, destLabel } from "@/lib/utils"
 import { DestinationType, RestoreStatus } from "@chest-backup/shared"
-import { FolderOpen, Search, RotateCcw, Clock, HardDrive, Network } from "lucide-react"
+import { FolderOpen, Search, RotateCcw, Clock, HardDrive, Network, XCircle } from "lucide-react"
 import { FileTree } from "./file-tree"
 import { JobPanel } from "./job-panel"
 import * as styles from "./page.styles"
@@ -36,6 +36,7 @@ const RestorePage = () => {
   const [overwrite, setOverwrite] = useState(true)
   const [dryRun, setDryRun] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const [cancelOpen, setCancelOpen] = useState(false)
 
   useEffect(() => {
     if (preselectDest && destinations?.some((d) => d.id === preselectDest)) setDestId(preselectDest)
@@ -50,6 +51,7 @@ const RestorePage = () => {
   const { data: files, isLoading: filesLoading } = useRestoreSnapshotFiles(destId, periodKey)
 
   const startRestore = useStartRestore()
+  const cancelRestore = useCancelRestore()
   const { data: activeJob } = useActiveRestore()
 
   useEffect(() => {
@@ -99,6 +101,21 @@ const RestorePage = () => {
       dryRun,
     })
     setConfirmOpen(false)
+  }
+
+  const openCancel = (): void => {
+    if (!activeJob || activeJob.status !== RestoreStatus.Running) return
+    setCancelOpen(true)
+  }
+
+  const confirmCancel = (): void => {
+    if (!activeJob) return
+    cancelRestore.mutate(activeJob.id)
+    closeCancel()
+  }
+
+  const closeCancel = (): void => {
+    setCancelOpen(false)
   }
 
   return (
@@ -252,9 +269,20 @@ const RestorePage = () => {
               {selectedCount > 0 && ` (${formatNumber(selectedCount)})`}
             </Button>
             {activeJob?.status === RestoreStatus.Running && (
-              <p className={styles.busyHint}>
-                <Clock className={styles.busyIcon} /> {t("restore.busy")}
-              </p>
+              <div className={styles.busyRow}>
+                <p className={styles.busyHint}>
+                  <Clock className={styles.busyIcon} /> {t("restore.busy")}
+                </p>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={openCancel}
+                  disabled={cancelRestore.isPending}
+                >
+                  <XCircle className="h-4 w-4" />
+                  {t("restore.cancel")}
+                </Button>
+              </div>
             )}
           </CardContent>
         </Card>
@@ -297,6 +325,16 @@ const RestorePage = () => {
           <p className={styles.confirmNote}>{t("restore.confirmOverwrite")}</p>
         ) : null}
       </ConfirmDialog>
+
+      <ConfirmDialog
+        open={cancelOpen}
+        title={t("restore.cancelTitle")}
+        description={t("restore.cancelQuestion", { snapshot: activeJob?.periodKey ?? "", target: activeJob?.targetRoot ?? "" })}
+        confirmLabel={t("restore.cancelConfirm")}
+        cancelLabel={t("common.cancel")}
+        onConfirm={confirmCancel}
+        onCancel={closeCancel}
+      />
     </div>
   )
 }

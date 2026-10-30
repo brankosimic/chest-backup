@@ -341,7 +341,13 @@
     "statusRunning": "Running",
     "statusSuccess": "Success",
     "statusPartial": "Partial",
-    "statusFailed": "Failed"
+    "statusFailed": "Failed",
+    "filesCount": "{{files}} files",
+    "cancel": "Cancel restore",
+    "cancelTitle": "Cancel restore",
+    "cancelQuestion": "Are you sure you want to cancel the restore of snapshot \"{{snapshot}}\" into {{target}}? Files already restored will not be rolled back.",
+    "cancelConfirm": "Cancel restore",
+    "statusCancelled": "Cancelled"
   },
   "settings": {
     "title": "Settings",

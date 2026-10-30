@@ -12,6 +12,11 @@ interface FileOutcome {
   bytes: number
 }
 
+interface TargetResolution {
+  target: string
+  skipped: boolean
+}
+
 interface RestoreCounters {
   completed: number
   restored: number
@@ -28,12 +33,29 @@ interface ProgressTotals {
 
 type RestoreProgressCallback = (event: RestoreProgressEvent) => void
 
+type FileProgressCallback = (transferred: number, total: number) => void
+
+type FileProgressReporter = (transferred: number, total: number) => number
+
+type FileRestoreHandler = (file: RestoreSnapshotFile, onFileProgress: FileProgressCallback) => Promise<FileOutcome>
+
+interface FileProgressArgs {
+  onProgress?: RestoreProgressCallback
+  totals: ProgressTotals
+  counts: RestoreCounters
+  file: RestoreSnapshotFile
+  startedAt: number
+  transferred: number
+  total: number
+}
+
 interface RestoreRunArgs {
   dest: Destination
   periodKey: string
   files: RestoreSnapshotFile[]
   missing: string[]
   context: RestoreContext
+  signal: AbortSignal
   onProgress?: RestoreProgressCallback
 }
 
@@ -46,18 +68,36 @@ interface RestoreHandlerArgs {
   files: RestoreSnapshotFile[]
   missing: string[]
   context: RestoreContext
-  handler: (file: RestoreSnapshotFile) => Promise<FileOutcome>
+  signal: AbortSignal
+  handler: FileRestoreHandler
   onProgress?: RestoreProgressCallback
 }
 
 interface ProcessFilesArgs {
   files: RestoreSnapshotFile[]
   context: RestoreContext
-  handler: (file: RestoreSnapshotFile) => Promise<FileOutcome>
+  signal: AbortSignal
+  handler: FileRestoreHandler
   totals: ProgressTotals
   counts: RestoreCounters
   results: RestoreFileResult[]
+  startedAt: number
   onProgress?: RestoreProgressCallback
 }
 
-export type { RestoreContext, FileOutcome, RestoreCounters, ProgressTotals, RestoreProgressCallback, RestoreRunArgs, ProcessFilesArgs, FileSelection, RestoreHandlerArgs }
+export type {
+  RestoreContext,
+  FileOutcome,
+  TargetResolution,
+  RestoreCounters,
+  ProgressTotals,
+  RestoreProgressCallback,
+  FileProgressCallback,
+  FileProgressReporter,
+  FileRestoreHandler,
+  FileProgressArgs,
+  RestoreRunArgs,
+  ProcessFilesArgs,
+  FileSelection,
+  RestoreHandlerArgs,
+}

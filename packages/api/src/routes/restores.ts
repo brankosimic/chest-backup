@@ -1,10 +1,10 @@
 import { Hono } from "hono"
 import { RestoreRequestSchema } from "../lib/validation"
 import { findDestinationById, getRetention } from "../lib/store"
-import { getActiveRestoreJob, getRestoreJob, startRestoreJob } from "../lib/store/restore"
+import { cancelRestoreJob, getActiveRestoreJob, getRestoreJob, startRestoreJob } from "../lib/store/restore"
 import { notFound, validateBody } from "../lib/routes"
 import { assertSnapshotKey, countSnapshotFiles, listSnapshotFiles, listSnapshots } from "@core/restore/snapshots"
-import { SFTP_SCAN_TIMEOUT_MS, withTimeout } from "../lib/utils"
+import { SFTP_SCAN_TIMEOUT_MS, withTimeout } from "@core/utils/timeout"
 
 const restores = new Hono()
 
@@ -52,6 +52,12 @@ restores.get("/snapshots/:destinationId/:periodKey/files", async (c) => {
 
   const data = await listSnapshotFiles(destination, c.req.param("periodKey"))
   return c.json({ success: true, data })
+})
+
+restores.post("/:id/cancel", (c) => {
+  const job = cancelRestoreJob(c.req.param("id"))
+  if (!job) return notFound(c, "Restore job")
+  return c.json({ success: true, data: job })
 })
 
 restores.get("/active", (c) => c.json({ success: true, data: getActiveRestoreJob() }))

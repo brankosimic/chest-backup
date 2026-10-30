@@ -34,6 +34,7 @@ enum RestoreStatus {
   Success = "success",
   Partial = "partial",
   Failed = "failed",
+  Cancelled = "cancelled",
 }
 
 enum RestorePhase {
@@ -41,6 +42,7 @@ enum RestorePhase {
   Restoring = "restoring",
   Completed = "completed",
   Failed = "failed",
+  Cancelled = "cancelled",
 }
 
 enum RestoreFileStatus {

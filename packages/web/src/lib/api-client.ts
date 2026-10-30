@@ -199,6 +199,8 @@ const fetchRestoreSnapshotFiles = (destinationId: string, periodKey: string) =>
 
 const startRestore = (data: RestoreRequest) => apiFetch<RestoreJob>("/api/restores", { method: "POST", body: JSON.stringify(data) })
 
+const cancelRestore = (id: string) => apiFetch<RestoreJob>(`/api/restores/${encodeURIComponent(id)}/cancel`, { method: "POST" })
+
 const fetchRestoreJob = (id: string) => apiFetch<RestoreJob>(`/api/restores/jobs/${encodeURIComponent(id)}`)
 
 const fetchActiveRestore = () => apiFetch<RestoreJob | null>("/api/restores/active")
@@ -242,6 +244,7 @@ export {
   fetchRestoreSnapshotCount,
   fetchRestoreSnapshotFiles,
   startRestore,
+  cancelRestore,
   fetchRestoreJob,
   fetchActiveRestore,
 }

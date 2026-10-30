@@ -19,4 +19,6 @@ const partitionByOutcome = (results: FileUploadResult[]): Pick<UploadOutcome, "u
 
 const speedFrom = (bytes: number, durationMs: number): number => (durationMs > 0 ? bytes / (durationMs / 1000) : 0)
 
-export { errorCode, isRetryable, partitionByOutcome, speedFrom }
+const speedFor = (bytes: number, startedAt: number): number => speedFrom(bytes, Date.now() - startedAt)
+
+export { errorCode, isRetryable, partitionByOutcome, speedFrom, speedFor }

@@ -4,7 +4,18 @@ set -euo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 template="$root/contrib/aur/PKGBUILD.template"
 pkgver="$(node -p "require('$root/package.json').version")"
-sha256="d026e88bf8122edae2b60c6c9d3592e58eec903829e0277374ae1faf62de04c1"
+
+repo_url="$(git -C "$root" remote get-url origin)"
+repo_url="${repo_url#git@}"
+case "$repo_url" in
+  *github.com/*) repo="${repo_url#*github.com/}" ;;
+  github.com:*)   repo="${repo_url#github.com:}" ;;
+  *) echo "error: origin is not a GitHub remote: $repo_url" >&2; exit 1 ;;
+esac
+repo="${repo%.git}"
+source_url="https://github.com/$repo/archive/v$pkgver.tar.gz"
+
+sha256="$(curl -fsSL "$source_url" | sha256sum | cut -d' ' -f1)"
 
 make_makedepends() {
   printf "makedepends=(\n  'nodejs'\n  'pnpm'\n  'python'\n)\n"
@@ -19,6 +30,7 @@ emit() {
   sed -e "s|__PKGNAME__|$name|" \
       -e "s|__PKGVER__|$pkgver|" \
       -e "s|__SUFFIX__|$suffix|" \
+      -e "s|__REPO__|$repo|" \
       -e "s|__SHA256__|$sha|" \
       -e "/^__MAKEDEPENDS__$/d" \
       -e "/^__BUILD__$/d" \

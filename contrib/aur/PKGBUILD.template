@@ -14,7 +14,7 @@ pkgrel=1
 install=chest-backup.install
 pkgdesc="Full-stack backup manager with web UI and scheduling__SUFFIX__"
 arch=('x86_64' 'aarch64')
-url="https://github.com/valens-dev/chest-backup"
+url="https://github.com/__REPO__"
 license=('MIT')
 depends=(
   'bun'
@@ -23,7 +23,7 @@ __MAKEDEPENDS__
 optdepends=(
   'docker: container-based backup sources (sqlite-container, postgres-container)'
 )
-source=("$pkgname-$pkgver.tar.gz::https://github.com/valens-dev/chest-backup/archive/v$pkgver.tar.gz")
+source=("$pkgname-$pkgver.tar.gz::https://github.com/__REPO__/archive/v$pkgver.tar.gz")
 sha256sums=('__SHA256__')
 
 __BUILD__
