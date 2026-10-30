@@ -27,6 +27,9 @@ A full-stack backup management system — schedule and monitor backups of files,
 ### Activity
 ![Activity](https://raw.githubusercontent.com/valens-dev/chest-backup/main/docs/screenshots/activity.png)
 
+### Restore
+![Restore](https://raw.githubusercontent.com/valens-dev/chest-backup/main/docs/screenshots/restore.png)
+
 ### Settings
 ![Settings](https://raw.githubusercontent.com/valens-dev/chest-backup/main/docs/screenshots/settings.png)
 
