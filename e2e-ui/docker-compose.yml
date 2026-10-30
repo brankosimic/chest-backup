@@ -1,0 +1,86 @@
+name: chest-backup-e2e-ui
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: e2e-ui/Dockerfile.app
+    container_name: chest-e2eui-app
+    ports:
+      - "${APP_PORT:-5199}:5199"
+    environment:
+      API_HOST: "0.0.0.0"
+      API_PORT: "5199"
+      LOG_LEVEL: "info"
+      CHEST_CONFIG_PATH: "/data/config.json"
+      WEB_DIST_PATH: "/app/packages/web/dist"
+    volumes:
+      - ./config.json:/data/config.json
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      postgres:
+        condition: service_healthy
+      sftp:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:18-alpine
+    container_name: chest-e2eui-postgres
+    environment:
+      POSTGRES_USER: chest
+      POSTGRES_PASSWORD: chest
+      POSTGRES_DB: chestdb
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./init/postgres-init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chest -d chestdb"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  sqldb:
+    image: alpine:3.24
+    container_name: chest-e2eui-sqldb
+    command: ["sh", "-c", "apk add --no-cache sqlite >/dev/null 2>&1; mkdir -p /data; [ -f /data/app.db ] || sqlite3 /data/app.db \"CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT); INSERT INTO users (name) VALUES ('alice'),('bob'),('carol');\"; tail -f /dev/null"]
+    volumes:
+      - sqldb-data:/data
+
+  appvol:
+    image: alpine:3.24
+    container_name: chest-e2eui-appvol
+    command: ["sh", "-c", "mkdir -p /data/logs /data/config; echo 'hello from app container' > /data/hello.txt; echo '{\"mode\":\"production\",\"port\":8080}' > /data/config/app.json; echo '2026-10-30T00:00:00Z INFO started' > /data/logs/app.log; tail -f /dev/null"]
+    volumes:
+      - appvol-data:/data
+
+  sftp:
+    build:
+      context: ..
+      dockerfile: e2e-ui/Dockerfile.sftp
+    container_name: chest-e2eui-sftp
+    command: ["sh", "-c", "mkdir -p /run/sshd /backups/local /backups/sftp && chown -R chest:chest /backups && /usr/sbin/sshd -D -e"]
+    ports:
+      - "2222:22"
+    volumes:
+      - ./sftp-data:/backups
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/localhost/22' || exit 1"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  browser:
+    build:
+      context: ..
+      dockerfile: e2e-ui/Dockerfile.browser
+    container_name: chest-e2eui-browser
+    working_dir: /work
+    volumes:
+      - ./:/work
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: ["sh", "-c", "npm install --no-audit --no-fund && npx playwright test --config playwright.config.ts"]
+
+volumes:
+  sqldb-data:
+  appvol-data:

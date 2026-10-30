@@ -1,0 +1,12 @@
+FROM debian:trixie-slim
+
+RUN apt-get update -qq && \
+    apt-get install -y -qq --no-install-recommends openssh-server ca-certificates >/dev/null && \
+    rm -rf /var/lib/apt/lists/* && \
+    mkdir -p /run/sshd /backups && \
+    useradd -m -u 1000 -s /bin/sh chest && \
+    echo 'chest:chest' | chpasswd && \
+    chmod 755 /backups && chown chest:chest /backups
+
+EXPOSE 22
+CMD ["sh", "-c", "mkdir -p /run/sshd && /usr/sbin/sshd -D -e"]

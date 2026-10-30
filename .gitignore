@@ -9,6 +9,11 @@ chest-backup.json
 *.tsbuildinfo
 .chest-data/
 *.bak
+e2e-ui/sftp-data/
+e2e-ui/test-results/
+e2e-ui/playwright-report/
+e2e-ui/node_modules/
+e2e-ui/package-lock.json
 packages/api/.env
 packages/web/.env.local
 packages/web/.env.production
