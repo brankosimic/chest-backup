@@ -8,6 +8,7 @@ A full-stack backup management system — schedule and monitor backups of files,
 - **Destinations** — local filesystem and SFTP, with per-destination retention
 - **Scheduling** — cron-driven runs, plus manual runs from the dashboard or API
 - **Activity screen** — every run and log line in one place, with live streaming
+- **Restore** — browse any snapshot's file tree and restore selected files to a target path (with dry-run preview)
 - **Notifications** — Discord alerts on backup success/failure
 - **Dry-run mode** — validate configuration without running backups
 - **Environment variable interpolation** — reference secrets from `.env` in config
@@ -40,8 +41,9 @@ A full-stack backup management system — schedule and monitor backups of files,
 
 ```
 packages/api    # Hono API server (Bun) — orchestration, scheduling, run history
-packages/core   # Backup engine — sources, destinations, incremental sync, retention
-packages/web    # React + Vite frontend — dashboard, activity, config editor
+packages/core   # Backup engine — sources, destinations, incremental sync, retention, restore
+packages/daemon # CLI entry point — daemon, one-off runs, dry-run
+packages/web    # React + Vite frontend — dashboard, activity, restore, config editor
 packages/shared # Types shared across packages
 ```
 
@@ -60,35 +62,18 @@ pnpm start -- --dry-run    # validate config only
 
 `pnpm dev` proxies `/api` to `http://localhost:5199`; override with `API_PROXY_TARGET` and `WEB_PORT`.
 
-### Systemd user services
-
-A single unit is provided — `chest-backup.service`:
+### Systemd user service
 
 ```bash
 systemctl --user link /usr/lib/systemd/user/chest-backup.service
-systemctl --user daemon-reload
 systemctl --user enable --now chest-backup
 ```
 
 ## Configuration
 
-`chest-backup.json` holds `schedule`, `retention`, `tempDir`, `paths`, `sqlite`, `sources`, `exclude`, `destinations` and `notifications`. See `chest-backup.json.example` for a fully commented template.
+`chest-backup.json` holds `schedule`, `retention`, `paths`, `sqlite`, `sources`, `exclude`, `destinations` and `notifications`. See `chest-backup.json.example` for a fully commented template. `exclude` takes glob patterns (`**/cdn-cache/**`, `/data/drafts/**`, `*.log`) for files that are never uploaded or deleted.
 
-`exclude` holds glob patterns for files that are never uploaded or deleted:
-
-| Pattern | Matches |
-|---|---|
-| `**/cdn-cache/**` | every file under any directory named `cdn-cache` |
-| `/data/documents/drafts/**` | absolute path prefix |
-| `*.log` | file name only, at any depth |
-
-### CLI flags
-
-| Flag | Description |
-|---|---|
-| `--config <path>` | Path to configuration file |
-| `--dry-run` | Validate config without running backups |
-| `--run-now` | Run a backup immediately |
+CLI flags: `--config <path>`, `--dry-run`, `--run-now`.
 
 ## API
 
@@ -104,6 +89,10 @@ systemctl --user enable --now chest-backup
 | `GET` | `/api/logs/stats` | Entry counts per level |
 | `DELETE` | `/api/logs` | Clear the stored log file |
 | `GET` | `/api/events/stream` | Server-Sent Events — `log` and `run` frames with keepalives |
+| `GET` | `/api/restores/snapshots?destinationId=` | List snapshot periods for a destination |
+| `GET` | `/api/restores/snapshots/:id/:period/files` | File tree of a snapshot |
+| `POST` | `/api/restores` | Start a restore job (`files`, `targetRoot`, `overwrite`, `dryRun`) |
+| `GET` | `/api/restores/active` | The active restore job, or `null` |
 
 ### Environment
 
@@ -115,12 +104,7 @@ systemctl --user enable --now chest-backup
 | `CHEST_DATA_DIR` | `~/.local/share/chest-backup` | Where run history and logs are stored |
 | `LOG_LEVEL` | `info` | Log verbosity (`debug`, `info`, `warn`, `error`) |
 
-### Stored data
-
-| Path | Contents |
-|---|---|
-| `~/.local/share/chest-backup/backup-history.json` | Completed runs (capped at 500, file lists trimmed) |
-| `~/.local/share/chest-backup/logs.jsonl` | Append-only log stream (rotated at 5 MB, one generation kept) |
+Run history and logs are stored under `CHEST_DATA_DIR` (`backup-history.json`, capped at 500 runs, and a rotated `logs.jsonl`).
 
 ## Development
 
